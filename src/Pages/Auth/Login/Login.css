@@ -1,0 +1,131 @@
+
+.log-form {
+    display: flex;
+
+}
+
+.log-form .main-form{
+    width: 50%;
+    height: 100vh;
+    padding-top: 120px;
+    display: flex;
+    flex-direction: column;
+    /* justify-content: center; */
+    align-items: center;
+    overflow-y: scroll;
+}
+
+.log-form .main-form .log-head h2{
+font-size: 30px;
+margin: 0;
+}
+
+.log-form .main-form form{
+    display: flex;
+    flex-direction: column;
+}
+
+.log-form .main-form form .karim-input{
+    margin: 15px 3px 0px;
+    border-radius: 6px;
+}
+
+.log-form .main-form form .karim-input .MuiInputBase-root {
+    border-radius: 7px;
+
+}
+
+.log-form .main-form form .karim-input input{
+    height:18px;
+    width:300px;
+    display: block;
+}
+
+.log-form .main-form form .forget-pass{
+    color: #616bda;
+    margin: 5px 0px 15px;
+}
+
+.karim-input input::placeholder{
+    direction: rtl !important;
+    text-align: right;
+    color: var(--font-color);
+    display: block;
+
+}
+
+.karim-input input[type="text"]::-webkit-input-placeholder {
+    /* Chrome/Opera/Safari */
+    direction: rtl;
+    text-align: right;
+  }
+  .karim-input input[type="text"]::-moz-placeholder {
+    /* Firefox 19+ */
+    direction: rtl;
+    text-align: right;
+  }
+  .karim-input input[type="text"]:-ms-input-placeholder {
+    /* IE 10+ */
+    direction: rtl;
+    text-align: right;
+  }
+  .karim-input input[type="text"]:-moz-placeholder {
+    /* Firefox 18- */
+    direction: rtl;
+    text-align: right;
+  }
+
+.log-form .main-form .log-head p {
+    font-size: 14px;
+    color: var(--font-color);
+}
+
+.main-form form .log-btn{
+    font-weight: bold;
+    height: 45px;
+    border-radius: 8px;
+    background-color: var(--blue-color);
+
+}
+
+
+
+
+.log-form .image{
+    width: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #dde2e6;
+}
+.log-form .image img{
+    width: 300px;
+    
+}
+
+
+/* For Signup */
+
+.upload-btn{
+    display: block;
+    border: none;
+    background-color: rgb(18, 185, 18);
+    color: white;
+    margin: 20px 0px;
+    border-radius: 6px;
+    position: relative;
+    padding:13px 20px ;
+    cursor: pointer;
+}
+
+
+.upload-btn input{
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    left: 0;
+    top: 0;
+}
+/* For Signup */

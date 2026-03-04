@@ -1,0 +1,147 @@
+.k-group-user-page{
+    padding: var(--main-padding);
+    height: 100vh;
+    overflow-y: scroll;
+}
+
+
+
+.k-group-user-page .all-users{
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.k-group-user-page .title{
+    margin-bottom: 30px;
+}
+
+@media(max-width:550px){
+    .k-group-user-page .title{
+        font-size: 17px;
+    }
+}
+
+
+.k-group-user-page .all-users .user-card{
+    width: 350px;
+    height: 200px;
+    background-color: white;
+    border-radius: 20px;
+    margin-left: 20px;
+    position: relative;
+    margin-bottom: 24px;
+    padding: 17px 18px; 
+}
+@media(max-width:500px){
+    .k-group-user-page .all-users .user-card{
+        width: 270px;
+    }
+}
+
+
+.k-group-user-page .all-users .user-card .user-header{
+    display: flex;
+    align-items: center;
+    
+}
+
+.k-group-user-page .all-users .user-card .user-header img{
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+}
+
+@media(max-width:500px){
+    .k-group-user-page .all-users .user-card .user-header img{
+        width: 40px;
+        height: 40px;
+    }
+}
+
+.k-group-user-page .all-users .user-card .user-header .det{
+    margin-right: 20px;
+}
+
+.k-group-user-page .all-users .user-card .user-header .det .user-name{
+    font-size: 16px;
+    font-weight: bold;
+}
+@media(max-width:500px){
+    .k-group-user-page .all-users .user-card .user-header .det .user-name{
+        font-size: 13px;
+
+    }
+}
+
+.k-group-user-page .all-users .user-card .user-header .det .user-email{
+    font-size: 14px;
+}
+@media(max-width:500px){
+    .k-group-user-page .all-users .user-card .user-header .det .user-email{
+        font-size: 12px;
+
+    }
+}
+
+.k-group-user-page .all-users .user-card .user-status{
+    margin-top: 15px;
+}
+
+.k-group-user-page .all-users .user-card .user-status .user-status-row{
+    display: flex ;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+ }
+
+ .k-group-user-page .all-users .user-card .user-status .user-status-row p{
+        font-size: 14px;
+ }
+
+
+ .k-group-user-page .all-users .user-card .user-status .user-status-row .user-status{
+
+    padding: 1px 16px;
+    font-weight: bold;
+    border-radius: 25px;
+ }
+
+ .k-group-user-page .all-users .user-card .user-status .user-status-row .user-active{
+    background-color: var(--active-background);
+    color: var(--active-color);
+ }
+
+ .k-group-user-page .all-users .user-card .user-status .user-status-row .user-inactive{
+    background-color: var(--inactive-background);
+    color: var(--inactive-color);
+ }
+
+ .k-group-user-page .all-users .user-card .circle{
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    background-color: white;
+    border-radius: 46%;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: -16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+ }
+
+ .k-group-user-page .all-users .user-card .circle .circle-link{
+    color: white;
+    width: 37px;
+    height: 37px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--blue-color);
+    transition: var(--main-transistion);
+ }
+
+ .k-group-user-page .all-users .user-card .circle .circle-link:hover{
+    opacity: .8;
+ }

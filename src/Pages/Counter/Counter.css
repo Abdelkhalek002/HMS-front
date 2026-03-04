@@ -1,0 +1,240 @@
+
+
+/* Start Counter Page  */
+.k-counter-page{
+    padding: 30px;
+    height: 100vh;
+    overflow-y: scroll;
+    width: 100%;
+}
+
+/* End Counter Page  */
+
+
+/* Start Inside Table */
+
+.k-btn-group{
+    display: flex;
+    align-items: center;
+}
+
+.k-btn-group button{
+    background-color: #f2f7fd;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    padding: 10px;
+    margin-left: 6px;
+}
+
+
+
+
+.k-btn-group button:hover{
+    background-color: #dde6f0;
+    transition: var(--main-transistion);
+
+}
+.k-btn-group button span {
+    color: #8e98ab; 
+    font-size: 13px;
+}
+
+.imgage-table{
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    margin-left: 10px;
+}
+
+.k-filter-table{
+    margin-bottom: 30px;
+    display: flex;
+    align-items: center;
+}
+
+.k-filter-table .search{
+    display: flex;
+    align-items: center;
+    background-color: #fbfbfd  ;
+    width: 280px;
+    max-width: 100%;
+    padding: 6px 12px;
+    border-radius: 16px;
+    transition: var(--main-transistion);
+}
+
+.k-filter-table .search:focus{
+    outline: none;
+}
+
+.k-filter-table .search span{
+    margin-left: 5px;
+    color: #bcbec8;
+    cursor: pointer;
+}
+
+.k-filter-table .search input{
+    background-color: transparent;
+    border: none;
+    color: black;
+    font-weight: bold;
+    display: block;
+    width: 100%;
+}
+
+.k-filter-table .search input::placeholder{
+    color: #8e98ab;
+}
+
+.k-filter-table .search input:focus{
+    outline:none;
+}
+
+.k-filter-table .search-active{
+    border: 1px solid #0075FF;
+    width: 285px;
+}
+
+
+
+.k-filter-table .excel-btn{
+    margin-right: 14px;
+}
+
+.k-filter-table .excel-btn img{
+    width: 30px;
+    height: 30px;
+}
+
+.k-filter-table .print-btn{
+    width: 26px;
+    margin-right: 14px;
+    cursor: pointer;
+    padding-bottom: 9px;
+}
+
+
+
+
+
+
+
+.accept-resv{
+    width: 70px;
+    text-align: center;
+    background-color: var(--active-background);
+    color: var(--active-color);
+    padding: 7px 22px;
+    border-radius: 25px;
+}
+
+
+.rej-resv{
+    width: 70px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    background-color: var(--inactive-background);
+    color: var(--inactive-color);
+    padding: 7px 22px;
+    border-radius: 25px;
+}
+
+
+/* End Inside Table */
+
+
+
+/* Start Avanced Search */
+
+.avacned-input{
+    position: relative;
+    width: 220px;
+    height: 37px;
+    border-radius: 5px;
+    padding: 0px 6px;
+    display: flex;
+    border: 1px solid #f0f0f0;
+}
+
+.avacned-input .arrow-con{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-left: 2px solid #f0f0f0;
+    padding-left: 3px;
+}
+
+.avacned-input .arrow-con i{
+    font-size: 14px;
+    color: #aeaeaf;
+}
+
+
+.avacned-input .avanced-text{
+    color: var(--font-color);
+    padding-right: 6px;
+    font-size: 15px;
+}
+
+.avacned-input .hidden-input{
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+}
+
+.k-input-container{
+    margin-top: 30px;
+}
+
+.k-input-container .text-input{
+    width: 220px;
+    height: 37px;
+    border-radius: 5px;
+    padding: 0px 6px;
+    font-size: 15px;
+    border: 1px solid #f0f0f0;
+    color: var(--font-color);
+
+}
+
+.k-input-container .text-input:focus{
+    outline: none;
+}
+
+.k-input-container .text-input::placeholder{
+    color:var(--font-color) ;
+    
+}
+
+.k-input-container  .g-btn{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 40px;
+}
+
+.k-input-container  .g-btn button{
+    width: 100px;
+    padding: 7px 14px;
+    cursor: pointer;
+    border: none;
+    border-radius: 16px;
+    font-weight: bold;
+    color: white;
+    margin-right: 20px;
+}
+
+.k-input-container  .g-btn .rest-btn{
+
+    background-color: #f69526;
+}
+
+.k-input-container  .g-btn .search-btn{
+    background-color: #2f6fed;
+}
+
+/* End Avanced Search */
