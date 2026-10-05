@@ -15,7 +15,7 @@ import ClinicsPage from './Pages/Clinics/ClinicsPage.jsx';
 import SharedComponentUser from './Component/Utility/SharedComponent';
 import SharedComponentAdmin from './Component/Utility/SharedComponentAdmin.js';
 import ChangePasswordPage from './Pages/ChangePassword/ChangePasswordPage.js';
-import Signup from './Pages/Auth/Signuo/Signup.js';
+import Signup from './Pages/Auth/Signup/Signup.js';
 import GovernoratesPage from './Pages/Governorates/GovernoratesPage.jsx';
 import ExHospitalPage from './Pages/Hospitals/ExHospitalPage.jsx';
 import FacultiesPage from './Pages/Faculties/FacultiesPage.jsx';

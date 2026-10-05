@@ -5,12 +5,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getUserInfo } from '../../RTK/Auth/AuthSlice';
 import { blockUserApi, deleteUserApi, getAllUserApi, getTotalPageUser, unblockUserApi } from '../../RTK/UserControl/UserControlSlice.js';
 import StatusCode from '../../StatusCode.js';
-import { Box, Pagination, PaginationItem, Stack } from '@mui/material';
+import { Box } from '@mui/material';
 import { CircleLoader } from 'react-spinners';
 import swal from 'sweetalert';
 import { toast } from 'react-toastify';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline';
 import { useSearchParams } from 'react-router-dom';
 
 
@@ -19,7 +18,7 @@ const AllUserComponent = () => {
 
 
     // For Access Token
-    const {token } = useSelector(getUserInfo) ; 
+    const { token } = useSelector(getUserInfo) || {}; 
 
     // For Access ALll User
     const { status, data: allUserData } = useSelector(state => state.UserControlSlice);
@@ -139,29 +138,31 @@ const AllUserComponent = () => {
     };
 
 
-    // For Loadding
+    // For Loading
     if (status === StatusCode.LOADING) {
         return (
-        <Box
-            sx={{
-            height: '100vh',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            }}
-        >
-            <CircleLoader color="#0061ff" />
-        </Box>
+            <div className="users-loading-box">
+                <CircleLoader color="#0061ff" />
+            </div>
         );
     }
 
-
+    // For Empty State
+    if (!allUserData || allUserData.length === 0) {
+        return (
+            <div className="empty-users-box">
+                <PeopleOutlineIcon className="empty-users-icon" />
+                <h3 className="empty-users-title">لا يوجد مستخدمين حالياً</h3>
+                <p className="empty-users-desc">لم يتم تسجيل أي مستخدمين في النظام حتى الآن</p>
+            </div>
+        );
+    }
 
   return (
     <div className='all-users'>
-      {allUserData && allUserData.map((item, idx) => (
+      {allUserData.map((item, idx) => (
         <UserComponent
-          key={idx}
+          key={item.student_id || idx}
           email={item.email}
           status={item.status}
           id={item.student_id}
@@ -174,8 +175,6 @@ const AllUserComponent = () => {
           handleUnblock={() => handleUnblock(item.student_id)}
         />
       ))}
-
-
     </div>
   );
 };

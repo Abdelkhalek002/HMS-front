@@ -4,45 +4,69 @@ import { BASE_URL } from "../../API_Route/GlobalRoute";
 import StatusCode from "../../StatusCode.js";
 
 
-export const getAllAdminsApi = createAsyncThunk('admin/all', async (_, { rejectWithValue }) => {
+export const getAllAdminsApi = createAsyncThunk('admins', async (args, { rejectWithValue }) => {
     try {
-        const { data } = await axios.get(`${BASE_URL}/admin/all`);
+        const config = args?.token ? {
+            headers: {
+                Authorization: `Bearer ${args.token}`,
+                'Content-Type': 'application/json'
+            }
+        } : {};
+        const { data } = await axios.get(`${BASE_URL}/admins`, config);
         return data;
     } catch (error) {
         return rejectWithValue(error.response);
     }
 });
 
-export const deleteAdminApi = createAsyncThunk('admin/delete', async (id, { rejectWithValue }) => {
+export const deleteAdminApi = createAsyncThunk('admins/delete', async (args, { rejectWithValue }) => {
     try {
-        const { data } = await axios.delete(`${BASE_URL}/admin/${id}`);
+        const id = typeof args === 'object' ? (args.id || args.data) : args;
+        const token = typeof args === 'object' ? args.token : null;
+        const config = token ? {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        } : {};
+        const { data } = await axios.delete(`${BASE_URL}/admins/${id}`, config);
+        return { data, id };
+    } catch (error) {
+        return rejectWithValue(error.response);
+    }
+});
+
+export const addNewAdminApi = createAsyncThunk('admins/add', async (args, { rejectWithValue }) => {
+    try {
+        const token = args?.token;
+        const payload = args?.data !== undefined ? args.data : args;
+        const isFormData = typeof FormData !== 'undefined' && payload instanceof FormData;
+        const headers = {};
+        if (token) {
+            headers.Authorization = `Bearer ${token}`;
+        }
+        if (!isFormData) {
+            headers['Content-Type'] = 'application/json';
+        }
+        const { data } = await axios.post(`${BASE_URL}/admins`, payload, { headers });
         return data;
     } catch (error) {
         return rejectWithValue(error.response);
     }
 });
 
-export const addNewAdminApi = createAsyncThunk('admin/add', async (args, { rejectWithValue }) => {
+export const updateAdminApi = createAsyncThunk('admins/update', async (args, { rejectWithValue }) => {
     try {
-        const { data } = await axios.post(`${BASE_URL}/admin`, args);
+        const { data } = await axios.put(`${BASE_URL}/admins/${args.user_id}`, args);
         return data;
     } catch (error) {
         return rejectWithValue(error.response);
     }
 });
 
-export const updateAdminApi = createAsyncThunk('admin/update', async (args, { rejectWithValue }) => {
+export const getAllUserApi = createAsyncThunk('admin/allUsers', async (_, { rejectWithValue }) => {
     try {
-        const { data } = await axios.put(`${BASE_URL}/admin/${args.user_id}`, args);
-        return data;
-    } catch (error) {
-        return rejectWithValue(error.response);
-    }
-});
-
-export const getAllUserApi = createAsyncThunk('admin/allUsers', async (_, { rejectWithValue }) => { 
-    try {
-        const { data } = await axios.get(`${BASE_URL}/admin/userProfiles`);
+        const { data } = await axios.get(`${BASE_URL}/users`);
         return data;
     } catch (error) {
         return rejectWithValue(error.response);
@@ -66,7 +90,7 @@ const AdminSlice = createSlice({
         builder
             //! getAllAdminsApi
             .addCase(getAllAdminsApi.fulfilled, (state, action) => {
-                state.data = action.payload;
+                state.data = action.payload?.admins || action.payload?.data || (Array.isArray(action.payload) ? action.payload : []);
                 state.status = StatusCode.IDLE;
             })
             .addCase(getAllAdminsApi.pending, (state) => {
@@ -74,11 +98,16 @@ const AdminSlice = createSlice({
             })
             .addCase(getAllAdminsApi.rejected, (state) => {
                 state.status = StatusCode.REJECTED;
+                state.data = [];
             })
 
             //! deleteAdminApi
             .addCase(deleteAdminApi.fulfilled, (state, action) => {
-                state.data = state.data.filter((admin) => admin.id !== action.payload.id);
+                const deletedId = action.payload?.id || action.meta?.arg?.id || (typeof action.meta?.arg !== 'object' ? action.meta?.arg : null);
+                if (deletedId && Array.isArray(state.data)) {
+                    state.data = state.data.filter((admin) => (admin.id || admin.admin_id || admin.user_id) !== deletedId);
+                }
+                state.status = StatusCode.IDLE;
             })
             .addCase(deleteAdminApi.pending, (state) => {
                 state.status = StatusCode.LOADING;
@@ -89,7 +118,13 @@ const AdminSlice = createSlice({
 
             //! addNewAdminApi
             .addCase(addNewAdminApi.fulfilled, (state, action) => {
-                state.data.push(action.payload);
+                if (Array.isArray(state.data) && action.payload) {
+                    const newAdmin = action.payload.admin || action.payload.data || action.payload;
+                    if (newAdmin && typeof newAdmin === 'object') {
+                        state.data.push(newAdmin);
+                    }
+                }
+                state.status = StatusCode.IDLE;
             })
             .addCase(addNewAdminApi.pending, (state) => {
                 state.status = StatusCode.LOADING;

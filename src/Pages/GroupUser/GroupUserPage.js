@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react' ;
+import React, { useEffect } from 'react';
 import "./groupuser.css";
 import AllUserComponent from '../../Component/GroupUser/AllUserComponent';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -13,62 +13,54 @@ import { getUserInfo } from '../../RTK/Auth/AuthSlice';
 const GroupUserPage = () => {
 
     // For Change Param 
-    const [searchParams , setSearchParams] = useSearchParams({page : 1}) ; 
+    const [searchParams, setSearchParams] = useSearchParams();
+    const currentPage = parseInt(searchParams.get('page'), 10) || 1;
 
-    // For Get Totla Page 
-    const totalPage = useSelector(getTotalPageUser) ;
-    console.log(`the Total Total ${totalPage}`) 
+    // For Get Total Page & Users Data
+    const totalPage = useSelector(getTotalPageUser) || 0;
+    const allUsers = useSelector(state => state.UserControlSlice.data);
 
     // For Access Token and ID
-    const { token, payLoad } = useSelector(getUserInfo);
+    const { token, payLoad } = useSelector(getUserInfo) || {};
 
     // For Dispatch Action
     const dispatch = useDispatch();
 
-
     useEffect(() => {
-      if (token && payLoad.userId) {
-        dispatch(getAllUserApi({ token, id: payLoad.userId , page: searchParams.get('page') ? searchParams.get('page') : 1 }));
-      }
-    }, [token, payLoad.userId, dispatch , searchParams]);
+        if (token && payLoad?.userId) {
+            dispatch(getAllUserApi({ token, id: payLoad.userId, page: currentPage }));
+        }
+    }, [token, payLoad?.userId, dispatch, currentPage]);
 
-    // For Handle Pagination
-    const showResultOfPag = (npage)=>{
-      setSearchParams({page : npage})
-    }
+    const handlePageChange = (event, value) => {
+        setSearchParams({ page: value });
+    };
 
-  return (
-    <div className='k-group-user-page'>
-        <h2 className='title'>المستخدمين</h2>
-        <AllUserComponent />
-        <div style={{display : "flex" , justifyContent : "center" , alignItems : "center" , marginTop : "20px"}}>
-            <Stack spacing={2} >
-            <Pagination
-              color="primary"
-              count={totalPage}
-              onClick={(e)=> showResultOfPag(e.target.innerText)}
-              renderItem={(item) =>{ console.log(item)
-                if(item.page == searchParams.get('page') && item.type !== 'next')
-                  item.selected = true
-                else
-                item.selected = false 
-                 return(
-                <PaginationItem
-                color='primary'
-                  selected={searchParams.get('page') == item.page ? true : false}
-                  slots={{ previous: ArrowBackIcon, next: ArrowForwardIcon }}
-                  
+    return (
+        <div className='k-group-user-page'>
+            <h2 className='title'>المستخدمين</h2>
+            <AllUserComponent />
 
-                  {...item }
-                  
-                />
-              )}
-            }
-            />
-          </Stack>
+            {totalPage > 1 && allUsers && allUsers.length > 0 && (
+                <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginTop: "20px" }}>
+                    <Stack spacing={2}>
+                        <Pagination
+                            color="primary"
+                            count={totalPage}
+                            page={currentPage}
+                            onChange={handlePageChange}
+                            renderItem={(item) => (
+                                <PaginationItem
+                                    slots={{ previous: ArrowBackIcon, next: ArrowForwardIcon }}
+                                    {...item}
+                                />
+                            )}
+                        />
+                    </Stack>
+                </div>
+            )}
         </div>
-    </div>
-  )
-}
+    );
+};
 
-export default GroupUserPage
+export default GroupUserPage;

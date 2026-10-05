@@ -7,9 +7,9 @@ import StatusCode from "../../StatusCode.js";
 // For Get All Users
 export const getAllUserApi = createAsyncThunk('userControl/allUsers', async (args, { rejectWithValue }) => {
     try {
-        const { data } = await axios.get(`${BASE_URL}/admin/userProfiles?page=${args.page}&limit=7` , {
-            headers : {
-                Authorization : `Bearer ${args.token}` ,
+        const { data } = await axios.get(`${BASE_URL}/users?page=${args.page}&limit=7`, {
+            headers: {
+                Authorization: `Bearer ${args.token}`,
                 'Content-Type': 'application/json'
             }
         });
@@ -21,9 +21,9 @@ export const getAllUserApi = createAsyncThunk('userControl/allUsers', async (arg
 
 export const deleteUserApi = createAsyncThunk('userControl/deleteUser', async (args, { rejectWithValue }) => {
     try {
-        const { data } = await axios.delete(`${BASE_URL}/admin/userProfiles/${args.data}` , {
-                Authorization : `Bearer ${args.token}` ,
-                'Content-Type': 'application/json'
+        const { data } = await axios.delete(`${BASE_URL}/users/${args.data}`, {
+            Authorization: `Bearer ${args.token}`,
+            'Content-Type': 'application/json'
         });
         return data;
     } catch (error) {
@@ -31,12 +31,12 @@ export const deleteUserApi = createAsyncThunk('userControl/deleteUser', async (a
     }
 });
 
-export const blockUserApi = createAsyncThunk('userControl/blockUser', async (args, { rejectWithValue , dispatch }) => {
-    
+export const blockUserApi = createAsyncThunk('userControl/blockUser', async (args, { rejectWithValue, dispatch }) => {
+
     try {
-        const { data } = await axios.patch(`${BASE_URL}/admin/userProfiles/${args.data}/block` , {} , {
-            headers : {
-                Authorization : `Bearer ${args.token}` ,
+        const { data } = await axios.patch(`${BASE_URL}/users/${args.data}/block`, {}, {
+            headers: {
+                Authorization: `Bearer ${args.token}`,
                 'Content-Type': 'application/json'
             }
         });
@@ -44,14 +44,14 @@ export const blockUserApi = createAsyncThunk('userControl/blockUser', async (arg
     } catch (error) {
         return rejectWithValue(error.response);
     }
-    
+
 });
 
 export const unblockUserApi = createAsyncThunk('userControl/unblockUser', async (args, { rejectWithValue }) => {
     try {
-        const { data } = await axios.patch(`${BASE_URL}/admin/userProfiles/${args.data}/unblock` , {} , {
-            headers : {
-                Authorization : `Bearer ${args.token}` ,
+        const { data } = await axios.patch(`${BASE_URL}/users/${args.data}/unblock`, {}, {
+            headers: {
+                Authorization: `Bearer ${args.token}`,
                 'Content-Type': 'application/json'
             }
         });
@@ -63,28 +63,28 @@ export const unblockUserApi = createAsyncThunk('userControl/unblockUser', async 
 
 export const sendObservations = createAsyncThunk(
     'userControl/sendObservations',
-    async ({ id, message , token }, { rejectWithValue }) => {
-      try {
-        const { data } = await axios.post(`${BASE_URL}/admin/${id}`, { observation: message } , {
-            headers : {
-                Authorization : `Bearer ${token}` ,
-                'Content-Type': 'application/json'
-            }
-        });
-        return data;
-      } catch (error) {
-        return rejectWithValue(error.response);
-      }
-    }
-  );
-
-export const transfer=createAsyncThunk(
-    'userControl/transfer',
-    async ({id,clinic_id},{rejectWithValue})=>{
-        try{
-            const {data}=await axios.patch(`${BASE_URL}/admin/userProfiles/${id}/transfer`,{clinic_id:clinic_id});
+    async ({ id, message, token }, { rejectWithValue }) => {
+        try {
+            const { data } = await axios.post(`${BASE_URL}/admin/${id}`, { observation: message }, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
             return data;
-        }catch(error){
+        } catch (error) {
+            return rejectWithValue(error.response);
+        }
+    }
+);
+
+export const transfer = createAsyncThunk(
+    'userControl/transfer',
+    async ({ id, clinic_id }, { rejectWithValue }) => {
+        try {
+            const { data } = await axios.patch(`${BASE_URL}/users/${id}/transfer`, { clinic_id: clinic_id });
+            return data;
+        } catch (error) {
             return rejectWithValue(error.response);
         }
     }
@@ -94,9 +94,9 @@ export const transfer=createAsyncThunk(
 
 const initialState = {
     data: [],
-    status: StatusCode.IDLE , 
-    totalPages : null , 
-    currentPage : null
+    status: StatusCode.IDLE,
+    totalPages: null,
+    currentPage: null
 };
 
 const UserControlSlice = createSlice({
@@ -111,16 +111,17 @@ const UserControlSlice = createSlice({
         builder
             //! getAllUserApi
             .addCase(getAllUserApi.fulfilled, (state, action) => {
-                state.data = action.payload.students;
+                state.data = action.payload?.students || action.payload?.users || action.payload?.data || (Array.isArray(action.payload) ? action.payload : []);
                 state.status = StatusCode.IDLE;
-                state.totalPages = action.payload.totalPages
-                console.log(`the Total Page Of User ${action.payload.totalPages}`)
+                state.totalPages = action.payload?.totalPages || 0;
             })
             .addCase(getAllUserApi.pending, (state) => {
                 state.status = StatusCode.LOADING;
             })
             .addCase(getAllUserApi.rejected, (state) => {
                 state.status = StatusCode.REJECTED;
+                state.data = [];
+                state.totalPages = 0;
             });
 
         //! deleteUserApi
