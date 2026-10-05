@@ -1,5 +1,5 @@
 import React from 'react';
-import userPic from "./../../images/userProfile.jpg";
+import defaultAdminPic from "./../../images/generic-avatar.jpg";
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { Tooltip } from '@mui/material';
@@ -40,7 +40,7 @@ const AdminComponent = ({
     const { token, payLoad } = useSelector(getUserInfo);
 
     const getImageSrc = () => {
-        if (!image) return userPic;
+        if (!image) return defaultAdminPic;
         if (typeof image === 'string' && (image.startsWith('http://') || image.startsWith('https://') || image.startsWith('blob:') || image.startsWith('data:'))) {
             return image;
         }
@@ -120,7 +120,7 @@ const AdminComponent = ({
                 loading='lazy' 
                 onError={(e) => {
                     e.target.onerror = null;
-                    e.target.src = userPic;
+                    e.target.src = defaultAdminPic;
                 }}
             />
             <div className='det'>

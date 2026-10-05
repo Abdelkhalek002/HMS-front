@@ -25,6 +25,7 @@ import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import { toast } from 'react-toastify';
+import defaultAdminPic from '../../images/generic-avatar.jpg';
 import {
   COUNTERTYPE,
   SECONDSUPERADMIN,
@@ -230,7 +231,7 @@ const AdminPage = () => {
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '4px' }}>
                 <div style={{ position: 'relative', display: 'inline-block' }}>
                   <Avatar
-                    src={photoPreview || ''}
+                    src={photoPreview || defaultAdminPic}
                     alt='معاينة الصورة'
                     sx={{
                       width: 82,
