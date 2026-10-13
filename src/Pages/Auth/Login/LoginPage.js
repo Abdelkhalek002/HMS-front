@@ -6,7 +6,14 @@ import maroPic from "./../../../images/mero.png";
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
 import { getUserInfo, loginHandlerAPI, loginLoad } from '../../../RTK/Auth/AuthSlice';
-import { COUNTERTYPE, SUPERADMINTYPE, TRANSFERTYPE, USERTYPE } from '../../../ActorType';
+import { 
+    USERTYPE,
+    isAdminDashboardRole,
+    isCounterRole,
+    isMedicalCheckManagerRole,
+    isTransferRole,
+    isExternalHospitalAdminRole
+} from '../../../ActorType';
 
 
 const LoginPage = () => {
@@ -20,15 +27,21 @@ const LoginPage = () => {
 
 
     useEffect(() => {
-        if (Auth) {
-            if (Auth.payLoad.type === USERTYPE)
-                navigate('/')
-            else if (Auth.payLoad.role === SUPERADMINTYPE)
-                navigate('/ad')
-            else if (Auth.payLoad.role === COUNTERTYPE)
-                navigate("/co")
-            else if (Auth.payLoad.role === TRANSFERTYPE)
-                navigate("/tr")
+        if (Auth && Auth.payLoad) {
+            const role = Auth.payLoad.role;
+            const type = Auth.payLoad.type;
+
+            if (type === USERTYPE || role === USERTYPE) {
+                navigate('/');
+            } else if (isAdminDashboardRole(role)) {
+                navigate('/ad');
+            } else if (isCounterRole(role) || isMedicalCheckManagerRole(role)) {
+                navigate('/co');
+            } else if (isTransferRole(role) || isExternalHospitalAdminRole(role)) {
+                navigate('/tr');
+            } else {
+                navigate('/ad');
+            }
         }
     }, [Auth, navigate])
 

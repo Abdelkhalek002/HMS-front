@@ -5,6 +5,10 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { Provider } from 'react-redux';
 import store from './RTK/Store/store';
+import { setupAxiosInterceptors } from './API_Route/axiosInterceptor';
+
+// Initialize global Axios 401 interceptor
+setupAxiosInterceptors();
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

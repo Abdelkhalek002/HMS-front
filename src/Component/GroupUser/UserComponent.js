@@ -73,7 +73,7 @@ const UserComponent = ({ id, title, email, date, status, image, active, blocked,
         <div className='user-status'>
             <div className='user-status-row'>
                 <p className='user-status-f'>تاريخ الانشاء</p>
-                <p className='user-status-v'>{date.slice(0 , 10)}</p>
+                <p className='user-status-v'>{date ? String(date).slice(0, 10) : ""}</p>
             </div>
 
             <div className='user-status-row'>
@@ -83,7 +83,7 @@ const UserComponent = ({ id, title, email, date, status, image, active, blocked,
         </div>
 
         <div className='circle'>
-            <Link className='circle-link' to={`/profile/${id}`}>
+            <Link className='circle-link' to={payLoad?.type === 'user' ? `/profile/${id}` : `/ad/profile/${id}`}>
                 <Tooltip className='tooltip' title="المزيد" arrow placement='right'>
 <div className='double-arrow'>
                     <span className="material-symbols-outlined">

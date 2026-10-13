@@ -1,19 +1,25 @@
 import React from 'react'
-import {  useSelector } from 'react-redux';
+import {  useDispatch, useSelector } from 'react-redux';
 import { Navigate, Outlet } from 'react-router-dom';
-import { getUserInfo } from '../../RTK/Auth/AuthSlice';
+import { getUserInfo, logout } from '../../RTK/Auth/AuthSlice';
+import { isTokenExpired } from '../../API_Route/axiosInterceptor';
 
 const UserProtect = ({children}) => {
 
+    const dispatch = useDispatch();
 
     // For Access Data In Local Stroage 
     const userData =  useSelector(getUserInfo) ; 
 
     if(userData){
+        if (isTokenExpired(userData.token)) {
+            dispatch(logout());
+            return <Navigate to={'/login'} />
+        }
         if(userData.payLoad.type === 'user'){
             console.log('You Are User')
-        return <Outlet />
-    }
+            return <Outlet />
+        }
         else{
             return <Navigate to={`/notfound`} />
         }

@@ -51,19 +51,22 @@ const ReservationPage = () => {
   const [date , setDate ] = useState('') ;
 
   const handleChangeDate = (day , month , year)=>{
-    setDate(`${year}-${month.toString.length ===1 ?'0'+month.toString() : month.toString() }-${day.toString().length === 1 ?"0" + day : day  }`)
+    const formattedMonth = String(month).padStart(2, "0");
+    const formattedDay = String(day).padStart(2, "0");
+    setDate(`${year}-${formattedMonth}-${formattedDay}`);
   }
 
   // For Create Reservation
   const createReservationHandler = ()=>{
-    if(clinic !== ''){
+    if(clinic !== '' && clinic !== undefined && clinic !== null){
       if(typeR !== '') {
         if(date !=='') {
-          const data = new FormData() ; 
-          data.append('clinic_id' , `${clinic}`) 
-          data.append('date' , date) 
-          data.append('examType' , `${typeR}`) 
-          dispatch(createReservationUserAPI({token , id : payLoad.userId , data}))
+          const data = {
+            clinic_id: Number(clinic),
+            date,
+            examType: `${typeR}`,
+          };
+          dispatch(createReservationUserAPI({token , data}))
         }else{
           toast.error('برجاء اختيار معاد الكشف')
         }
@@ -96,7 +99,8 @@ const ReservationPage = () => {
                 {
                   clinics? 
                   clinics.map((item)=>{
-                    return ( <MenuItem key={item.clinic_id} value={item.clinic_id}>{item.clinicName}</MenuItem>)
+                    const clinicId = item.clinic_id ?? item.id;
+                    return ( <MenuItem key={clinicId} value={clinicId}>{item.clinicName || item.clinic_name}</MenuItem>)
                   }) : ""
                 }
 

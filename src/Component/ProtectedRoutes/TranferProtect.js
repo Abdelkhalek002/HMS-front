@@ -2,7 +2,8 @@ import React from 'react'
 import {  useDispatch, useSelector } from 'react-redux';
 import { Navigate, Outlet } from 'react-router-dom';
 import { getUserInfo, logout } from '../../RTK/Auth/AuthSlice';
-import { TRANSFERTYPE } from '../../ActorType';
+import { isTransferRole, isExternalHospitalAdminRole, isSuperAdminRole, isSecondSuperAdminRole } from '../../ActorType';
+import { isTokenExpired } from '../../API_Route/axiosInterceptor';
 
 const TransferProtect = () => {
  
@@ -12,9 +13,14 @@ const TransferProtect = () => {
     // For Access Data In Local Stroage 
     const userData =  useSelector(getUserInfo) ; 
 
-    if(userData){
-        if(userData.payLoad.role === TRANSFERTYPE)
-        return <Outlet />
+    if(userData && userData.payLoad){
+        if (isTokenExpired(userData.token)) {
+            dispatch(logout());
+            return <Navigate to={'/login'} />
+        }
+        const role = userData.payLoad.role;
+        if(isTransferRole(role) || isExternalHospitalAdminRole(role) || isSuperAdminRole(role) || isSecondSuperAdminRole(role))
+            return <Outlet />
         else{
             return <Navigate to={`/notfound`} />
         }

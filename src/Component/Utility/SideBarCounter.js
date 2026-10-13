@@ -1,8 +1,9 @@
 import React from 'react'
 import { NavLink, useNavigate } from 'react-router-dom';
 import Logo from "./../../images/Gemini_Generated_logoggggg-removebg-preview.png";
-import { useDispatch } from 'react-redux';
-import { logout } from '../../RTK/Auth/AuthSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { getUserInfo, logout } from '../../RTK/Auth/AuthSlice';
+import { isMedicalCheckManagerRole } from '../../ActorType';
 
 const SideBarCounter = () => {
  
@@ -12,6 +13,8 @@ const SideBarCounter = () => {
 
     // For Dispatch Action
     const dispatch = useDispatch() ;
+    const authData = useSelector(getUserInfo);
+    const isMedical = isMedicalCheckManagerRole(authData?.payLoad?.role);
     
     // For Logout
     const logoutHandler = ()=>{
@@ -37,15 +40,15 @@ const SideBarCounter = () => {
 
             <div className='sidebar-content'>
                 
-                <h4 className='sidebar-title hide-mobile'>المسؤل</h4>
+                <h4 className='sidebar-title hide-mobile'>{isMedical ? 'مسئول الكشف الطبي' : 'المسؤل'}</h4>
 
                 <div className='all-tabs'>
                 
                 <NavLink end to={`.`} className='sidebar-tabs'>
                     <span className="material-symbols-outlined">
-                        desktop_windows
+                        {isMedical ? 'medical_services' : 'desktop_windows'}
                     </span>
-                    <div className='tab-tilte hide-mobile'>الكاونتر</div>
+                    <div className='tab-tilte hide-mobile'>{isMedical ? 'الكشف الطبي' : 'الكاونتر'}</div>
                 </NavLink>
             
 

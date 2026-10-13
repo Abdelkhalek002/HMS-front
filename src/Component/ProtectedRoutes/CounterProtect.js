@@ -2,7 +2,8 @@ import React from 'react'
 import {  useDispatch, useSelector } from 'react-redux';
 import { Navigate, Outlet } from 'react-router-dom';
 import { getUserInfo, logout } from '../../RTK/Auth/AuthSlice';
-import { COUNTERTYPE } from '../../ActorType';
+import { isCounterRole, isMedicalCheckManagerRole, isSuperAdminRole, isSecondSuperAdminRole } from '../../ActorType';
+import { isTokenExpired } from '../../API_Route/axiosInterceptor';
 
 const CounterProtect = () => {
  
@@ -12,9 +13,14 @@ const CounterProtect = () => {
     // For Access Data In Local Stroage 
     const userData =  useSelector(getUserInfo) ; 
 
-    if(userData){
-        if(userData.payLoad.role === COUNTERTYPE)
-        return <Outlet />
+    if(userData && userData.payLoad){
+        if (isTokenExpired(userData.token)) {
+            dispatch(logout());
+            return <Navigate to={'/login'} />
+        }
+        const role = userData.payLoad.role;
+        if(isCounterRole(role) || isMedicalCheckManagerRole(role) || isSuperAdminRole(role) || isSecondSuperAdminRole(role))
+            return <Outlet />
         else{
             return <Navigate to={`/notfound`} />
         }

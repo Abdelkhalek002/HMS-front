@@ -27,7 +27,7 @@ const ProfilePage = () => {
     // For Get User Data
     useEffect(() => {
         dispatch(getUserProfileAPi({ id: payLoad.userId, token }));
-        dispatch(getUserReservationAPI({ token, id: payLoad.userId , page : searchParams.get('page') ?searchParams.get('page')  : 1 }));
+        dispatch(getUserReservationAPI({ token, page : searchParams.get('page') ? searchParams.get('page') : 1 }));
     }, [dispatch, payLoad, token]);
 
     const Authroized = useSelector(state => state.UserSlice.statusReservation);

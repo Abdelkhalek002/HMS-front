@@ -40,7 +40,7 @@ const UserHistroy = () => {
     // For Handle Pagaintion
     const showResultOfPage = (npage)=>{
         setSearchParams({page : npage})
-        dispatch(getUserReservationAPI({token , id : payLoad.userId , page : npage ? npage : 1} ))
+        dispatch(getUserReservationAPI({token , page : npage ? npage : 1} ))
     }
 
     // For handle Delete Reservation

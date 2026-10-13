@@ -11,11 +11,13 @@ import { BASE_URL } from '../../API_Route/GlobalRoute';
 
 
 import {
-    COUNTERTYPE,
-    SECONDSUPERADMIN,
-    SUPERADMINTYPE,
-    TRANSFERTYPE,
-    VIEWERTYPE
+    isSuperAdminRole,
+    isSecondSuperAdminRole,
+    isCounterRole,
+    isTransferRole,
+    isViewerRole,
+    isMedicalCheckManagerRole,
+    isExternalHospitalAdminRole
 } from '../../ActorType';
 
 const AdminComponent = ({ 
@@ -55,27 +57,14 @@ const AdminComponent = ({
     };
 
     const getRoleName = (roleVal) => {
-        switch (roleVal) {
-            case SUPERADMINTYPE:
-            case 'super_admin':
-                return 'مسؤول رئيسي';
-            case COUNTERTYPE:
-            case 'counter':
-                return 'كاونتر';
-            case TRANSFERTYPE:
-            case 'transfer':
-            case 'medical_check_manager':
-                return 'تحويلات';
-            case SECONDSUPERADMIN:
-            case 'second_manager':
-                return 'مدير ثانوي';
-            case VIEWERTYPE:
-            case 'viewer':
-            case 'observer':
-                return 'مشاهد';
-            default:
-                return roleVal || 'مسؤول';
-        }
+        if (isSuperAdminRole(roleVal)) return 'مدير النظام';
+        if (isSecondSuperAdminRole(roleVal)) return 'مدير ثان';
+        if (isCounterRole(roleVal)) return 'كاونتر';
+        if (isTransferRole(roleVal)) return 'مسئول التحويلات';
+        if (isMedicalCheckManagerRole(roleVal)) return 'مسئول الكشف الطبي';
+        if (isExternalHospitalAdminRole(roleVal)) return 'أدمن مستشفي خارجي';
+        if (isViewerRole(roleVal)) return 'ملاحظ';
+        return roleVal || 'مسؤول';
     };
 
     const formatDate = (dateStr) => {

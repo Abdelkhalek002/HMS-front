@@ -31,7 +31,10 @@ import {
   SECONDSUPERADMIN,
   SUPERADMINTYPE,
   TRANSFERTYPE,
-  VIEWERTYPE
+  VIEWERTYPE,
+  MEDICAL_CHECK_MANAGER,
+  EXTERNAL_HOSPITAL_ADMIN,
+  isSuperAdminRole
 } from '../../ActorType';
 
 const modalStyle = {
@@ -73,7 +76,7 @@ const rtlInputSx = {
 const AdminPage = () => {
   const dispatch = useDispatch();
   const { token, payLoad } = useSelector(getUserInfo) || {};
-  const isSuperAdmin = payLoad?.role === SUPERADMINTYPE;
+  const isSuperAdmin = isSuperAdminRole(payLoad?.role);
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -353,8 +356,10 @@ const AdminPage = () => {
                 >
                   <MenuItem value={COUNTERTYPE}>كاونتر (Counter)</MenuItem>
                   <MenuItem value={TRANSFERTYPE}>تحويلات (Transfer)</MenuItem>
-                  <MenuItem value={SECONDSUPERADMIN}>مدير ثانوي (Second Manager)</MenuItem>
-                  <MenuItem value={VIEWERTYPE}>مشاهد (Viewer)</MenuItem>
+                  <MenuItem value={SECONDSUPERADMIN}>مدير ثان (Second Manager)</MenuItem>
+                  <MenuItem value={VIEWERTYPE}>ملاحظ (Viewer)</MenuItem>
+                  <MenuItem value={MEDICAL_CHECK_MANAGER}>مسئول الكشف الطبي (Medical Check Manager)</MenuItem>
+                  <MenuItem value={EXTERNAL_HOSPITAL_ADMIN}>أدمن مستشفي خارجي (External Hospital Admin)</MenuItem>
                 </Select>
               </FormControl>
             </div>
