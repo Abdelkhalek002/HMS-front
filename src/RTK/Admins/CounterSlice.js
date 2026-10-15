@@ -19,9 +19,10 @@ export const filterAPI = createAsyncThunk('admin/filter', async (args, thunkAPI)
 export const getAllReservationListAPI = createAsyncThunk('admin/getReservations', async (args, thunkAPI) => {
     const { rejectWithValue } = thunkAPI;
     const page = args?.page || 1;
+    const limit = args?.limit || 8;
     const search = args?.search || "";
     try {
-        const response = await apiClient.get(`/reservations/?page=${page}&limit=3&searchKey=${search}`);
+        const response = await apiClient.get(`/reservations/?page=${page}&limit=${limit}&searchKey=${search}`);
         return response.data;
     } catch (error) {
         return rejectWithValue(error.response?.data || error.message);
@@ -51,6 +52,7 @@ export const acceptOrDeclineAPI = createAsyncThunk('counter/acceptordecline', as
         dispatch(
             getAllReservationListAPI({
                 page: args.page || 1,
+                limit: args.limit || 8,
                 search: args.search || args.searchKey || "",
             })
         );

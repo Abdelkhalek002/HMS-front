@@ -595,7 +595,7 @@ export default function EnhancedTable() {
             </Modal>
 
 
-            <Box sx={{ width: '1000px', maxWidth: "100%", margin: "20px auto", borderRadius: "20px" }}>
+            <Box sx={{ width: '1250px', maxWidth: "100%", margin: "20px auto", borderRadius: "20px" }}>
                 <div className='k-filter-table'>
                     <div onBlur={() => setActive(false)} onFocus={() => setActive(true)} className={`search ${active ? 'search-active' : ""}`}>
 

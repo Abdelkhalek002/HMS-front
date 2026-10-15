@@ -31,7 +31,7 @@ const CounterPage = () => {
 
   // For Get All Reservation 
   useEffect(()=>{
-    dispatch(getAllReservationListAPI({token , page : searchParams.get('page') ? searchParams.get('page') : 1 , search : searchParams.get('search') ?searchParams.get('search') :"" })) ; 
+    dispatch(getAllReservationListAPI({token , page : searchParams.get('page') ? searchParams.get('page') : 1 , limit: 8, search : searchParams.get('search') ?searchParams.get('search') :"" })) ; 
   } , [   token  , searchParams , dispatch])
 
 

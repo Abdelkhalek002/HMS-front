@@ -292,7 +292,7 @@ export default function EnhancedTable() {
   const searchHandler = () => {
     searchParams.append('search', searchInput)
     setSearchParams({ ...searchParams, search: searchInput, page: 1 })
-    dispatch(getAllReservationListAPI({ token, page: 1, search: searchInput ? searchInput : "" }))
+    dispatch(getAllReservationListAPI({ token, page: 1, limit: 8, search: searchInput ? searchInput : "" }))
   }
 
   // For Search Active 
@@ -308,7 +308,7 @@ export default function EnhancedTable() {
   return (
     <div  >
       <button onClick={() => window.print()}>Print</button>
-      <Box sx={{ width: '1000px', maxWidth: "100%", margin: "20px auto", borderRadius: "20px" }}>
+      <Box sx={{ width: '1250px', maxWidth: "100%", margin: "20px auto", borderRadius: "20px" }}>
         <div className='k-filter-table'>
           <div onBlur={() => setActive(false)} onFocus={() => setActive(true)} className={`search ${active ? 'search-active' : ""}`}>
 
