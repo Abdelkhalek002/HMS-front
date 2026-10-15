@@ -6,9 +6,11 @@ import reportWebVitals from './reportWebVitals';
 import { Provider } from 'react-redux';
 import store from './RTK/Store/store';
 import { setupAxiosInterceptors } from './API_Route/axiosInterceptor';
+import { setAuthTokenGetter } from './API_Route/axiosClient';
 
-// Initialize global Axios 401 interceptor
+// Initialize global Axios 401 interceptor and auth token provider
 setupAxiosInterceptors();
+setAuthTokenGetter(() => store.getState()?.AuthSlice?.user?.token);
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

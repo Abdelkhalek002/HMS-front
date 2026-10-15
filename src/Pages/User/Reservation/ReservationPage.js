@@ -7,7 +7,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { toast } from 'react-toastify';
 import { useDispatch, useSelector } from 'react-redux';
 import {  getUserInfo } from '../../../RTK/Auth/AuthSlice';
-import { createReservationUserAPI } from '../../../RTK/Reservation/ReservationSlice';
+import { useCreateReservationMutation } from '../../../RTK/Reservation/reservationApi';
 import { getUserProfile, getUserProfileAPi } from '../../../RTK/User/UserSlice';
 import { getAllClinics, getAllClinicsAPI } from '../../../RTK/Clinic/ClinicSlice';
 
@@ -17,6 +17,7 @@ const ReservationPage = () => {
   // For Dispatch Action
   const dispatch = useDispatch() ; 
 
+  const [createReservation, { isLoading: isCreatingReservation }] = useCreateReservationMutation();
   const {token , payLoad} = useSelector(getUserInfo) ;
 
 
@@ -57,26 +58,36 @@ const ReservationPage = () => {
   }
 
   // For Create Reservation
-  const createReservationHandler = ()=>{
-    if(clinic !== '' && clinic !== undefined && clinic !== null){
-      if(typeR !== '') {
-        if(date !=='') {
-          const data = {
+  const createReservationHandler = async () => {
+    if (clinic !== '' && clinic !== undefined && clinic !== null) {
+      if (typeR !== '') {
+        if (date !== '') {
+          const payload = {
             clinic_id: Number(clinic),
             date,
             examType: `${typeR}`,
           };
-          dispatch(createReservationUserAPI({token , data}))
-        }else{
-          toast.error('برجاء اختيار معاد الكشف')
+          try {
+            await createReservation(payload).unwrap();
+            toast.success("تم حجز الكشف بنجاح برجاء إحضار الكارنيه وإذن الكلية");
+          } catch (error) {
+            const errorMsg =
+              error?.data?.error ||
+              error?.data?.message ||
+              (typeof error?.data === "string" ? error.data : null) ||
+              "حدث خطأ أثناء حجز الكشف برجاء اعادة المحاولة";
+            toast.error(errorMsg);
+          }
+        } else {
+          toast.error('برجاء اختيار معاد الكشف');
         }
-      }else{
-        toast.error('برجاء اختيار نوع الكشف')
+      } else {
+        toast.error('برجاء اختيار نوع الكشف');
       }
-    }else{
-      toast.error("برجاء اختيار العيادة")
+    } else {
+      toast.error("برجاء اختيار العيادة");
     }
-  }
+  };
 
   console.log(date)
 
@@ -142,7 +153,14 @@ const ReservationPage = () => {
           </LocalizationProvider>
           </div>
 
-          <Button onClick={createReservationHandler} className='k-btn' variant="contained">حجز</Button>
+          <Button
+            onClick={createReservationHandler}
+            disabled={isCreatingReservation}
+            className='k-btn'
+            variant="contained"
+          >
+            {isCreatingReservation ? "جاري الحجز..." : "حجز"}
+          </Button>
 
 
         </div>

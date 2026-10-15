@@ -16,17 +16,18 @@ export const deleteReservationAPI = createAsyncThunk(
     const userId =
       args?.userId ||
       getState()?.AuthSlice?.user?.payLoad?.userId;
+    const reservationId = args?.id ?? args?.medxId;
     console.log(args);
     try {
       const response = await axios.delete(
-        `${BASE_URL}/myreservations/${userId}/${args.medxId}`,
+        `${BASE_URL}/myreservations/${userId}/${reservationId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         },
       );
-      return args.medxId;
+      return reservationId;
     } catch (error) {
       return rejectWithValue(error);
     }
@@ -268,9 +269,9 @@ const UserSlice = createSlice({
     });
     // For Get Reservation List
     builder.addCase(getUserReservationAPI.fulfilled, (state, action) => {
-      state.reservationData = action.payload.results;
+      state.reservationData = action.payload?.results ?? action.payload?.data ?? (Array.isArray(action.payload) ? action.payload : []);
       state.statusReservation = StatusCode.SUCCESS;
-      state.totalHistoryPage = action.payload.totalPages;
+      state.totalHistoryPage = action.payload?.totalPages ?? 1;
     });
     builder.addCase(getUserReservationAPI.pending, (state, action) => {
       state.statusReservation = StatusCode.LOADING;
@@ -287,9 +288,9 @@ const UserSlice = createSlice({
     builder.addCase(deleteReservationAPI.fulfilled, (state, action) => {
       state.status = StatusCode.SUCCESS;
       console.log(state.reservationData);
-      if (state.reservationData.length !== 0) {
+      if (state.reservationData && state.reservationData.length !== 0) {
         state.reservationData = state.reservationData.filter((item) => {
-          return item.medicEx_id !== action.payload;
+          return (item.id ?? item.medicEx_id) !== action.payload;
         });
       }
       toast.success("تم مسح الكشف بنجاح");

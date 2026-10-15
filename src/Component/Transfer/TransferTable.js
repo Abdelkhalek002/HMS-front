@@ -32,19 +32,7 @@ import { getAllClinics } from '../../RTK/Clinic/ClinicSlice';
 import { getAllLevels } from '../../RTK/Level/LevelSlice';
 
 
-function createData(id, name, calories, fat, carbs, protein) {
-return {id,name,calories,fat,carbs,protein,};
-}
 
-const rows = [
-createData(1, 'كريم محمد احمد', "301112301011929", "انف واذن وحنجرة", "2024-5-22"),
-createData(2, 'Donut', 452, 25.0, 51, 4.9),
-createData(3, 'Eclair', 262, 16.0, 24, 6.0),
-createData(4, 'Frozen yoghurt', 159, 6.0, 24, 4.0),
-createData(5, 'Gingerbread', 356, 16.0, 49, 3.9),
-createData(6, 'Honeycomb', 408, 3.2, 87, 6.5),
-
-];
 
 
 
@@ -213,12 +201,13 @@ setOrderBy(property);
 };
 
 const handleSelectAllClick = (event) => {
-if (event.target.checked) {
-    const newSelected = rows.map((n) => n.id);
+  if (event.target.checked && data) {
+    const acceptedItems = data.filter((item) => item.status === 'مقبول');
+    const newSelected = acceptedItems.map((n) => n.id ?? n.medicEx_id);
     setSelected(newSelected);
     return;
-}
-setSelected([]);
+  }
+  setSelected([]);
 };
 
 //   For Handle Excel Print 
@@ -242,18 +231,18 @@ if (selectedIndex === -1) {
 } else if (selectedIndex === 0) {
 
     setExcel(excel.filter((item)=>{
-    return item.id !== (+id) ;
+    return (item.id ?? item.medicEx_id) !== (+id) ;
     }))
     newSelected = newSelected.concat(selected.slice(1));
     
 } else if (selectedIndex === selected.length - 1) {
     setExcel(excel.filter((item)=>{
-    return item.id !== (+id) ;
+    return (item.id ?? item.medicEx_id) !== (+id) ;
     }))
     newSelected = newSelected.concat(selected.slice(0, -1));
 } else if (selectedIndex > 0) {
     setExcel(excel.filter((item)=>{
-    return item.id !== (+id) ;
+    return (item.id ?? item.medicEx_id) !== (+id) ;
     }))
 
     newSelected = newSelected.concat(
@@ -266,11 +255,7 @@ setSelected(newSelected);
 
 const isSelected = (id) => selected.indexOf(id) !== -1;
 
-// Avoid a layout jump when reaching the last page with empty rows.
-const emptyRows =
-page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
 
-const visibleRows = rows ;
 
 
 // For Dispatch Action
@@ -637,26 +622,37 @@ return (
                 orderBy={orderBy}
                 onSelectAllClick={handleSelectAllClick}
                 onRequestSort={handleRequestSort}
-                rowCount={rows.length}
+                rowCount={data ? data.filter((item) => item.status === 'مقبول').length : 0}
                 />
                 <TableBody> 
                 { status === StatusCode.SUCCESS && data.length !==0 ?  data.filter((item)=>item.status === 'مقبول').map((krow, index) => {
-                    const isItemSelected = isSelected(krow.medicEx_id);
-                    const labelId = `enhanced-table-checkbox-${krow.medicEx_id}`;
+                    const krowId = krow.id ?? krow.medicEx_id;
+                    const isItemSelected = isSelected(krowId);
+                    const labelId = `enhanced-table-checkbox-${krowId ?? index}`;
+                    const studentId = krow.student?.id ?? krow.student_id;
+                    const studentName = krow.student?.name ?? krow.student_name ?? "";
+                    const studentImg = krow.student?.userImage || (krow.student_image ? `http://localhost:7000/api/v1/uploads/${krow.student_image}` : "");
+                    const nationalId = krow.student?.nationalId ?? krow.national_id ?? "";
+                    const clinicName = krow.clinic?.name ?? krow.clinic_name ?? "";
+                    const displayDate = krow.date ? (typeof krow.date === "string" && krow.date.includes(",") ? krow.date.split(",")[0] : String(krow.date).slice(0, 10)) : "";
+                    const examType = krow.examType ?? krow.exam_type ?? "";
+                    const statusText = krow.status ?? "";
+                    const isTransferred = Boolean(krow.transfer?.id ?? krow.transfer_id ?? (krow.transfered && krow.transfered !== 0));
+
                     return (
                         <TableRow
                             hover
                             role="checkbox"
                             aria-checked={isItemSelected}
                             tabIndex={-1}
-                            key={krow.medicEx_id}
+                            key={krowId ?? index}
                             selected={isItemSelected}
                             sx={{ cursor: 'pointer' }}
                             
                         >
                         
                             
-                                <TableCell  onClick={(event) => handleClick(event,krow.medicEx_id ,  krow )} padding="checkbox">
+                                <TableCell  onClick={(event) => handleClick(event, krowId, krow )} padding="checkbox">
                                 <Checkbox
                                     color="primary"
                                     checked={isItemSelected}
@@ -673,28 +669,30 @@ return (
                                 padding="none"
                                 align='center'
                                 >
-                                <Link to={`/ad/profile/${krow.student_id}`} style={{ color :"black", display : "flex" , alignItems : "center"}} >
-                                <img className='imgage-table' alt='user' src={`http://localhost:7000/api/v1/uploads/${krow.student_image}`} loading='lazy' />
+                                <Link to={`/ad/profile/${studentId}`} style={{ color :"black", display : "flex" , alignItems : "center"}} >
+                                {studentImg ? (
+                                  <img className='imgage-table' alt='user' src={studentImg} loading='lazy' />
+                                ) : null}
                                 
-                                <Tooltip TransitionProps={{ timeout: 200 }} title={krow.student_name} placement="top">
-                                { krow.student_name > 13 ?  `${krow.student_name.slice(0 , 13)}...` : krow.student_name}
+                                <Tooltip TransitionProps={{ timeout: 200 }} title={studentName} placement="top">
+                                  <span>{ studentName.length > 13 ?  `${studentName.slice(0 , 13)}...` : studentName}</span>
                                 </Tooltip>
                                 </Link>
                                 </TableCell>
                             
                                 
 
-                            <TableCell  align="center">{krow.national_id}</TableCell>
-                            <TableCell  align="center">{krow.clinic_name}</TableCell>
-                            <TableCell  align="center">{krow.date.length === 9 ?   krow.date.slice(0 , 9) :krow.date.slice(0 , 8) }</TableCell>
-                            <TableCell  align="center">{krow.examType}</TableCell>
-                            <TableCell  align="center">{krow.status}</TableCell>
+                            <TableCell  align="center">{nationalId}</TableCell>
+                            <TableCell  align="center">{clinicName}</TableCell>
+                            <TableCell  align="center">{displayDate}</TableCell>
+                            <TableCell  align="center">{examType}</TableCell>
+                            <TableCell  align="center">{statusText}</TableCell>
 
                             <TableCell align="center" style={ {display : "flex" , justifyContent: "center"}}>
                             <div className='k-btn-group'>
                                 
                                 {
-                                    krow.transfered === 0 ?
+                                    !isTransferred ?
                                     <Button className='transfer-btn' onClick={()=>handleOpen(krow)}> تحويل  </Button>:
                                     <Button onClick={()=>handleUpdateOpen(krow)} style={{background : "orange" , color :"white" , borderRadius:"22px"}}>تعديل </Button>
 
@@ -708,15 +706,6 @@ return (
                     );
                 }) : <TableRow  > <TableCell  colSpan={8}>  <h3 style={{width : "100%" , textAlign : "center" , fontSize :"25px"}} >  غير موجود </h3> </TableCell> </TableRow>
             }
-                {emptyRows > 0 && (
-                    <TableRow
-                    style={{
-                        height: (dense ? 33 : 53) * emptyRows,
-                    }}
-                    >
-                    <TableCell colSpan={6} />
-                    </TableRow>
-                )}
                 </TableBody>
             </Table>
             </TableContainer>

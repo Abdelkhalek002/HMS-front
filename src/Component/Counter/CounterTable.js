@@ -19,6 +19,7 @@ import excelPic from "./../../images/excel.png" ;
 import { Tooltip } from '@mui/material';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
 import { acceptOrDeclineAPI, getAllReservationListAPI, getReservationData } from '../../RTK/Admins/CounterSlice';
 import StatusCode from '../../StatusCode';
 import { getUserInfo } from '../../RTK/Auth/AuthSlice';
@@ -26,21 +27,7 @@ import { useState } from 'react';
 import printPic from "./../../images/printer-print-svgrepo-com.svg" ; 
 
 
-function createData(id, name, calories, fat, carbs, protein) {
-  return {id,name,calories,fat,carbs,protein,};
-}
 
-
-
-const rows = [
-  createData(1, 'كريم محمد احمد', "301112301011929", "انف واذن وحنجرة", "2024-5-22"),
-  createData(2, 'Donut', 452, 25.0, 51, 4.9),
-  createData(3, 'Eclair', 262, 16.0, 24, 6.0),
-  createData(4, 'Frozen yoghurt', 159, 6.0, 24, 4.0),
-  createData(5, 'Gingerbread', 356, 16.0, 49, 3.9),
-  createData(6, 'Honeycomb', 408, 3.2, 87, 6.5),
-
-];
 
 
 
@@ -211,8 +198,8 @@ const [excel , setExcel ] = React.useState([] ) ;
   const {data , status} = useSelector(getReservationData)  ;
 
   const handleSelectAllClick = (event) => {
-    if (event.target.checked) {
-      const newSelected = data.map((n) => n.medicEx_id);
+    if (event.target.checked && data) {
+      const newSelected = data.map((n) => n.id ?? n.medicEx_id);
       setSelected(newSelected);
       return;
     }
@@ -264,11 +251,7 @@ const [excel , setExcel ] = React.useState([] ) ;
 
   const isSelected = (id) => selected.indexOf(id) !== -1;
 
-  // Avoid a layout jump when reaching the last page with empty rows.
-  const emptyRows =
-    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
 
-  const visibleRows = rows ;
 
 
 
@@ -285,9 +268,30 @@ const [excel , setExcel ] = React.useState([] ) ;
   const [searchParams , setSearchParams ] = useSearchParams() ; 
 
   //  For Accept and Decline 
-  const acceptOrDecline = (medxId , userId , res)=>{
-    dispatch(acceptOrDeclineAPI({token ,medxId ,   res , page : searchParams.get('page') ? searchParams.get('page') : 1 , searchKey : "" }))
-  }
+  const acceptOrDecline = (reservationId, userId, isAccepted) => {
+    const status = Boolean(isAccepted);
+    dispatch(
+      acceptOrDeclineAPI({
+        id: reservationId,
+        medxId: reservationId,
+        status,
+        page: searchParams.get('page') ? searchParams.get('page') : 1,
+        search: searchParams.get('search') ? searchParams.get('search') : "",
+      })
+    )
+      .unwrap()
+      .then(() => {
+        toast.success(status ? "تم قبول الكشف بنجاح" : "تم رفض الكشف بنجاح");
+      })
+      .catch((error) => {
+        const errorMsg =
+          error?.error ||
+          error?.message ||
+          (typeof error === 'string' ? error : null) ||
+          "حدث خطأ أثناء تعديل حالة الكشف";
+        toast.error(errorMsg);
+      });
+  };
 
   // For Search 
   const searchHandler = ()=>{
@@ -337,25 +341,35 @@ const [excel , setExcel ] = React.useState([] ) ;
                 orderBy={orderBy}
                 onSelectAllClick={handleSelectAllClick}
                 onRequestSort={handleRequestSort}
-                rowCount={rows.length}
+                rowCount={data?.length || 0}
                 />
                 <TableBody> 
                 { status === StatusCode.SUCCESS && data.length !==0 ?  data.map((row, index) => {
-                    const isItemSelected = isSelected(row.medicEx_id);
+                    const rowId = row.id ?? row.medicEx_id;
+                    const isItemSelected = isSelected(rowId);
                     const labelId = `enhanced-table-checkbox-${index}`;
+                    const studentId = row.student?.id ?? row.student_id;
+                    const studentName = row.student?.name ?? row.student_name ?? "";
+                    const studentImg = row.student?.userImage || (row.student_image ? `http://localhost:7000/api/v1/uploads/${row.student_image}` : "");
+                    const nationalId = row.student?.nationalId ?? row.national_id ?? "";
+                    const clinicName = row.clinic?.name ?? row.clinic_name ?? "";
+                    const displayDate = row.date ? (typeof row.date === "string" && row.date.includes(",") ? row.date.split(",")[0] : String(row.date).slice(0, 10)) : "";
+                    const examType = row.examType ?? row.exam_type ?? "";
+                    const statusText = row.status ?? "";
+
                     return (
                       <TableRow
                           hover
                           role="checkbox"
                           aria-checked={isItemSelected}
                           tabIndex={-1}
-                          key={row.medicEx_id}
+                          key={rowId ?? index}
                           selected={isItemSelected}
                           sx={{ cursor: 'pointer' }}
                           
                       >
                           
-                              <TableCell  onClick={(event) =>{  handleClick(event, row.medicEx_id, row )}}padding="checkbox">
+                              <TableCell  onClick={(event) =>{  handleClick(event, rowId, row )}}padding="checkbox">
                               <Checkbox
                                   color="primary"
                                   checked={isItemSelected}
@@ -372,35 +386,37 @@ const [excel , setExcel ] = React.useState([] ) ;
                               padding="none"
                               align='center'
                               >
-                              <Link to={`profile/${row.student_id}`} style={{ color :"black", display : "flex" , alignItems : "center"}}>
-                              <img className='imgage-table' alt='user' src={`http://localhost:7000/api/v1/uploads/${row.student_image}`} loading='lazy' />
+                              <Link to={`profile/${studentId}`} style={{ color :"black", display : "flex" , alignItems : "center"}}>
+                              {studentImg ? (
+                                <img className='imgage-table' alt='user' src={studentImg} loading='lazy' />
+                              ) : null}
                               
-                              <Tooltip TransitionProps={{ timeout: 200 }} title={row.student_name} placement="top">
-                              { row.student_name > 13 ?  `${row.student_name.slice(0 , 13)}...` : row.student_name}
+                              <Tooltip TransitionProps={{ timeout: 200 }} title={studentName} placement="top">
+                                <span>{ studentName.length > 13 ?  `${studentName.slice(0 , 13)}...` : studentName}</span>
                               </Tooltip>
                               </Link>
                               </TableCell>
                             
                               
 
-                            <TableCell  align="center">{row.national_id}</TableCell>
-                            <TableCell  align="center">{row.clinic_name}</TableCell>
-                            <TableCell  align="center">{row.date.length === 9 ?   row.date.slice(0 , 9) :row.date.slice(0 , 8)}</TableCell>
-                            <TableCell  align="center">{row.examType}</TableCell>
-                            <TableCell  align="center">{row.status}</TableCell>
+                            <TableCell  align="center">{nationalId}</TableCell>
+                            <TableCell  align="center">{clinicName}</TableCell>
+                            <TableCell  align="center">{displayDate}</TableCell>
+                            <TableCell  align="center">{examType}</TableCell>
+                            <TableCell  align="center">{statusText}</TableCell>
 
                             <TableCell align="center" style={ {display : "flex" , justifyContent: "center"}}>
                             <div className='k-btn-group'>
                                 
                                 {
-                                  row.status === "مقبول" ?
+                                  statusText === "مقبول" ?
                                   <div className='accept-resv'>مقبول</div> :
-                                  row.status === "مرفوض" ? <div className='rej-resv'>مرفوض</div> :
+                                  statusText === "مرفوض" ? <div className='rej-resv'>مرفوض</div> :
                                   <React.Fragment>
-                                  <button onClick={()=> acceptOrDecline(row.medicEx_id , row.student_id , 1)}><span class="material-symbols-outlined">
+                                  <button onClick={()=> acceptOrDecline(rowId , studentId , true)}><span className="material-symbols-outlined">
                                   check
                                   </span></button>
-                                  <button onClick={()=> acceptOrDecline(row.medicEx_id , row.student_id , 0)}><span class="material-symbols-outlined">
+                                  <button onClick={()=> acceptOrDecline(rowId , studentId , false)}><span className="material-symbols-outlined">
                                   close
                                   </span></button></React.Fragment>
 
@@ -414,15 +430,6 @@ const [excel , setExcel ] = React.useState([] ) ;
                     );
                 }) : <TableRow  > <TableCell  colSpan={8}>  <h3 style={{width : "100%" , textAlign : "center" , fontSize :"25px"}} > غير موجود </h3> </TableCell> </TableRow>
               }
-                {emptyRows > 0 && (
-                    <TableRow
-                    style={{
-                        height: (dense ? 33 : 53) * emptyRows,
-                    }}
-                    >
-                    <TableCell colSpan={6} />
-                    </TableRow>
-                )}
                 </TableBody>
             </Table>
             </TableContainer>

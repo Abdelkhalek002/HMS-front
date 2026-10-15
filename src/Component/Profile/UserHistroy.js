@@ -46,7 +46,7 @@ const UserHistroy = () => {
     // For handle Delete Reservation
     const deleteReservationHandler = (medxId)=>{
         console.log(medxId)
-        dispatch(deleteReservationAPI({token , userId : payLoad.userId , medxId}   ))
+        dispatch(deleteReservationAPI({token , userId : payLoad.userId , medxId, id: medxId}   ))
     }
 
 
@@ -85,19 +85,27 @@ const UserHistroy = () => {
                         </TableRow>
                         </TableHead>
                         <TableBody>
-                        {reservationData.length !==0 && statusReservation === StatusCode.SUCCESS ? reservationData.map((row) => (
-                            <TableRow
-                            key={row.clinic_id  }
-                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                            >
-                            <TableCell component="th" scope="row">
-                                {row.clinic_name}
-                            </TableCell>
-                            <TableCell align="center">{row.date.length === 9 ?   row.date.slice(0 , 9) :row.date.slice(0 , 8)}</TableCell>
-                            <TableCell align="center">{row.examType}</TableCell>
-                            <TableCell align="center">{row.status === 'تحت الانتظار' ? <DeleteIcon onClick={()=>deleteReservationHandler(row.medicEx_id)} style={{cursor : "pointer"}} color='error' /> : <div className='success-reserve'>تم الكشف</div>  }</TableCell>
-                            </TableRow>
-                        )) 
+                        {reservationData.length !==0 && statusReservation === StatusCode.SUCCESS ? reservationData.map((row, idx) => {
+                            const resId = row.id ?? row.medicEx_id;
+                            const clinicTitle = row.clinicName ?? row.clinic_name ?? row.clinic?.name ?? "";
+                            const displayDate = row.date ? (typeof row.date === "string" && row.date.includes(",") ? row.date.split(",")[0] : String(row.date).slice(0, 10)) : "";
+                            const examType = row.examType ?? row.exam_type ?? "";
+                            const statusText = row.status ?? "";
+
+                            return (
+                              <TableRow
+                              key={resId ?? idx}
+                              sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                              >
+                              <TableCell component="th" scope="row">
+                                  {clinicTitle}
+                              </TableCell>
+                              <TableCell align="center">{displayDate}</TableCell>
+                              <TableCell align="center">{examType}</TableCell>
+                              <TableCell align="center">{statusText === 'تحت الانتظار' ? <DeleteIcon onClick={()=>deleteReservationHandler(resId)} style={{cursor : "pointer"}} color='error' /> : <div className='success-reserve'>{statusText === 'مقبول' ? 'تم الكشف' : statusText}</div>  }</TableCell>
+                              </TableRow>
+                            );
+                        }) 
                         :reservationData.length ===0 && statusReservation === StatusCode.SUCCESS? (<TableRow> <TableCell colSpan={4} align="center"><h2>لاتوجود كشوفات</h2></TableCell></TableRow>) 
                         : statusReservation === StatusCode.LOADING ? 
                         <TableRow> <TableCell colSpan={4} align="center"><Skeleton variant="rounded" width={210} height={40} /></TableCell></TableRow>

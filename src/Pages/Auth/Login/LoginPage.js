@@ -5,6 +5,7 @@ import { Link, Navigate, useNavigate } from 'react-router-dom';
 import maroPic from "./../../../images/mero.png";
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
 import { getUserInfo, loginHandlerAPI, loginLoad } from '../../../RTK/Auth/AuthSlice';
 import { 
     USERTYPE,
@@ -117,7 +118,19 @@ const LoginPage = () => {
 
         if (validMail === 'valid' && email !== '' && validPassword === 'valid' && password !== '') {
             const userData = { email, password };
-            dispatch(loginHandlerAPI({ userData }));
+            dispatch(loginHandlerAPI({ userData }))
+                .unwrap()
+                .then(() => {
+                    toast.success('تم تسجيل الدخول بنجاح');
+                })
+                .catch((error) => {
+                    const message =
+                        error?.message ||
+                        error?.error ||
+                        (typeof error === 'string' ? error : null) ||
+                        'كلمة المرور او الايميل غير صحيح';
+                    toast.error(message);
+                });
         }
     }
     return (

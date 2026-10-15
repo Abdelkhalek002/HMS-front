@@ -1,4 +1,5 @@
 import { configureStore } from "@reduxjs/toolkit";
+import { apiSlice } from "../Api/apiSlice";
 import AuthSlice from "../Auth/AuthSlice";
 import UserSlice from "../User/UserSlice";
 import LevelSlice from "../Level//LevelSlice";
@@ -17,6 +18,7 @@ import TransferSlice from "../Transfer/TransferSlice.js";
 
 const store = configureStore({
     reducer: {
+        [apiSlice.reducerPath]: apiSlice.reducer,
         AuthSlice,
         UserSlice,
         LevelSlice,
@@ -31,7 +33,9 @@ const store = configureStore({
         UserControlSlice , 
         CounterSlice , 
         TransferSlice
-    }
+    },
+    middleware: (getDefaultMiddleware) =>
+        getDefaultMiddleware().concat(apiSlice.middleware),
 })
 
 export default store

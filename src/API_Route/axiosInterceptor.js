@@ -1,4 +1,5 @@
 import axios from "axios";
+import apiClient from "./axiosClient";
 import store from "../RTK/Store/store";
 import { logout } from "../RTK/Auth/AuthSlice";
 import { toast } from "react-toastify";
@@ -34,36 +35,36 @@ let isHandling401 = false;
  * Automatically clears credentials, shows an alert, and redirects to /login.
  */
 export const setupAxiosInterceptors = () => {
-  axios.interceptors.response.use(
-    (response) => response,
-    (error) => {
-      const status = error.response ? error.response.status : null;
-      const url = error.config ? error.config.url : "";
-      const isLoginRequest = url && url.includes("/auth/login");
+  const onResponseError = (error) => {
+    const status = error.response ? error.response.status : null;
+    const url = error.config ? error.config.url : "";
+    const isLoginRequest = url && url.includes("/auth/login");
 
-      if (status === 401 && !isLoginRequest) {
-        if (!isHandling401) {
-          isHandling401 = true;
+    if (status === 401 && !isLoginRequest) {
+      if (!isHandling401) {
+        isHandling401 = true;
 
-          // Clear auth state in Redux and localStorage
-          store.dispatch(logout());
+        // Clear auth state in Redux and localStorage
+        store.dispatch(logout());
 
-          toast.error("انتهت صلاحية الجلسة، برجاء تسجيل الدخول مرة أخرى", {
-            toastId: "session-expired",
-          });
+        toast.error("انتهت صلاحية الجلسة، برجاء تسجيل الدخول مرة أخرى", {
+          toastId: "session-expired",
+        });
 
-          // Redirect to login page
-          if (window.location.pathname !== "/login") {
-            window.location.href = "/login";
-          }
-
-          setTimeout(() => {
-            isHandling401 = false;
-          }, 2000);
+        // Redirect to login page
+        if (window.location.pathname !== "/login") {
+          window.location.href = "/login";
         }
-      }
 
-      return Promise.reject(error);
+        setTimeout(() => {
+          isHandling401 = false;
+        }, 2000);
+      }
     }
-  );
+
+    return Promise.reject(error);
+  };
+
+  axios.interceptors.response.use((response) => response, onResponseError);
+  apiClient.interceptors.response.use((response) => response, onResponseError);
 };
