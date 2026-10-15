@@ -19,7 +19,7 @@ export const deleteReservationAPI = createAsyncThunk(
     const reservationId = args?.id ?? args?.medxId;
     console.log(args);
     try {
-      const response = await axios.delete(
+      await axios.delete(
         `${BASE_URL}/myreservations/${userId}/${reservationId}`,
         {
           headers: {
@@ -44,9 +44,10 @@ export const getUserReservationAPI = createAsyncThunk(
       (typeof args === "string" ? args : null) ||
       getState()?.AuthSlice?.user?.token;
     const page = args?.page || 1;
+    const studentQuery = args?.userId || args?.id ? `&student_id=${args.userId || args.id}` : "";
     try {
       const response = await axios.get(
-        `${BASE_URL}/myreservations?page=${page}&limit=5`,
+        `${BASE_URL}/myreservations?page=${page}&limit=5${studentQuery}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -67,28 +68,30 @@ export const updateProfilePicAPI = createAsyncThunk(
   "user/updateProfilePic",
   async (args, thunkAPI) => {
     const { rejectWithValue, dispatch, getState } = thunkAPI;
+    const token =
+      args?.token ||
+      (typeof args === "string" ? args : null) ||
+      getState()?.AuthSlice?.user?.token;
     try {
-      const response = await axios.patch(
-        `${BASE_URL}/users/me/${args.id}`,
-        { userImage_file: args.data },
-        {
-          headers: {
-            Authorization: `Bearer ${args.token}`,
-            "Content-Type": "multipart/form-data",
-          },
+      const formData =
+        args.data instanceof FormData ? args.data : new FormData();
+      if (!(args.data instanceof FormData)) {
+        formData.append("user_image_file", args.data);
+      }
+      const response = await axios.put(`${BASE_URL}/users/me`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-      );
-      console.log("Inside Update Profile Pic Photo");
-      console.log(getState().AuthSlice.user);
-
-      dispatch(
-        getUserProfileAPi({
-          token: getState().AuthSlice.user.token,
-        }),
-      );
-      console.log(response);
+      });
+      console.log("Profile photo updated:", response.data);
+      dispatch(getUserProfileAPi({ token }));
+      return response.data;
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(
+        error.response?.data?.message ||
+        error.response?.data?.msg ||
+        error.message,
+      );
     }
   },
 );
@@ -97,21 +100,33 @@ export const updateProfilePicAPI = createAsyncThunk(
 export const updateProfileAPI = createAsyncThunk(
   "user/updateProfile",
   async (args, thunkAPI) => {
-    const { rejectWithValue } = thunkAPI;
+    const { rejectWithValue, dispatch, getState } = thunkAPI;
+    const token =
+      args?.token ||
+      (typeof args === "string" ? args : null) ||
+      getState()?.AuthSlice?.user?.token;
+    const username =
+      args.data?.username || args.data?.userName || args.data?.name || "";
     try {
       const response = await axios.put(
-        `${BASE_URL}/users/me/${args.id}`,
-        args.data,
+        `${BASE_URL}/users/me`,
+        { username },
         {
           headers: {
-            Authorization: `Bearer ${args.token}`,
+            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
         },
       );
-      console.log(response);
+      console.log("Profile data updated:", response.data);
+      dispatch(getUserProfileAPi({ token }));
+      return response.data;
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(
+        error.response?.data?.message ||
+        error.response?.data?.msg ||
+        error.message,
+      );
     }
   },
 );
@@ -132,6 +147,7 @@ export const changePasswordAPI = createAsyncThunk(
           },
         },
       );
+      return response.data;
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -151,17 +167,16 @@ export const getUserProfileAPi = createAsyncThunk(
       (typeof args === "string" ? args : null) ||
       currentUser?.token;
 
-    // If an id is provided and it is different from current user (e.g. admin viewing a user profile),
-    // request /users/:id. Otherwise (user accessing own profile or no id provided), request /users/me.
-    const isOtherUser =
-      args?.id &&
-      currentUserId !== undefined &&
-      currentUserId !== null &&
-      String(args.id) !== String(currentUserId);
+    const isAdmin =
+      currentUser?.payLoad?.type === "admin" ||
+      Boolean(currentUser?.payLoad?.role);
 
-    const url = isOtherUser
-      ? `${BASE_URL}/users/${args.id}`
-      : `${BASE_URL}/users/me`;
+    // If an id is provided and it's an admin viewing or different from current user,
+    // request /users/:id. Otherwise (student accessing own profile or no id provided), request /users/me.
+    const url =
+      args?.id && (isAdmin || String(args.id) !== String(currentUserId))
+        ? `${BASE_URL}/users/${args.id}`
+        : `${BASE_URL}/users/me`;
 
     try {
       const response = await axios.get(url, {
@@ -190,11 +205,25 @@ export const getUserProfileAPi = createAsyncThunk(
         userName: raw.userName || raw.username || "",
         username: raw.username || raw.userName || "",
         email: raw.email || "",
+        profile_photo_url: raw.profile_photo_url || "",
         userImage_file:
-          raw.userImage_file || raw.photo || raw.user_image_file || "",
-        photo: raw.photo || raw.userImage_file || raw.user_image_file || "",
+          raw.profile_photo_url ||
+          raw.userImage_file ||
+          raw.user_image_file ||
+          raw.photo ||
+          "",
+        photo:
+          raw.profile_photo_url ||
+          raw.photo ||
+          raw.userImage_file ||
+          raw.user_image_file ||
+          "",
         user_image_file:
-          raw.user_image_file || raw.userImage_file || raw.photo || "",
+          raw.profile_photo_url ||
+          raw.user_image_file ||
+          raw.userImage_file ||
+          raw.photo ||
+          "",
         phoneNumber: raw.phoneNumber || raw.phone_number || "",
         phone_number: raw.phone_number || raw.phoneNumber || "",
         gender: raw.gender || "",
@@ -252,18 +281,31 @@ const UserSlice = createSlice({
     });
     // Forget Password
     builder.addCase(changePasswordAPI.fulfilled, (state, action) => {
-      toast.success("تم تغير كلمة السر بنجاح");
+      toast.success("تم تغيير كلمة السر بنجاح");
     });
-    builder.addCase(changePasswordAPI.pending, (state, action) => {});
+    builder.addCase(changePasswordAPI.pending, (state, action) => { });
     builder.addCase(changePasswordAPI.rejected, (state, action) => {
-      toast.error("كلمة المرور القديمة غير صحيحة برجاء المحاولة مرة اخي");
+      toast.error("كلمة المرور القديمة غير صحيحة برجاء المحاولة مرة اخرى");
     });
     // For Upload Profile Picture
     builder.addCase(updateProfilePicAPI.fulfilled, (state, action) => {
       console.log("Photo Upload Successfully");
       toast.success("تم تغير صورة البروفيل بنجاح");
+      const updated = action.payload?.result;
+      if (updated) {
+        const photoVal =
+          action.payload?.profile_photo_url ||
+          updated.profile_photo_url
+        if (state.data) {
+          state.data = {
+            ...state.data,
+            ...updated,
+            profile_photo_url: photoVal || state.data.profile_photo_url,
+          };
+        }
+      }
     });
-    builder.addCase(updateProfilePicAPI.pending, (state, action) => {});
+    builder.addCase(updateProfilePicAPI.pending, (state, action) => { });
     builder.addCase(updateProfilePicAPI.rejected, (state, action) => {
       toast.error("حدث خطا اثناء رفع الصورة برجاء اعادة المحاولة");
     });
@@ -277,10 +319,9 @@ const UserSlice = createSlice({
       state.statusReservation = StatusCode.LOADING;
     });
     builder.addCase(getUserReservationAPI.rejected, (state, action) => {
-      if (403 === action.payload.response.status) {
+      if (action.payload?.response?.status === 403) {
         state.statusReservation = StatusCode.UNAUTHORIZED;
       } else {
-        toast.error(`حدث خطا برجاء اعادة المحاولة`);
         state.statusReservation = StatusCode.ERROR;
       }
     });

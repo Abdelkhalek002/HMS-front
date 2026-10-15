@@ -4,7 +4,7 @@ import CounterPage from './Pages/Counter/CounterPage';
 import ProfilePage from './Pages/Profile/ProfilePage';
 import UserDetails from './Component/Profile/UserDetails';
 import UserHistroy from './Component/Profile/UserHistroy';
-import EditeProfile from './Pages/Profile/EditeProfile';
+import EditProfile from './Pages/Profile/EditProfile';
 import ReservationPage from './Pages/User/Reservation/ReservationPage';
 import GroupUserPage from './Pages/GroupUser/GroupUserPage';
 import LoginPage from './Pages/Auth/Login/LoginPage';
@@ -60,7 +60,8 @@ function App() {
             </Route>
 
             {/* Edit Profile */}
-            <Route path='editeprofile' element={<EditeProfile />} />
+            <Route path='editprofile' element={<EditProfile />} />
+            <Route path='editeprofile' element={<EditProfile />} />
             {/* Change Passsword */}
             <Route path='changepassword' element={<ChangePasswordPage />} />
           </Route>

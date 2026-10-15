@@ -8,6 +8,7 @@ import './usercomp.css'
 import { Block, RemoveCircleOutlineRounded } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
 import { getUserInfo } from '../../RTK/Auth/AuthSlice.js';
+import { BASE_URL } from '../../API_Route/GlobalRoute.js';
 
 
 const UserComponent = ({ id, title, email, date, status, image, active, blocked, handleDelete, handleBlock, handleUnblock }) => {
@@ -33,7 +34,18 @@ const UserComponent = ({ id, title, email, date, status, image, active, blocked,
 
     return <> <div className='user-card'>
         <div className='user-header'>
-            <img src={`http://localhost:7000/api/v1/uploads/${image}`} alt='head' loading='lazy' />
+            <img
+                src={
+                    image
+                        ? (image.startsWith('http')
+                            ? image
+                            : `${BASE_URL}/uploads/${image.replace(/^\/+/, '')}`)
+                        : userPic
+                }
+                alt='head'
+                loading='lazy'
+                onError={(e) => { e.target.src = userPic; }}
+            />
             <div className='det'>
                 <p className='user-name'>{title}</p>
                 <Tooltip title={email} placement="top" arrow>

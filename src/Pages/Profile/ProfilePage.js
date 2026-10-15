@@ -8,6 +8,8 @@ import { Box, Button, Modal, Skeleton, Typography } from '@mui/material';
 import StatusCode from '../../StatusCode';
 import { sendObservations } from '../../RTK/UserControl/UserControlSlice.js';
 import { toast } from 'react-toastify';
+import { BASE_URL } from '../../API_Route/GlobalRoute';
+import userPic from '../../images/userProfile.jpg';
 
 const ProfilePage = () => {
 
@@ -22,13 +24,13 @@ const ProfilePage = () => {
     const { token, payLoad } = useSelector(getUserInfo);
 
     // For Access Params In URL
-    const [searchParams , setSearchParams ] = useSearchParams() ;
+    const [searchParams] = useSearchParams();
 
     // For Get User Data
     useEffect(() => {
         dispatch(getUserProfileAPi({ id: payLoad.userId, token }));
-        dispatch(getUserReservationAPI({ token, page : searchParams.get('page') ? searchParams.get('page') : 1 }));
-    }, [dispatch, payLoad, token]);
+        dispatch(getUserReservationAPI({ token, page: searchParams.get('page') ? searchParams.get('page') : 1 }));
+    }, [dispatch, payLoad, token, searchParams]);
 
     const Authroized = useSelector(state => state.UserSlice.statusReservation);
 
@@ -55,7 +57,7 @@ const ProfilePage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response =  dispatch(sendObservations({ id: profileInfo.student_id, message: observation.current.value }));
+            const response = dispatch(sendObservations({ id: profileInfo.student_id, message: observation.current.value }));
             toast.success(response.message, {
                 theme: "colored",
                 position: "top-right",
@@ -76,7 +78,7 @@ const ProfilePage = () => {
             }
         }
     };
-    
+
 
     const style = {
         position: 'absolute',
@@ -91,7 +93,7 @@ const ProfilePage = () => {
         p: 4,
     };
 
-    console.log(profileInfo) ; 
+    console.log(profileInfo);
 
 
     return (
@@ -124,7 +126,22 @@ const ProfilePage = () => {
                 {
                     !loading ?
                         <div className={`image ${profileInfo.status ? 'active' : ''}`}>
-                            <img src={`http://localhost:7000/api/v1/uploads/${profileInfo.userImage_file}`} alt='profile' loading='lazy' />
+                            {(() => {
+                                const photo = profileInfo.profile_photo_url;
+                                const photoSrc = photo
+                                    ? (photo.startsWith('http')
+                                        ? photo
+                                        : `${BASE_URL}/uploads/${photo.replace(/^\/+/, '')}`)
+                                    : userPic;
+                                return (
+                                    <img
+                                        src={photoSrc}
+                                        alt='profile'
+                                        loading='lazy'
+                                        onError={(e) => { e.target.src = userPic; }}
+                                    />
+                                );
+                            })()}
                         </div> :
                         <Skeleton variant="circular" width={40} height={40} />
                 }
@@ -136,7 +153,7 @@ const ProfilePage = () => {
                 <div className='send-message-btn'>
 
 
-                    <Link style={{ textDecoration: "none" }} to={"/editeprofile"}><button className='edite-profile-btn btn-shape'>تعديل الملف الشخصي</button></Link>
+                    <Link style={{ textDecoration: "none" }} to={"/editprofile"}><button className='edit-profile-btn edite-profile-btn btn-shape'>تعديل الملف الشخصي</button></Link>
                 </div>
                 <div className='k-user-tabs'>
                     <NavLink end to={"."}>تفاصيل الطالب</NavLink>

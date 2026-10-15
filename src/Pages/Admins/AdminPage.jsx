@@ -201,7 +201,6 @@ const AdminPage = () => {
           <Button
             variant='contained'
             color='primary'
-            startIcon={<PersonAddAlt1Icon />}
             onClick={handleOpenAddModal}
             className='add-admin-btn'
           >
@@ -358,7 +357,7 @@ const AdminPage = () => {
                   <MenuItem value={TRANSFERTYPE}>تحويلات (Transfer)</MenuItem>
                   <MenuItem value={SECONDSUPERADMIN}>مدير ثان (Second Manager)</MenuItem>
                   <MenuItem value={VIEWERTYPE}>ملاحظ (Viewer)</MenuItem>
-                  <MenuItem value={MEDICAL_CHECK_MANAGER}>مسئول الكشف الطبي (Medical Check Manager)</MenuItem>
+                  <MenuItem value={MEDICAL_CHECK_MANAGER}>مسؤول الكشف الطبي (Medical Check Manager)</MenuItem>
                   <MenuItem value={EXTERNAL_HOSPITAL_ADMIN}>أدمن مستشفي خارجي (External Hospital Admin)</MenuItem>
                 </Select>
               </FormControl>

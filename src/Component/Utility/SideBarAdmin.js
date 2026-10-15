@@ -8,19 +8,19 @@ const SideBarAdmin = () => {
 
 
     // For Change Navigation
-    const navigate = useNavigate() ; 
+    const navigate = useNavigate();
 
     // For Dispatch Action
-    const dispatch = useDispatch() ;
-    
+    const dispatch = useDispatch();
+
     // For Logout
-    const logoutHandler = ()=>{
-        dispatch(logout()) 
+    const logoutHandler = () => {
+        dispatch(logout())
         navigate("/login")
     }
 
-  return (
-    <aside className='side-bar'>
+    return (
+        <aside className='side-bar'>
             <div className='sidebar-header hide-mobile'>
                 <div className='logo logo-img'>
                     <img src={Logo} alt='logo' loading='lazy' className='logo-img' style={{ marginRight: "30px" }} />
@@ -34,11 +34,11 @@ const SideBarAdmin = () => {
             </div>
 
             <div className='sidebar-content'>
-                
-                <h4 className='sidebar-title hide-mobile'>المسؤل</h4>
+
+                <h4 className='sidebar-title hide-mobile'>المسؤول</h4>
 
                 <div className='all-tabs'>
-                
+
                     <NavLink end to={`.`} className='sidebar-tabs'>
                         <span className="material-symbols-outlined">
                             desktop_windows
@@ -48,7 +48,7 @@ const SideBarAdmin = () => {
 
                     <NavLink end to={`transfer`} className='sidebar-tabs'>
                         <span className="material-symbols-outlined">
-                        move_up
+                            move_up
                         </span>
                         <div className='tab-tilte hide-mobile'>تحويلات</div>
                     </NavLink>
@@ -57,7 +57,7 @@ const SideBarAdmin = () => {
                         <span className="material-symbols-outlined">
                             groups
                         </span>
-                        <div className='tab-tilte hide-mobile'>الادمن</div>
+                        <div className='tab-tilte hide-mobile'>المسؤولين</div>
                     </NavLink>
                     <NavLink to={`allusers`} className='sidebar-tabs'>
                         <span className="material-symbols-outlined">
@@ -109,7 +109,7 @@ const SideBarAdmin = () => {
 
                     <p onClick={logoutHandler} className='sidebar-tabs'>
                         <span class="material-symbols-outlined">
-                        logout
+                            logout
                         </span>
                         <div className='tab-tilte hide-mobile'>  تسجيل الخروج</div>
                     </p>
@@ -120,7 +120,7 @@ const SideBarAdmin = () => {
             </div>
 
         </aside>
-  )
+    )
 }
 
 export default SideBarAdmin

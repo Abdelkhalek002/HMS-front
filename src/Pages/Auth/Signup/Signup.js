@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import "./../Login/Login.css";
 import {
   Button,
@@ -227,8 +228,8 @@ const Signup = () => {
     <div className="log-form">
       <div className="main-form">
         <div className="log-head">
-          <h2>مرحبا بك في مستشفي جامعة حلوان</h2>
-          <p>من فضلك انشى حساب لتسجيل الدخول</p>
+          <h2>أهلاً بيك في مستشفي جامعة حلوان 💙</h2>
+          <p>من فضلك انشئ حساب لتسجيل الدخول</p>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -347,13 +348,13 @@ const Signup = () => {
             </MenuItem>
             {FacultyData
               ? FacultyData.map((item) => {
-                  return (
-                    <MenuItem key={item.faculty_id} value={item.faculty_id}>
-                      {" "}
-                      {item.facultyName}{" "}
-                    </MenuItem>
-                  );
-                })
+                return (
+                  <MenuItem key={item.faculty_id} value={item.faculty_id}>
+                    {" "}
+                    {item.facultyName}{" "}
+                  </MenuItem>
+                );
+              })
               : ""}
           </Select>
 
@@ -372,10 +373,10 @@ const Signup = () => {
             </MenuItem>
             {levelData
               ? levelData.map((item) => {
-                  return (
-                    <MenuItem value={item.level_id}> {item.levelName}</MenuItem>
-                  );
-                })
+                return (
+                  <MenuItem value={item.level_id}> {item.levelName}</MenuItem>
+                );
+              })
               : ""}
           </Select>
 
@@ -395,10 +396,10 @@ const Signup = () => {
 
             {govDat
               ? govDat.map((item) => {
-                  return (
-                    <MenuItem value={item.gov_id}> {item.govName} </MenuItem>
-                  );
-                })
+                return (
+                  <MenuItem value={item.gov_id}> {item.govName} </MenuItem>
+                );
+              })
               : ""}
           </Select>
 
@@ -418,7 +419,7 @@ const Signup = () => {
             fullWidth
             className="karim-input"
             id="outlined-required"
-            placeholder="الموبيل"
+            placeholder="الموبايل"
             name="phone"
             value={phone}
             onChange={(e) => {
@@ -473,7 +474,7 @@ const Signup = () => {
           </button>
 
           <Button
-            style={{ margin: "20px 0px 50px 0px" }}
+            style={{ margin: "20px 0px 15px 0px" }}
             fullWidth
             type="submit"
             className="log-btn"
@@ -483,6 +484,13 @@ const Signup = () => {
             {" "}
             انشاء{" "}
           </Button>
+
+          <div className="login-redirect-section">
+            <span>لديك حساب بالفعل؟</span>
+            <Link to="/login" className="login-redirect-link">
+              تسجيل الدخول
+            </Link>
+          </div>
         </form>
       </div>
 

@@ -17,8 +17,9 @@ const GroupUserPage = () => {
     const currentPage = parseInt(searchParams.get('page'), 10) || 1;
 
     // For Get Total Page & Users Data
-    const totalPage = useSelector(getTotalPageUser) || 0;
     const allUsers = useSelector(state => state.UserControlSlice.data);
+    const totalPageFromSlice = useSelector(getTotalPageUser) || 0;
+    const totalPage = totalPageFromSlice > 0 ? totalPageFromSlice : (allUsers && allUsers.length > 0 ? Math.ceil(allUsers.length / 8) : 0);
 
     // For Access Token and ID
     const { token, payLoad } = useSelector(getUserInfo) || {};
@@ -27,10 +28,10 @@ const GroupUserPage = () => {
     const dispatch = useDispatch();
 
     useEffect(() => {
-        if (token && payLoad?.userId) {
-            dispatch(getAllUserApi({ token, id: payLoad.userId, page: currentPage }));
+        if (token) {
+            dispatch(getAllUserApi({ token, id: payLoad?.userId || payLoad?.id, page: currentPage }));
         }
-    }, [token, payLoad?.userId, dispatch, currentPage]);
+    }, [token, payLoad?.userId, payLoad?.id, dispatch, currentPage]);
 
     const handlePageChange = (event, value) => {
         setSearchParams({ page: value });

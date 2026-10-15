@@ -3,8 +3,8 @@ export const SUPERADMINTYPE = `مدير النظام`;
 export const COUNTERTYPE = `كاونتر`;
 export const SECONDSUPERADMIN = `مدير ثان`;
 export const VIEWERTYPE = `ملاحظ`;
-export const TRANSFERTYPE = `مسئول التحويلات`;
-export const MEDICAL_CHECK_MANAGER = `مسئول الكشف الطبي`;
+export const TRANSFERTYPE = `مسؤول التحويلات`;
+export const MEDICAL_CHECK_MANAGER = `مسؤول الكشف الطبي`;
 export const EXTERNAL_HOSPITAL_ADMIN = `أدمن مستشفي خارجي`;
 
 // Legacy / backend hash codes mappings for backward compatibility

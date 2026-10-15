@@ -4,35 +4,36 @@ import Logo from "./../../images/Gemini_Generated_logoggggg-removebg-preview.png
 import { getUserInfo, logout } from '../../RTK/Auth/AuthSlice';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import userPic from "./../../images/userProfile.jpg" ; 
+import userPic from "./../../images/userProfile.jpg";
 import { getUserProfile, getUserProfileAPi } from '../../RTK/User/UserSlice';
+import { BASE_URL } from '../../API_Route/GlobalRoute';
 
 
 const SideBar = () => {
 
     // For Dispatch Action
-    const dispatch = useDispatch() ;
+    const dispatch = useDispatch();
 
     // For Change Route 
-    const navigate= useNavigate() ;
+    const navigate = useNavigate();
 
     // For Logout
-    const logoutHandler = ()=>{
-        dispatch(logout()) 
+    const logoutHandler = () => {
+        dispatch(logout())
         navigate("/login")
     }
 
     // For Access ID
-    const data = useSelector(getUserInfo) ; 
+    const data = useSelector(getUserInfo);
 
 
-      // For Get Profile Pic 
-    const userData = useSelector(getUserProfile) ; 
+    // For Get Profile Pic 
+    const userData = useSelector(getUserProfile);
 
-    console.log(userData ) ; 
+    console.log(userData);
 
 
-    console.log(data) ;
+    console.log(data);
 
 
     return (
@@ -68,24 +69,24 @@ const SideBar = () => {
                             </span>
                             <div className='tab-tilte hide-mobile'> الملف الشخصي</div>
                         </NavLink>
-                        
+
                         <NavLink to={`changepassword`} className='sidebar-tabs'>
                             <span class="material-symbols-outlined">
-                            key
+                                key
                             </span>
                             <div className='tab-tilte hide-mobile'>تغير كلمة المرور </div>
                         </NavLink>
 
                         <p onClick={logoutHandler} className='sidebar-tabs'>
                             <span class="material-symbols-outlined">
-                            logout
+                                logout
                             </span>
                             <div className='tab-tilte hide-mobile'>  تسجيل الخروج</div>
                         </p>
 
                     </div>
 
-                
+
 
                 </div>
             </div>
@@ -93,10 +94,24 @@ const SideBar = () => {
             <Link to={`/profile/${data.payLoad.userId}`} className='bottom'>
                 <div className='image'>
                     <div className='active-icon'></div>
-                    <img src={`http://localhost:7000/api/v1/uploads/${userData.userImage_file}`} alt='phoo' loading='lazy' />
+                    <img
+                        src={
+                            (() => {
+                                const photo = userData?.profile_photo_url;
+                                return photo
+                                    ? (photo.startsWith('http')
+                                        ? photo
+                                        : `${BASE_URL}/uploads/${photo.replace(/^\/+/, '')}`)
+                                    : userPic;
+                            })()
+                        }
+                        alt='profile'
+                        loading='lazy'
+                        onError={(e) => { e.target.src = userPic; }}
+                    />
                 </div>
                 <div className='text'>
-                    <h3>{userData.userName ?  userData.userName.split(" ").slice(0 , 3).join(" ") : ""}</h3>
+                    <h3>{userData.userName ? userData.userName.split(" ").slice(0, 3).join(" ") : ""}</h3>
                     <p>طالب</p>
                 </div>
             </Link>

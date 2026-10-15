@@ -15,7 +15,7 @@ import Paper from '@mui/material/Paper';
 import Checkbox from '@mui/material/Checkbox';
 import { visuallyHidden } from '@mui/utils';
 import { CSVLink } from 'react-csv';
-import excelPic from "./../../images/excel.png" ; 
+import excelPic from "./../../images/excel.png";
 import { Tooltip } from '@mui/material';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -24,13 +24,8 @@ import { acceptOrDeclineAPI, getAllReservationListAPI, getReservationData } from
 import StatusCode from '../../StatusCode';
 import { getUserInfo } from '../../RTK/Auth/AuthSlice';
 import { useState } from 'react';
-import printPic from "./../../images/printer-print-svgrepo-com.svg" ; 
-
-
-
-
-
-
+import printPic from "./../../images/printer-print-svgrepo-com.svg";
+import { BASE_URL } from '../../API_Route/GlobalRoute';
 
 const headCells = [
   {
@@ -79,9 +74,9 @@ const headCells = [
 ];
 
 function EnhancedTableHead(props) {
-  const { onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort } =props;
+  const { onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort } = props;
   console.log(`The Props `)
-  console.log(props) ; 
+  console.log(props);
   const createSortHandler = (property) => (event) => {
     onRequestSort(event, property);
   };
@@ -90,18 +85,18 @@ function EnhancedTableHead(props) {
 
   return (
     <TableHead>
-      <TableRow style={{borderBottom: "none"}} >
-      <TableCell padding="checkbox">
-      <Checkbox
-        color="primary"
-        indeterminate={numSelected > 0 && numSelected < rowCount}
-        checked={rowCount > 0 && numSelected === rowCount}
-        onChange={onSelectAllClick}
-        inputProps={{
-          'aria-label': 'select all desserts',
-        }}
-      />
-    </TableCell>
+      <TableRow style={{ borderBottom: "none" }} >
+        <TableCell padding="checkbox">
+          <Checkbox
+            color="primary"
+            indeterminate={numSelected > 0 && numSelected < rowCount}
+            checked={rowCount > 0 && numSelected === rowCount}
+            onChange={onSelectAllClick}
+            inputProps={{
+              'aria-label': 'select all desserts',
+            }}
+          />
+        </TableCell>
         {headCells.map((headCell) => (
           <TableCell
             key={headCell.id}
@@ -152,8 +147,8 @@ function EnhancedTableToolbar(props) {
         }),
       }}
     >
-      
-    {/* Note Here For Access Length Selected Item */}
+
+      {/* Note Here For Access Length Selected Item */}
       {numSelected > 0 ? (
         <Typography
           sx={{ flex: '1 1 100%' }}
@@ -167,7 +162,7 @@ function EnhancedTableToolbar(props) {
         ""
       )}
 
-      
+
     </Toolbar>
   );
 }
@@ -191,11 +186,11 @@ export default function EnhancedTable() {
   };
 
 
-//   For Handle Excel Print 
-const [excel , setExcel ] = React.useState([] ) ;
+  //   For Handle Excel Print 
+  const [excel, setExcel] = React.useState([]);
 
   // For Access Reservation Data 
-  const {data , status} = useSelector(getReservationData)  ;
+  const { data, status } = useSelector(getReservationData);
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked && data) {
@@ -207,38 +202,38 @@ const [excel , setExcel ] = React.useState([] ) ;
   };
 
 
-  console.log(data) ; 
+  console.log(data);
 
 
-  const handleClick = (event, id , rowIt ) => {
-  console.log(`the ID Selectd ${id}`)
+  const handleClick = (event, id, rowIt) => {
+    console.log(`the ID Selectd ${id}`)
 
     const selectedIndex = selected.indexOf(id);
     let newSelected = [];
-   
+
     if (selectedIndex === -1) {
       newSelected = newSelected.concat(selected, id);
       console.log("Entered 1")
       setExcel(excel.concat(rowIt))
     } else if (selectedIndex === 0) {
-        console.log("Entered 2")
-        console.log("Entered 3")
-      setExcel(excel.filter((item)=>{
-        return item.id !== (+id) ;
+      console.log("Entered 2")
+      console.log("Entered 3")
+      setExcel(excel.filter((item) => {
+        return item.id !== (+id);
       }))
-        newSelected = newSelected.concat(selected.slice(1));
-      
+      newSelected = newSelected.concat(selected.slice(1));
+
     } else if (selectedIndex === selected.length - 1) {
       console.log("Entered 3")
-      setExcel(excel.filter((item)=>{
-        return item.id !== (+id) ;
+      setExcel(excel.filter((item) => {
+        return item.id !== (+id);
       }))
       newSelected = newSelected.concat(selected.slice(0, -1));
     } else if (selectedIndex > 0) {
       console.log("Entered 4")
       console.log("Entered 3")
-      setExcel(excel.filter((item)=>{
-        return item.id !== (+id) ;
+      setExcel(excel.filter((item) => {
+        return item.id !== (+id);
       }))
 
       newSelected = newSelected.concat(
@@ -258,14 +253,14 @@ const [excel , setExcel ] = React.useState([] ) ;
   console.log(status)
 
   // For Dispatch Action
-  const dispatch = useDispatch() ; 
+  const dispatch = useDispatch();
 
 
   // For Token 
-  const {token} = useSelector(getUserInfo) ; 
+  const { token } = useSelector(getUserInfo);
 
   // For Access Params
-  const [searchParams , setSearchParams ] = useSearchParams() ; 
+  const [searchParams, setSearchParams] = useSearchParams();
 
   //  For Accept and Decline 
   const acceptOrDecline = (reservationId, userId, isAccepted) => {
@@ -294,149 +289,149 @@ const [excel , setExcel ] = React.useState([] ) ;
   };
 
   // For Search 
-  const searchHandler = ()=>{
-    searchParams.append('search' , searchInput)
-    setSearchParams({...searchParams , search : searchInput , page : 1})
-    dispatch(getAllReservationListAPI({token , page :  1  , search : searchInput ? searchInput : ""} ))
+  const searchHandler = () => {
+    searchParams.append('search', searchInput)
+    setSearchParams({ ...searchParams, search: searchInput, page: 1 })
+    dispatch(getAllReservationListAPI({ token, page: 1, search: searchInput ? searchInput : "" }))
   }
 
   // For Search Active 
-  const [active , setActive] = useState(false) ; 
+  const [active, setActive] = useState(false);
 
 
 
   // For Access Input 
-  const [searchInput , setSearchInput] = useState('') ; 
+  const [searchInput, setSearchInput] = useState('');
 
- 
+
 
   return (
-    <div  >  
-        <button onClick={()=>window.print()}>Print</button>      
-        <Box  sx={{ width: '1000px' , maxWidth : "100%" , margin : "20px auto" , borderRadius : "20px" }}>
+    <div  >
+      <button onClick={() => window.print()}>Print</button>
+      <Box sx={{ width: '1000px', maxWidth: "100%", margin: "20px auto", borderRadius: "20px" }}>
         <div className='k-filter-table'>
-          <div  onBlur={()=>setActive(false)} onFocus={()=>setActive(true)} className={`search ${active ? 'search-active' : ""}`}>
+          <div onBlur={() => setActive(false)} onFocus={() => setActive(true)} className={`search ${active ? 'search-active' : ""}`}>
 
-            <input value={searchInput} onChange={(e)=>setSearchInput(e.target.value)}  placeholder='ابحث...' />
+            <input value={searchInput} onChange={(e) => setSearchInput(e.target.value)} placeholder='ابحث...' />
 
-              <span  onClick={searchHandler} className="material-symbols-outlined">
+            <span onClick={searchHandler} className="material-symbols-outlined">
               search
-              </span>
+            </span>
           </div>
-          <img src={printPic } className='print-btn' alt='print' loading='lazy' onClick={()=>window.print()} />     
+          <img src={printPic} className='print-btn' alt='print' loading='lazy' onClick={() => window.print()} />
 
           <CSVLink filename='studentInfo' className='excel-btn' data={excel}> <img src={excelPic} alt='excel' /> </CSVLink>
         </div>
-        <Paper style={{borderRadius : "10px"}} sx={{ width: '100%', mb: 2 }}>
-            <EnhancedTableToolbar numSelected={selected.length} />
-            <TableContainer>
+        <Paper style={{ borderRadius: "10px" }} sx={{ width: '100%', mb: 2 }}>
+          <EnhancedTableToolbar numSelected={selected.length} />
+          <TableContainer>
             <Table
-                sx={{ minWidth: 750 }}
-                aria-labelledby="tableTitle"
-                size={dense ? 'small' : 'medium'}
+              sx={{ minWidth: 750 }}
+              aria-labelledby="tableTitle"
+              size={dense ? 'small' : 'medium'}
             >
-                <EnhancedTableHead
+              <EnhancedTableHead
                 numSelected={selected.length}
                 order={order}
                 orderBy={orderBy}
                 onSelectAllClick={handleSelectAllClick}
                 onRequestSort={handleRequestSort}
                 rowCount={data?.length || 0}
-                />
-                <TableBody> 
-                { status === StatusCode.SUCCESS && data.length !==0 ?  data.map((row, index) => {
-                    const rowId = row.id ?? row.medicEx_id;
-                    const isItemSelected = isSelected(rowId);
-                    const labelId = `enhanced-table-checkbox-${index}`;
-                    const studentId = row.student?.id ?? row.student_id;
-                    const studentName = row.student?.name ?? row.student_name ?? "";
-                    const studentImg = row.student?.userImage || (row.student_image ? `http://localhost:7000/api/v1/uploads/${row.student_image}` : "");
-                    const nationalId = row.student?.nationalId ?? row.national_id ?? "";
-                    const clinicName = row.clinic?.name ?? row.clinic_name ?? "";
-                    const displayDate = row.date ? (typeof row.date === "string" && row.date.includes(",") ? row.date.split(",")[0] : String(row.date).slice(0, 10)) : "";
-                    const examType = row.examType ?? row.exam_type ?? "";
-                    const statusText = row.status ?? "";
+              />
+              <TableBody>
+                {status === StatusCode.SUCCESS && data.length !== 0 ? data.map((row, index) => {
+                  const rowId = row.id ?? row.medicEx_id;
+                  const isItemSelected = isSelected(rowId);
+                  const labelId = `enhanced-table-checkbox-${index}`;
+                  const studentId = row.student?.id ?? row.student_id;
+                  const studentName = row.student?.name ?? row.student_name ?? "";
+                  const studentImg = row.student?.userImage || (row.student_image ? `${BASE_URL}/uploads/${row.student_image.replace(/^\/+/, '')}` : "");
+                  const nationalId = row.student?.nationalId ?? row.national_id ?? "";
+                  const clinicName = row.clinic?.name ?? row.clinic_name ?? "";
+                  const displayDate = row.date ? (typeof row.date === "string" && row.date.includes(",") ? row.date.split(",")[0] : String(row.date).slice(0, 10)) : "";
+                  const examType = row.examType ?? row.exam_type ?? "";
+                  const statusText = row.status ?? "";
 
-                    return (
-                      <TableRow
-                          hover
-                          role="checkbox"
-                          aria-checked={isItemSelected}
-                          tabIndex={-1}
-                          key={rowId ?? index}
-                          selected={isItemSelected}
-                          sx={{ cursor: 'pointer' }}
-                          
+                  return (
+                    <TableRow
+                      hover
+                      role="checkbox"
+                      aria-checked={isItemSelected}
+                      tabIndex={-1}
+                      key={rowId ?? index}
+                      selected={isItemSelected}
+                      sx={{ cursor: 'pointer' }}
+
+                    >
+
+                      <TableCell onClick={(event) => { handleClick(event, rowId, row) }} padding="checkbox">
+                        <Checkbox
+                          color="primary"
+                          checked={isItemSelected}
+                          inputProps={{
+                            'aria-labelledby': labelId,
+                          }}
+                        />
+                      </TableCell>
+
+                      <TableCell
+                        component="th"
+                        id={labelId}
+                        scope="row"
+                        padding="none"
+                        align='center'
                       >
-                          
-                              <TableCell  onClick={(event) =>{  handleClick(event, rowId, row )}}padding="checkbox">
-                              <Checkbox
-                                  color="primary"
-                                  checked={isItemSelected}
-                                  inputProps={{
-                                  'aria-labelledby': labelId,
-                                  }}
-                              />
-                              </TableCell>
-                            
-                              <TableCell
-                              component="th"
-                              id={labelId}
-                              scope="row"
-                              padding="none"
-                              align='center'
-                              >
-                              <Link to={`profile/${studentId}`} style={{ color :"black", display : "flex" , alignItems : "center"}}>
-                              {studentImg ? (
-                                <img className='imgage-table' alt='user' src={studentImg} loading='lazy' />
-                              ) : null}
-                              
-                              <Tooltip TransitionProps={{ timeout: 200 }} title={studentName} placement="top">
-                                <span>{ studentName.length > 13 ?  `${studentName.slice(0 , 13)}...` : studentName}</span>
-                              </Tooltip>
-                              </Link>
-                              </TableCell>
-                            
-                              
+                        <Link to={`profile/${studentId}`} style={{ color: "black", display: "flex", alignItems: "center" }}>
+                          {studentImg ? (
+                            <img className='imgage-table' alt='user' src={studentImg} loading='lazy' />
+                          ) : null}
 
-                            <TableCell  align="center">{nationalId}</TableCell>
-                            <TableCell  align="center">{clinicName}</TableCell>
-                            <TableCell  align="center">{displayDate}</TableCell>
-                            <TableCell  align="center">{examType}</TableCell>
-                            <TableCell  align="center">{statusText}</TableCell>
+                          <Tooltip TransitionProps={{ timeout: 200 }} title={studentName} placement="top">
+                            <span>{studentName.length > 13 ? `${studentName.slice(0, 13)}...` : studentName}</span>
+                          </Tooltip>
+                        </Link>
+                      </TableCell>
 
-                            <TableCell align="center" style={ {display : "flex" , justifyContent: "center"}}>
-                            <div className='k-btn-group'>
-                                
-                                {
-                                  statusText === "مقبول" ?
-                                  <div className='accept-resv'>مقبول</div> :
-                                  statusText === "مرفوض" ? <div className='rej-resv'>مرفوض</div> :
-                                  <React.Fragment>
-                                  <button onClick={()=> acceptOrDecline(rowId , studentId , true)}><span className="material-symbols-outlined">
-                                  check
+
+
+                      <TableCell align="center">{nationalId}</TableCell>
+                      <TableCell align="center">{clinicName}</TableCell>
+                      <TableCell align="center">{displayDate}</TableCell>
+                      <TableCell align="center">{examType}</TableCell>
+                      <TableCell align="center">{statusText}</TableCell>
+
+                      <TableCell align="center" style={{ display: "flex", justifyContent: "center" }}>
+                        <div className='k-btn-group'>
+
+                          {
+                            statusText === "مقبول" ?
+                              <div className='accept-resv'>مقبول</div> :
+                              statusText === "مرفوض" ? <div className='rej-resv'>مرفوض</div> :
+                                <React.Fragment>
+                                  <button onClick={() => acceptOrDecline(rowId, studentId, true)}><span className="material-symbols-outlined">
+                                    check
                                   </span></button>
-                                  <button onClick={()=> acceptOrDecline(rowId , studentId , false)}><span className="material-symbols-outlined">
-                                  close
+                                  <button onClick={() => acceptOrDecline(rowId, studentId, false)}><span className="material-symbols-outlined">
+                                    close
                                   </span></button></React.Fragment>
 
-                                }
-                            </div>
-                            </TableCell>
-                          
-                      </TableRow>
+                          }
+                        </div>
+                      </TableCell>
 
-                    
-                    );
-                }) : <TableRow  > <TableCell  colSpan={8}>  <h3 style={{width : "100%" , textAlign : "center" , fontSize :"25px"}} > غير موجود </h3> </TableCell> </TableRow>
-              }
-                </TableBody>
+                    </TableRow>
+
+
+                  );
+                }) : <TableRow  > <TableCell colSpan={8}>  <h3 style={{ width: "100%", textAlign: "center", fontSize: "25px" }} > غير موجود </h3> </TableCell> </TableRow>
+                }
+              </TableBody>
             </Table>
-            </TableContainer>
-            
+          </TableContainer>
+
         </Paper>
-        
-        </Box>
+
+      </Box>
     </div>
   );
 }

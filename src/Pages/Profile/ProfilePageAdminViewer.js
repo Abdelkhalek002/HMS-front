@@ -1,84 +1,87 @@
 import React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import "./profile.css";
-import { Link, NavLink, Outlet, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { NavLink, Outlet, useParams, useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { getUserInfo, logout } from "./../../RTK/Auth/AuthSlice";
+import { getUserInfo } from "./../../RTK/Auth/AuthSlice";
 import { getUserProfile, getUserProfileAPi, getUserReservationAPI } from '../../RTK/User/UserSlice';
 import { Box, Button, Modal, Skeleton, Typography } from '@mui/material';
-import StatusCode from '../../StatusCode';
+
 import { sendObservations } from '../../RTK/UserControl/UserControlSlice.js';
 import { toast } from 'react-toastify';
+import { BASE_URL } from '../../API_Route/GlobalRoute';
+import userPic from '../../images/userProfile.jpg';
 
 const ProfilePageAdminViewer = () => {
    // For Dispatch Action
    const dispatch = useDispatch();
 
    // For Change Route
-   const navigate = useNavigate();
+   
 
    const loading = useSelector(state => state.UserSlice.load);
 
-   const { token, payLoad } = useSelector(getUserInfo);
+   const { token } = useSelector(getUserInfo) || {};
 
     // For Access Param
-    const {userId } = useParams() ; 
+    const { userId } = useParams();
 
-   // For Access Params In URL
-   const [searchParams , setSearchParams ] = useSearchParams() ;
+    // For Access Params In URL
+    const [searchParams] = useSearchParams();
 
-   // For Get User Data
-   useEffect(() => {
-       dispatch(getUserProfileAPi({ id: userId, token }));
-       dispatch(getUserReservationAPI({ token, page : searchParams.get('page') ? searchParams.get('page') : 1 }));
-   }, [dispatch, payLoad, token]);
+    // For Get User Data
+    useEffect(() => {
+        if (token && userId) {
+            dispatch(getUserProfileAPi({ id: userId, token }));
+            dispatch(getUserReservationAPI({ token, userId, page: searchParams.get('page') ? searchParams.get('page') : 1 }));
+        }
+    }, [dispatch, userId, token, searchParams]);
 
-   const Authroized = useSelector(state => state.UserSlice.statusReservation);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-   if (Authroized === StatusCode.UNAUTHORIZED) {
-       dispatch(logout());
-       navigate('/login');
-   }
+    // Add modal handlers
+    const handleOpenAddModal = () => {
+        setIsAddModalOpen(true);
+    };
 
-   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const handleCloseAddModal = () => {
+        setIsAddModalOpen(false);
+    };
+    const profileInfo = useSelector(getUserProfile) || {};
 
-   // Add modal handlers
-   const handleOpenAddModal = () => {
-       setIsAddModalOpen(true);
-   };
+    const observation = useRef(null);
 
-   const handleCloseAddModal = () => {
-       setIsAddModalOpen(false);
-   };
-   const profileInfo = useSelector(getUserProfile);
-
-
-   const observation = useRef(null);
-
-   const handleSubmit = async (e) => {
-       e.preventDefault();
-       try {
-           const response =  dispatch(sendObservations({ id: profileInfo.student_id, message: observation.current.value }));
-           toast.success(response.message, {
-               theme: "colored",
-               position: "top-right",
-           });
-           handleCloseAddModal();
-       } catch (error) {
-           console.error("Error sending observation:", error);
-           if (error.message === "Request failed with status code 429") {
-               toast.error("تجاوزت الحد الأقصى من المحاولات، برجاء المحاولة لاحقًا", {
-                   theme: "colored",
-                   position: "top-right"
-               });
-           } else {
-               toast.error("حدث خطأ أثناء إرسال الملاحظة", {
-                   theme: "colored",
-                   position: "top-right",
-               });
-           }
-       }
-   };
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        const msg = observation.current?.value?.trim();
+        if (!msg) {
+            toast.error("برجاء إدخال نص الملاحظة");
+            return;
+        }
+        try {
+            const targetId = userId || profileInfo?.student_id || profileInfo?.id;
+            const res = await dispatch(sendObservations({ id: targetId, message: msg, token })).unwrap();
+            toast.success(res?.message || res?.msg || "تم إرسال الملاحظة بنجاح", {
+                theme: "colored",
+                position: "top-right",
+            });
+            if (observation.current) observation.current.value = "";
+            handleCloseAddModal();
+        } catch (error) {
+            console.error("Error sending observation:", error);
+            if (error?.message === "Request failed with status code 429") {
+                toast.error("تجاوزت الحد الأقصى من المحاولات، برجاء المحاولة لاحقًا", {
+                    theme: "colored",
+                    position: "top-right"
+                });
+            } else {
+                toast.error(error?.message || "حدث خطأ أثناء إرسال الملاحظة", {
+                    theme: "colored",
+                    position: "top-right",
+                });
+            }
+        }
+    };
    
 
    const style = {
@@ -108,26 +111,44 @@ const ProfilePageAdminViewer = () => {
                >
                    <Box sx={style}>
                        <Typography id="modal-modal-title" variant="h6" component="h2" className='text-center'>
-                           اضافة محافظة جديدة
-                       </Typography>
-                       <form>
-                           <div className='popup-all-filed'>
-                               <div className='row'>
-                                   <label style={{ marginRight: "40px" }}>الاسم</label>
-                                   <input className='popup-field' type="text" id='govName' ref={observation} style={{ width: "180px", marginRight: "10px", marginTop: "40px", height: "30px", borderRadius: "6px" }} />
-                               </div>
-                           </div>
-                           <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginTop: "40px" }}>
-                               <Button variant="contained" className='popup-btn' style={{ borderRadius: "12px" }} onClick={handleSubmit} >حفظ</Button>
-                           </div>
-                       </form>
+                            إرسال ملاحظة للطالب
+                        </Typography>
+                        <form onSubmit={handleSubmit}>
+                            <div className='popup-all-filed'>
+                                <div className='row' style={{ display: 'flex', alignItems: 'center', marginTop: '20px' }}>
+                                    <label style={{ marginRight: "20px", fontWeight: "bold" }}>الملاحظة</label>
+                                    <input
+                                        className='popup-field'
+                                        type="text"
+                                        id='observationText'
+                                        ref={observation}
+                                        placeholder="اكتب الملاحظة هنا..."
+                                        style={{ flex: 1, marginRight: "10px", height: "36px", borderRadius: "6px", padding: "0 8px" }}
+                                    />
+                                </div>
+                            </div>
+                            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginTop: "30px" }}>
+                                <Button type="submit" variant="contained" className='popup-btn' style={{ borderRadius: "12px" }}>إرسال</Button>
+                            </div>
+                        </form>
                    </Box>
                </Modal>
 
                {
                    !loading ?
                        <div className={`image ${profileInfo.status ? 'active' : ''}`}>
-                           <img src={`http://localhost:7000/api/v1/uploads/${profileInfo.userImage_file}`} alt='profile' loading='lazy' />
+                            <img
+                                src={
+                                    profileInfo.userImage_file
+                                        ? (profileInfo.userImage_file.startsWith('http')
+                                            ? profileInfo.userImage_file
+                                            : `${BASE_URL}/uploads/${profileInfo.userImage_file.replace(/^\/+/, '')}`)
+                                        : userPic
+                                }
+                                alt='profile'
+                                loading='lazy'
+                                onError={(e) => { e.target.src = userPic; }}
+                            />
                        </div> :
                        <Skeleton variant="circular" width={40} height={40} />
                }

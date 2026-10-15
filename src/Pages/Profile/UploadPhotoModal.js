@@ -19,18 +19,21 @@ const UploadPhotoModal = ({handleClosePhoto}) => {
 
     console.log(photo)
 
-    // For Update Profile Pic
-    const updatePhotoHandler = ()=>{
-        if(photo !== ''){
-            const data = new FormData()
-            data.append('userImage_file' , photo)
-            handleClosePhoto()
-            dispatch(updateProfilePicAPI({token , id : payLoad.userId , data: photo  }))
+    const updatePhotoHandler = () => {
+        if (photo) {
+            const data = new FormData();
+            data.append('user_image_file', photo);
+            handleClosePhoto();
+            dispatch(updateProfilePicAPI({ token, id: payLoad?.userId, data }))
+                .unwrap()
+                .catch((err) => {
+                    toast.error(err || "فشل تحديث الصورة");
+                });
         }
-        else{
-            toast.error("من فضلك اختار صورة اولا")
+        else {
+            toast.error("من فضلك اختار صورة اولا");
         }
-    }
+    };
 
 
   return (

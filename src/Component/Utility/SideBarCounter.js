@@ -6,26 +6,26 @@ import { getUserInfo, logout } from '../../RTK/Auth/AuthSlice';
 import { isMedicalCheckManagerRole } from '../../ActorType';
 
 const SideBarCounter = () => {
- 
+
 
     // For Change Navigation
-    const navigate = useNavigate() ; 
+    const navigate = useNavigate();
 
     // For Dispatch Action
-    const dispatch = useDispatch() ;
+    const dispatch = useDispatch();
     const authData = useSelector(getUserInfo);
     const isMedical = isMedicalCheckManagerRole(authData?.payLoad?.role);
-    
+
     // For Logout
-    const logoutHandler = ()=>{
-        dispatch(logout()) 
+    const logoutHandler = () => {
+        dispatch(logout())
         navigate("/login")
     }
 
-  
 
-  return (
-    <aside className='side-bar' style={{justifyContent : "flex-start"}}>
+
+    return (
+        <aside className='side-bar' style={{ justifyContent: "flex-start" }}>
             <div className='sidebar-header hide-mobile'>
                 <div className='logo logo-img'>
                     <img src={Logo} alt='logo' loading='lazy' className='logo-img' style={{ marginRight: "30px" }} />
@@ -39,23 +39,23 @@ const SideBarCounter = () => {
             </div>
 
             <div className='sidebar-content'>
-                
-                <h4 className='sidebar-title hide-mobile'>{isMedical ? 'مسئول الكشف الطبي' : 'المسؤل'}</h4>
+
+                <h4 className='sidebar-title hide-mobile'>{isMedical ? 'مسؤول الكشف الطبي' : 'المسؤول'}</h4>
 
                 <div className='all-tabs'>
-                
-                <NavLink end to={`.`} className='sidebar-tabs'>
-                    <span className="material-symbols-outlined">
-                        {isMedical ? 'medical_services' : 'desktop_windows'}
-                    </span>
-                    <div className='tab-tilte hide-mobile'>{isMedical ? 'الكشف الطبي' : 'الكاونتر'}</div>
-                </NavLink>
-            
+
+                    <NavLink end to={`.`} className='sidebar-tabs'>
+                        <span className="material-symbols-outlined">
+                            {isMedical ? 'medical_services' : 'desktop_windows'}
+                        </span>
+                        <div className='tab-tilte hide-mobile'>{isMedical ? 'الكشف الطبي' : 'الكاونتر'}</div>
+                    </NavLink>
+
 
 
                     <p onClick={logoutHandler} className='sidebar-tabs'>
                         <span class="material-symbols-outlined">
-                        logout
+                            logout
                         </span>
                         <div className='tab-tilte hide-mobile'>  تسجيل الخروج</div>
                     </p>
@@ -66,7 +66,7 @@ const SideBarCounter = () => {
             </div>
 
         </aside>
-  )
+    )
 }
 
 export default SideBarCounter

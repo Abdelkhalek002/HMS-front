@@ -4,10 +4,11 @@ import { Button, FormControl, FormHelperText, IconButton, InputAdornment, Outlin
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import maroPic from "./../../../images/mero.png";
 import { Visibility, VisibilityOff } from '@mui/icons-material';
+import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { getUserInfo, loginHandlerAPI, loginLoad } from '../../../RTK/Auth/AuthSlice';
-import { 
+import {
     USERTYPE,
     isAdminDashboardRole,
     isCounterRole,
@@ -138,7 +139,7 @@ const LoginPage = () => {
             <div className='main-form'>
 
                 <div className='log-head'>
-                    <h2>مرحبا , في جامعة حلوان</h2>
+                    <h2>أهلاً بيك في مستشفي جامعة حلوان 💙</h2>
                     <p>من فضلك سجل لتستطيع حجز موعدك</p>
                 </div>
 
@@ -193,6 +194,23 @@ const LoginPage = () => {
 
                     <Link className='forget-pass' to={"/forgetpassword"}>نسيت كلمة السر</Link>
                     <Button fullWidth type='submit' className='log-btn' variant='contained' color="info">  {load ? <i className="fa-spin fa-solid fa-spinner"></i> : "تسجيل الدخول"}</Button>
+
+                    <div className='auth-separator'>
+                        <span>أو</span>
+                    </div>
+
+                    <div className='register-section'>
+                        <span className='register-prompt-text'>ليس لديك حساب طالب؟</span>
+                        <Button
+                            fullWidth
+                            component={Link}
+                            to="/signup"
+                            className='register-btn'
+                            variant='outlined'
+                        >
+                            إنشاء حساب جديد
+                        </Button>
+                    </div>
 
                 </form>
             </div>

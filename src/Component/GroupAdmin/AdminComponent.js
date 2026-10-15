@@ -20,21 +20,21 @@ import {
     isExternalHospitalAdminRole
 } from '../../ActorType';
 
-const AdminComponent = ({ 
-    id, 
-    title, 
-    email, 
-    date, 
-    status, 
-    image, 
-    active, 
-    blocked, 
-    role, 
-    isActive, 
-    isConfirmed, 
-    handleDelete, 
-    handleBlock, 
-    handleUnblock 
+const AdminComponent = ({
+    id,
+    title,
+    email,
+    date,
+    status,
+    image,
+    active,
+    blocked,
+    role,
+    isActive,
+    isConfirmed,
+    handleDelete,
+    handleBlock,
+    handleUnblock
 }) => {
 
     const dispatch = useDispatch();
@@ -60,8 +60,8 @@ const AdminComponent = ({
         if (isSuperAdminRole(roleVal)) return 'مدير النظام';
         if (isSecondSuperAdminRole(roleVal)) return 'مدير ثان';
         if (isCounterRole(roleVal)) return 'كاونتر';
-        if (isTransferRole(roleVal)) return 'مسئول التحويلات';
-        if (isMedicalCheckManagerRole(roleVal)) return 'مسئول الكشف الطبي';
+        if (isTransferRole(roleVal)) return 'مسؤول التحويلات';
+        if (isMedicalCheckManagerRole(roleVal)) return 'مسؤول الكشف الطبي';
         if (isExternalHospitalAdminRole(roleVal)) return 'أدمن مستشفي خارجي';
         if (isViewerRole(roleVal)) return 'ملاحظ';
         return roleVal || 'مسؤول';
@@ -82,8 +82,8 @@ const AdminComponent = ({
         }
     };
 
-    const activeState = isActive !== undefined 
-        ? Boolean(isActive) 
+    const activeState = isActive !== undefined
+        ? Boolean(isActive)
         : (status === 1 || status === true || active === 1 || active === true);
 
     const confirmedState = isConfirmed !== undefined ? Boolean(isConfirmed) : null;
@@ -103,10 +103,10 @@ const AdminComponent = ({
 
     return <> <div className='user-card'>
         <div className='user-header'>
-            <img 
-                src={getImageSrc()} 
-                alt={title || 'admin'} 
-                loading='lazy' 
+            <img
+                src={getImageSrc()}
+                alt={title || 'admin'}
+                loading='lazy'
                 onError={(e) => {
                     e.target.onerror = null;
                     e.target.src = defaultAdminPic;
@@ -115,7 +115,7 @@ const AdminComponent = ({
             <div className='det'>
                 <p className='user-name'>{title}</p>
                 <Tooltip title={email} placement="top" arrow>
-                    <a href={`mailto:${email}`} type='email' className='user-email' style={{ fontSize: "12px"}}>
+                    <a href={`mailto:${email}`} type='email' className='user-email' style={{ fontSize: "12px" }}>
                         {email}
                     </a>
                 </Tooltip>
