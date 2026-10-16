@@ -1,0 +1,122 @@
+.verify-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.verify-badge-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+  color: #0284c7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  box-shadow: 0 8px 16px rgba(2, 132, 199, 0.15);
+}
+
+.verify-badge-icon span {
+  font-size: 34px;
+}
+
+.verify-email-display {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #f1f5f9;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13.5px;
+  color: #334155;
+  font-weight: 500;
+  margin: 10px 0 20px;
+  direction: ltr;
+  border: 1px solid #e2e8f0;
+}
+
+.verify-email-display .edit-icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #0284c7;
+  display: flex;
+  align-items: center;
+  padding: 2px;
+}
+
+.verify-otp-wrapper {
+  margin: 20px 0 25px;
+  display: flex;
+  justify-content: center;
+  direction: ltr !important;
+}
+
+.verify-otp-input {
+  width: 46px !important;
+  height: 52px;
+  margin: 0 5px;
+  font-size: 22px;
+  font-weight: 700;
+  border-radius: 10px;
+  border: 1.5px solid #cbd5e1;
+  text-align: center;
+  background-color: #ffffff;
+  color: #0f172a;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.verify-otp-input:focus {
+  border-color: #0284c7;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.18);
+  background-color: #f0f9ff;
+}
+
+.resend-section {
+  margin-top: 18px;
+  font-size: 13.5px;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.resend-btn {
+  background: none;
+  border: none;
+  color: #0284c7;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  font-size: 13.5px;
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.resend-btn:hover:not(:disabled) {
+  color: #0369a1;
+}
+
+.resend-btn:disabled {
+  color: #94a3b8;
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
+.resend-timer-badge {
+  display: inline-block;
+  background-color: #f1f5f9;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+  color: #0284c7;
+  font-size: 12.5px;
+}

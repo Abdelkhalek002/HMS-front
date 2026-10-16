@@ -1,10 +1,12 @@
 import React from 'react'
 import { Outlet } from 'react-router-dom'
 import SideBarCounter from './SideBarCounter'
+import { useSidebar } from './SidebarContext'
 
 const SharedComponentCounter = () => {
+    const { isCollapsed } = useSidebar();
     return (
-        <main>
+        <main className={isCollapsed ? 'sidebar-collapsed' : ''}>
             <SideBarCounter />
     
             <div className='all-content'>

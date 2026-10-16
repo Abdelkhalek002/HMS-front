@@ -11,6 +11,26 @@ export const singupAPI = createAsyncThunk('auth/signup', async (args, thunkAPI) 
     }
 });
 
+export const verifyEmailAPI = createAsyncThunk('auth/verifyEmail', async (args, thunkAPI) => {
+    const { rejectWithValue } = thunkAPI;
+    try {
+        const response = await apiClient.post('/auth/verify-email', args.data);
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response?.data || error.message);
+    }
+});
+
+export const resendOtpAPI = createAsyncThunk('auth/resendOtp', async (args, thunkAPI) => {
+    const { rejectWithValue } = thunkAPI;
+    try {
+        const response = await apiClient.post('/auth/resend-otp', args.data);
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response?.data || error.message);
+    }
+});
+
 export const loginHandlerAPI = createAsyncThunk('auth/login', async (args, thunkAPI) => {
     const { rejectWithValue } = thunkAPI;
     try {
@@ -45,10 +65,27 @@ const AuthSlice = createSlice({
             state.error = null;
         });
         builder.addCase(loginHandlerAPI.fulfilled, (state, action) => {
-            state.user = action.payload;
+            const rawUser = action.payload?.user;
+            const token = action.payload?.token;
+            const normalized = {
+                ...action.payload,
+                token,
+                user: rawUser,
+                payLoad: {
+                    userId: rawUser?.id,
+                    username: rawUser?.username,
+                    email: rawUser?.email,
+                    role: rawUser?.role,
+                    type: rawUser?.role ? 'admin' : 'user',
+                    permissions: rawUser?.permissions || [],
+                    ...(action.payload?.payLoad || {}),
+                    ...(rawUser || {})
+                }
+            };
+            state.user = normalized;
             state.load = false;
             state.error = null;
-            localStorage.setItem("auth", JSON.stringify(action.payload));
+            localStorage.setItem("auth", JSON.stringify(normalized));
         });
         builder.addCase(loginHandlerAPI.rejected, (state, action) => {
             state.load = false;

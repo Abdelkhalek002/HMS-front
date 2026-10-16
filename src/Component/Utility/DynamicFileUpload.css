@@ -1,0 +1,206 @@
+.dynamic-upload-container {
+  margin: 10px 3px;
+  width: calc(100% - 6px);
+  box-sizing: border-box;
+}
+
+.dynamic-upload-box {
+  border: 2px dashed #93c5fd;
+  background-color: #f8fafc;
+  border-radius: 10px;
+  padding: 12px 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.25s ease;
+  position: relative;
+  text-align: right;
+  direction: rtl;
+  user-select: none;
+}
+
+.dynamic-upload-box:hover,
+.dynamic-upload-box.drag-over {
+  border-color: #2563eb;
+  background-color: #eff6ff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+}
+
+.dynamic-upload-box .upload-icon-circle {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background-color: #dbeafe;
+  color: #1d4ed8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.dynamic-upload-box:hover .upload-icon-circle {
+  transform: scale(1.08);
+  background-color: #bfdbfe;
+}
+
+.dynamic-upload-box .upload-text-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.dynamic-upload-box .upload-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 2px;
+}
+
+.dynamic-upload-box .upload-sublabel {
+  font-size: 11.5px;
+  color: #64748b;
+}
+
+.dynamic-upload-box .upload-arrow {
+  color: #94a3b8;
+  font-size: 22px;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.dynamic-upload-box:hover .upload-arrow {
+  color: #2563eb;
+  transform: scale(1.1);
+}
+
+/* Uploaded Card State */
+.dynamic-uploaded-card {
+  border: 1.5px solid #86efac;
+  background-color: #f0fdf4;
+  border-radius: 10px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  direction: rtl;
+  text-align: right;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 6px rgba(34, 197, 94, 0.08);
+  animation: fadeInUpload 0.3s ease;
+}
+
+@keyframes fadeInUpload {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dynamic-uploaded-card:hover {
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.15);
+  border-color: #4ade80;
+}
+
+.dynamic-uploaded-card .preview-thumb {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.dynamic-uploaded-card .preview-thumb:hover {
+  transform: scale(1.08);
+}
+
+.dynamic-uploaded-card .file-icon-placeholder {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background-color: #fee2e2;
+  color: #dc2626;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.dynamic-uploaded-card .uploaded-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.dynamic-uploaded-card .uploaded-label-tag {
+  font-size: 11px;
+  font-weight: 600;
+  color: #15803d;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 2px;
+}
+
+.dynamic-uploaded-card .uploaded-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  direction: ltr;
+  text-align: right;
+}
+
+.dynamic-uploaded-card .uploaded-size {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 1px;
+}
+
+.dynamic-uploaded-card .uploaded-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.dynamic-uploaded-card .action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.dynamic-uploaded-card .action-btn.change-btn {
+  color: #0284c7;
+  background-color: #e0f2fe;
+}
+
+.dynamic-uploaded-card .action-btn.change-btn:hover {
+  background-color: #bae6fd;
+}
+
+.dynamic-uploaded-card .action-btn.delete-btn {
+  color: #dc2626;
+  background-color: #fee2e2;
+}
+
+.dynamic-uploaded-card .action-btn.delete-btn:hover {
+  background-color: #fecaca;
+}

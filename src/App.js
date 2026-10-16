@@ -16,6 +16,7 @@ import SharedComponentUser from './Component/Utility/SharedComponent';
 import SharedComponentAdmin from './Component/Utility/SharedComponentAdmin.js';
 import ChangePasswordPage from './Pages/ChangePassword/ChangePasswordPage.js';
 import Signup from './Pages/Auth/Signup/Signup.js';
+import VerifyEmailPage from './Pages/Auth/VerifyEmail/VerifyEmailPage.js';
 import GovernoratesPage from './Pages/Governorates/GovernoratesPage.jsx';
 import ExHospitalPage from './Pages/Hospitals/ExHospitalPage.jsx';
 import FacultiesPage from './Pages/Faculties/FacultiesPage.jsx';
@@ -35,15 +36,17 @@ import SharedComponentCounter from './Component/Utility/SharedComponentCounter.j
 import CounterProtect from './Component/ProtectedRoutes/CounterProtect.js';
 import TransferProtect from './Component/ProtectedRoutes/TranferProtect.js';
 import SharedComponentTransfer from './Component/Utility/SharedComponentTransfer.js';
+import { SidebarProvider } from './Component/Utility/SidebarContext.js';
 
 function App() {
 
-  return <>
-    <ToastContainer limit={3} autoClose={2000} transition={Flip} stacked closeOnClick theme='colored' position='top-right' />
+  return (
+    <SidebarProvider>
+      <ToastContainer limit={3} autoClose={2000} transition={Flip} stacked closeOnClick theme='colored' position='top-right' />
 
-    {/* For Store All Route */}
-    <BrowserRouter>
-      <Routes>
+      {/* For Store All Route */}
+      <BrowserRouter>
+        <Routes>
 
         {/* Contain All Route User */}
         <Route element={<UserProtect />}>
@@ -132,6 +135,7 @@ function App() {
         {/* Global Route For Admin and User */}
         <Route path='/login' element={<LoginPage />} />
         <Route path='/signup' element={<Signup />} />
+        <Route path='/verify-email' element={<VerifyEmailPage />} />
         <Route path='/forgetpassword' element={<ForgetPasswordPage />}>
           <Route index element={<SendOtp />} />
           <Route path='otp' element={<OtpComponent />} />
@@ -142,9 +146,8 @@ function App() {
 
       </Routes>
     </BrowserRouter>
-
-
-  </>
+    </SidebarProvider>
+  );
 
 }
 

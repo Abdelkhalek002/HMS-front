@@ -34,7 +34,7 @@ export default function ExHospitalPage() {
     <LookupPage
       pageTitle="المستشفيات"
       entitySingular="المستشفى"
-      helmetTitle="ExHospitals"
+      helmetTitle="External Hospitals"
       data={data}
       status={status}
       idKey="exHosp_id"

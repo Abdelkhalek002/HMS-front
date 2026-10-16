@@ -29,11 +29,13 @@ const LoginPage = () => {
 
 
     useEffect(() => {
-        if (Auth && Auth.payLoad) {
-            const role = Auth.payLoad.role;
-            const type = Auth.payLoad.type;
+        if (Auth && (Auth.user || Auth.payLoad)) {
+            const userObj = Auth.user || {};
+            const payloadObj = Auth.payLoad || {};
+            const role = userObj.role || payloadObj.role;
+            const type = payloadObj.type || (role ? 'admin' : USERTYPE);
 
-            if (type === USERTYPE || role === USERTYPE) {
+            if (type === USERTYPE || role === USERTYPE || !role) {
                 navigate('/');
             } else if (isAdminDashboardRole(role)) {
                 navigate('/ad');
@@ -45,7 +47,7 @@ const LoginPage = () => {
                 navigate('/ad');
             }
         }
-    }, [Auth, navigate])
+    }, [Auth, navigate]);
 
     // For Handling Loadding Login
     const load = useSelector(loginLoad);
@@ -130,6 +132,21 @@ const LoginPage = () => {
                         error?.error ||
                         (typeof error === 'string' ? error : null) ||
                         'كلمة المرور او الايميل غير صحيح';
+
+                    const isVerificationError =
+                        message.includes('رمز التحقق') ||
+                        message.includes('تأكيد بريدك') ||
+                        message.includes('تأكيد') ||
+                        message.includes('تفعيل') ||
+                        message.toLowerCase().includes('verif') ||
+                        message.toLowerCase().includes('inactive');
+
+                    if (isVerificationError) {
+                        toast.warn(message, { autoClose: 4000 });
+                        navigate('/verify-email', { state: { email } });
+                        return;
+                    }
+
                     toast.error(message);
                 });
         }

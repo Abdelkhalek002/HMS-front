@@ -2,6 +2,7 @@
 
 .side-bar{
   width: 270px;
+  min-width: 270px;
   height: 100vh;
   padding: 15px 13px 0px;
   background-color: rgb(255, 255, 255);
@@ -9,16 +10,83 @@
   display: flex;
   justify-content: space-between;
   flex-direction: column;
-  overflow-y: scroll;
+  overflow-y: auto;
+  overflow-x: hidden;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s ease;
+  box-sizing: border-box;
 }
+
+/* Collapsed SideBar */
+.side-bar.collapsed {
+  width: 80px;
+  min-width: 80px;
+  padding: 15px 8px 0px;
+}
+
+.side-bar.collapsed .sidebar-header {
+  justify-content: center;
+}
+
+.side-bar.collapsed .sidebar-header .logo {
+  display: none !important;
+}
+
+.side-bar.collapsed .sidebar-content .sidebar-title {
+  display: none !important;
+}
+
+.side-bar.collapsed .sidebar-content .sidebar-tabs {
+  justify-content: center;
+  padding: 10px 0;
+}
+
+.side-bar.collapsed .sidebar-content .sidebar-tabs span {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+.side-bar.collapsed .sidebar-content .sidebar-tabs .tab-tilte {
+  display: none !important;
+}
+
+.side-bar.collapsed .bottom {
+  justify-content: center;
+  padding: 3px 0;
+}
+
+.side-bar.collapsed .bottom .image {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+.side-bar.collapsed .bottom .text {
+  display: none !important;
+}
+
 @media(max-width:600px){
   .side-bar{
       width: 80px;
+      min-width: 80px;
+  }
+  .side-bar:not(.collapsed){
+      width: 270px;
+      min-width: 270px;
+      position: absolute;
+      right: 0;
+      top: 0;
+      z-index: 1000;
+      box-shadow: -2px 0 12px rgba(0, 0, 0, 0.15);
+      background-color: #ffffff;
+  }
+  .side-bar:not(.collapsed) .hide-mobile{
+      display: block !important;
+  }
+  .side-bar:not(.collapsed) .sidebar-content .sidebar-tabs span{
+      margin-left: 16px;
   }
 }
 
 .side-bar .sidebar-header{
-  
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -36,10 +104,22 @@ width: 100px;
   background-color: var(--hover-color); 
   border-radius: 7px;
   cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.15s ease, filter 0.2s ease;
+  user-select: none;
+}
+
+.side-bar .sidebar-header .menu:hover {
+  filter: brightness(0.93);
+  transform: scale(1.05);
+}
+
+.side-bar .sidebar-header .menu:active {
+  transform: scale(0.95);
 }
 
 .side-bar .sidebar-header .menu span{
   color: var(--main-color);
+  font-size: 24px;
 }
 
 .side-bar .sidebar-content{

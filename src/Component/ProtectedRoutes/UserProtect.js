@@ -16,8 +16,9 @@ const UserProtect = ({children}) => {
             dispatch(logout());
             return <Navigate to={'/login'} />
         }
-        if(userData.payLoad.type === 'user'){
-            console.log('You Are User')
+        const userObj = userData.user || userData.payLoad || {};
+        const isUser = userObj.type === 'user' || (!userObj.role && !userData.payLoad?.role) || userObj.role === 'user';
+        if(isUser){
             return <Outlet />
         }
         else{

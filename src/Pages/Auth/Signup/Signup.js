@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "./../Login/Login.css";
 import {
   Button,
@@ -7,7 +7,6 @@ import {
   FormHelperText,
   IconButton,
   InputAdornment,
-  InputLabel,
   MenuItem,
   OutlinedInput,
   Select,
@@ -25,13 +24,14 @@ import {
   getAllFaculties,
   getAllFacultiesAPI,
 } from "../../../RTK/Faculty/FacultySlice";
-import {
-  getAllGovernorates,
-  getAllGovsAPI,
-} from "../../../RTK/Governorate/GovernorateSlice";
+import { getAllGovernorates, getAllGovsAPI } from "../../../RTK/Governorate/GovernorateSlice";
 import { getAllLevels, getAllLevelsAPI } from "./../../../RTK/Level/LevelSlice";
+import DynamicFileUpload from "../../../Component/Utility/DynamicFileUpload";
 
 const Signup = () => {
+  // For Change Route
+  const navigate = useNavigate();
+
   // For Dispatch Action
   const dispatch = useDispatch();
 
@@ -159,20 +159,30 @@ const Signup = () => {
 
   console.log(date);
 
-  // For Acces Profile Pic
-  const [profilePic, setProfilePic] = useState("");
+  // For Access Profile Pic
+  const [profilePic, setProfilePic] = useState(null);
 
-  // For Acces National Pic
-  const [nationalPic, setNationalPic] = useState("");
+  // For Access National Pic
+  const [nationalPic, setNationalPic] = useState(null);
 
-  // For Acces National Pic
-  const [feePic, setFeePic] = useState("");
+  // For Access Fee Pic
+  const [feePic, setFeePic] = useState(null);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const userData = new FormData();
-    userData.append("email", email);
-    userData.append("password", password);
+
+    if (!profilePic) {
+      toast.error("يرجى تحميل الصورة الشخصية");
+      return;
+    }
+    if (!nationalPic) {
+      toast.error("يرجى تحميل صورة البطاقة");
+      return;
+    }
+    if (!feePic) {
+      toast.error("يرجى تحميل صورة الكارنيه أو إثبات القيد");
+      return;
+    }
 
     if (
       validMail === "valid" &&
@@ -183,9 +193,6 @@ const Signup = () => {
       phone !== "" &&
       nationalID !== "" &&
       date !== "" &&
-      profilePic !== "" &&
-      nationalPic !== "" &&
-      feePic !== "" &&
       gender !== "" &&
       level !== "" &&
       faculty !== ""
@@ -203,13 +210,26 @@ const Signup = () => {
       data.append("birthDay", `${date}`);
       data.append("phoneNumber", phone);
       data.append("gov_id", gov);
-      data.append("userImage_file", profilePic.files[0]);
-      data.append("national_id_file", nationalPic.files[0]);
-      data.append("fees_file", feePic.files[0]);
+      data.append(
+        "userImage_file",
+        profilePic instanceof File ? profilePic : profilePic?.files?.[0] || profilePic
+      );
+      data.append(
+        "national_id_file",
+        nationalPic instanceof File ? nationalPic : nationalPic?.files?.[0] || nationalPic
+      );
+      data.append(
+        "fees_file",
+        feePic instanceof File ? feePic : feePic?.files?.[0] || feePic
+      );
       dispatch(singupAPI({ data }))
         .unwrap()
-        .then(() => {
-          toast.success("برجاء مراجعة الايميل الجامعي لتفعيل حسابك");
+        .then((res) => {
+          const registeredEmail = res?.email || email;
+          toast.success(
+            res?.message || "تم إنشاء الحساب بنجاح! برجاء تفقد بريدك الإلكتروني لإدخال رمز التحقق."
+          );
+          navigate("/verify-email", { state: { email: registeredEmail } });
         })
         .catch((error) => {
           const message =
@@ -446,32 +466,35 @@ const Signup = () => {
             </DemoContainer>
           </LocalizationProvider>
 
-          <button className="upload-btn">
-            {" "}
-            <input
-              onChange={(e) => setProfilePic(e.target.files[0])}
-              type="file"
-            />{" "}
-            تحميل صورة شخصية{" "}
-          </button>
+          <DynamicFileUpload
+            id="profile-pic-upload"
+            label="تحميل صورة شخصية"
+            sublabel="صورة شخصية رسمية واضحة (JPG, PNG)"
+            icon="account_box"
+            file={profilePic}
+            onFileChange={setProfilePic}
+            accept="image/*"
+          />
 
-          <button className="upload-btn">
-            {" "}
-            <input
-              onChange={(e) => setNationalPic(e.target.files[0])}
-              type="file"
-            />{" "}
-            تحميل صورة البطاقة{" "}
-          </button>
+          <DynamicFileUpload
+            id="national-pic-upload"
+            label="تحميل صورة البطاقة"
+            sublabel="صورة بطاقة الرقم القومي (JPG, PNG, PDF)"
+            icon="badge"
+            file={nationalPic}
+            onFileChange={setNationalPic}
+            accept="image/*,.pdf"
+          />
 
-          <button className="upload-btn">
-            {" "}
-            <input
-              onChange={(e) => setFeePic(e.target.files[0])}
-              type="file"
-            />{" "}
-            تحميل صورة الكانية او ثابات القيد{" "}
-          </button>
+          <DynamicFileUpload
+            id="fee-pic-upload"
+            label="تحميل صورة الكارنيه أو إثبات القيد"
+            sublabel="صورة كارنيه الكلية أو إيصال سداد المصروفات (JPG, PNG, PDF)"
+            icon="receipt_long"
+            file={feePic}
+            onFileChange={setFeePic}
+            accept="image/*,.pdf"
+          />
 
           <Button
             style={{ margin: "20px 0px 15px 0px" }}

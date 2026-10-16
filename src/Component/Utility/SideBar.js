@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import "./Utility.css"
 import Logo from "./../../images/Gemini_Generated_logoggggg-removebg-preview.png";
 import { getUserInfo, logout } from '../../RTK/Auth/AuthSlice';
@@ -7,9 +7,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import userPic from "./../../images/userProfile.jpg";
 import { getUserProfile, getUserProfileAPi } from '../../RTK/User/UserSlice';
 import { BASE_URL } from '../../API_Route/GlobalRoute';
+import { useSidebar } from './SidebarContext';
 
 
 const SideBar = () => {
+
+    // For Sidebar collapse toggle
+    const { isCollapsed, toggleSidebar } = useSidebar();
 
     // For Dispatch Action
     const dispatch = useDispatch();
@@ -37,14 +41,21 @@ const SideBar = () => {
 
 
     return (
-        <aside className='side-bar'>
+        <aside className={`side-bar ${isCollapsed ? 'collapsed' : ''}`}>
             <div className='top'>
-                <div className='sidebar-header hide-mobile'>
-                    <div className='logo logo-img'>
+                <div className='sidebar-header'>
+                    <div className='logo logo-img hide-mobile'>
                         <img src={Logo} alt='logo' loading='lazy' className='logo-img' style={{ marginRight: "30px" }} />
                     </div>
 
-                    <div className='menu'>
+                    <div 
+                        className='menu' 
+                        onClick={toggleSidebar} 
+                        role='button' 
+                        tabIndex={0} 
+                        title={isCollapsed ? 'توسيع القائمة' : 'تصغير القائمة'}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSidebar(); }}
+                    >
                         <span className="material-symbols-outlined">
                             menu
                         </span>
@@ -56,29 +67,29 @@ const SideBar = () => {
 
                     <div className='all-tabs'>
 
-                        <NavLink to={`.`} className='sidebar-tabs'>
+                        <NavLink to={`.`} className='sidebar-tabs' title='حجز الكشف'>
                             <span className="material-symbols-outlined">
                                 handshake
                             </span>
                             <div className='tab-tilte hide-mobile'>حجز الكشف</div>
                         </NavLink>
 
-                        <NavLink to={`profile/${data.payLoad.userId}`} className='sidebar-tabs'>
+                        <NavLink to={`profile/${data.payLoad.userId}`} className='sidebar-tabs' title='الملف الشخصي'>
                             <span className="material-symbols-outlined">
                                 account_circle
                             </span>
                             <div className='tab-tilte hide-mobile'> الملف الشخصي</div>
                         </NavLink>
 
-                        <NavLink to={`changepassword`} className='sidebar-tabs'>
-                            <span class="material-symbols-outlined">
+                        <NavLink to={`changepassword`} className='sidebar-tabs' title='تغير كلمة المرور'>
+                            <span className="material-symbols-outlined">
                                 key
                             </span>
                             <div className='tab-tilte hide-mobile'>تغير كلمة المرور </div>
                         </NavLink>
 
-                        <p onClick={logoutHandler} className='sidebar-tabs'>
-                            <span class="material-symbols-outlined">
+                        <p onClick={logoutHandler} className='sidebar-tabs' title='تسجيل الخروج'>
+                            <span className="material-symbols-outlined">
                                 logout
                             </span>
                             <div className='tab-tilte hide-mobile'>  تسجيل الخروج</div>

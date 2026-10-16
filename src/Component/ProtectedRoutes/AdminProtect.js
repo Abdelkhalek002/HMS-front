@@ -14,12 +14,13 @@ const AdminProtect = ({children}) => {
     // For Access Data In Local Stroage 
     const userData =  useSelector(getUserInfo) ; 
 
-    if(userData && userData.payLoad){
+    if(userData && (userData.user || userData.payLoad)){
         if (isTokenExpired(userData.token)) {
             dispatch(logout());
             return <Navigate to={'/login'} />
         }
-        if(isAdminDashboardRole(userData.payLoad.role))
+        const role = userData.user?.role || userData.payLoad?.role;
+        if(isAdminDashboardRole(role))
             return <Outlet />
         else{
             return  <Navigate to={`/notfound`} />

@@ -13,12 +13,12 @@ const TransferProtect = () => {
     // For Access Data In Local Stroage 
     const userData =  useSelector(getUserInfo) ; 
 
-    if(userData && userData.payLoad){
+    if(userData && (userData.user || userData.payLoad)){
         if (isTokenExpired(userData.token)) {
             dispatch(logout());
             return <Navigate to={'/login'} />
         }
-        const role = userData.payLoad.role;
+        const role = userData.user?.role || userData.payLoad?.role;
         if(isTransferRole(role) || isExternalHospitalAdminRole(role) || isSuperAdminRole(role) || isSecondSuperAdminRole(role))
             return <Outlet />
         else{

@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import "./reservation.css"
-import {  Button, MenuItem, Select } from '@mui/material'
-import { DatePicker,  LocalizationProvider } from '@mui/x-date-pickers';
+import { Button, MenuItem, Select } from '@mui/material'
+import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { toast } from 'react-toastify';
 import { useDispatch, useSelector } from 'react-redux';
-import {  getUserInfo } from '../../../RTK/Auth/AuthSlice';
+import { useNavigate } from 'react-router-dom';
+import { getUserInfo } from '../../../RTK/Auth/AuthSlice';
 import { useCreateReservationMutation } from '../../../RTK/Reservation/reservationApi';
 import { getUserProfile, getUserProfileAPi } from '../../../RTK/User/UserSlice';
 import { getAllClinics, getAllClinicsAPI } from '../../../RTK/Clinic/ClinicSlice';
@@ -14,12 +15,15 @@ import { getAllClinics, getAllClinicsAPI } from '../../../RTK/Clinic/ClinicSlice
 
 const ReservationPage = () => {
 
-  // For Dispatch Action
-  const dispatch = useDispatch() ; 
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const [createReservation, { isLoading: isCreatingReservation }] = useCreateReservationMutation();
-  const {token , payLoad} = useSelector(getUserInfo) ;
+  const auth = useSelector(getUserInfo) || {};
+  const token = auth.token;
+  const userId = auth.user?.id || auth.payLoad?.userId;
 
+  const userData = useSelector(getUserProfile);
 
   // For Access Clinic Data
   const [clinic, setClinic] = React.useState('');
@@ -28,37 +32,68 @@ const ReservationPage = () => {
     setClinic(event.target.value);
   };
 
-
-
-
   // For Get User Data
-  useEffect(()=>{
-      dispatch(getUserProfileAPi({token  , id : payLoad.userId }))
-      dispatch(getAllClinicsAPI({token }))
-  } , [dispatch , token , payLoad])
+  useEffect(() => {
+    if (token) {
+      dispatch(getUserProfileAPi({ token, id: userId }));
+      dispatch(getAllClinicsAPI({ token }));
+    }
+  }, [dispatch, token, userId]);
 
-  // For Access CLinic
-  const clinics = useSelector(getAllClinics) ; 
-  console.log(clinics)
+  // For Access Clinic
+  const clinics = useSelector(getAllClinics);
 
-  // For Access Resvation Type
-  const [typeR, setTypeR] =useState('');
+  // For Access Reservation Type
+  const [typeR, setTypeR] = useState('');
 
   const handleChangeTypeR = (event) => {
     setTypeR(event.target.value);
   };
 
   // For Access Date 
-  const [date , setDate ] = useState('') ;
+  const [date, setDate] = useState('');
 
-  const handleChangeDate = (day , month , year)=>{
+  const handleChangeDate = (day, month, year) => {
     const formattedMonth = String(month).padStart(2, "0");
     const formattedDay = String(day).padStart(2, "0");
     setDate(`${year}-${formattedMonth}-${formattedDay}`);
-  }
+  };
+
+  // Status checks
+  const isEmailUnverified = userData?.verified === false || userData?.verified === 0;
+  const documentStatus =
+    userData?.document_status ||
+    (userData?.status === 'approved'
+      ? 'approved'
+      : userData?.status === 'rejected'
+      ? 'rejected'
+      : 'pending');
+  const isDocumentApproved = documentStatus === 'approved';
+  const isDocumentRejected = documentStatus === 'rejected';
+  const isDocumentPending = !isDocumentApproved && !isDocumentRejected;
+
+  const canReserve = !isEmailUnverified && isDocumentApproved;
 
   // For Create Reservation
   const createReservationHandler = async () => {
+    if (isEmailUnverified) {
+      toast.warn("برجاء تأكيد بريدك الإلكتروني أولاً عن طريق رمز التحقق المرسل لك.", {
+        autoClose: 5000,
+      });
+      navigate('/verify-email', {
+        state: { email: userData?.email || auth.user?.email },
+      });
+      return;
+    }
+
+    if (!isDocumentApproved) {
+      const msg = isDocumentRejected
+        ? `تم رفض مستنداتك: ${userData?.rejection_reason || "يرجى مراجعة إدارة المستشفى"}`
+        : "حسابك قيد مراجعة المستندات من قبل الإدارة، لا يمكنك إجراء حجوزات حالياً";
+      toast.warn(msg, { autoClose: 5000 });
+      return;
+    }
+
     if (clinic !== '' && clinic !== undefined && clinic !== null) {
       if (typeR !== '') {
         if (date !== '') {
@@ -74,8 +109,18 @@ const ReservationPage = () => {
             const errorMsg =
               error?.data?.error ||
               error?.data?.message ||
+              error?.message ||
               (typeof error?.data === "string" ? error.data : null) ||
               "حدث خطأ أثناء حجز الكشف برجاء اعادة المحاولة";
+
+            if (errorMsg.includes("رمز التحقق") || errorMsg.includes("تأكيد بريدك")) {
+              toast.warn(errorMsg, { autoClose: 6000 });
+              navigate('/verify-email', {
+                state: { email: userData?.email || auth.user?.email },
+              });
+              return;
+            }
+
             toast.error(errorMsg);
           }
         } else {
@@ -89,84 +134,156 @@ const ReservationPage = () => {
     }
   };
 
-  console.log(date)
-
   return (
-    <section className='k-reservation-page' >
-
+    <section className='k-reservation-page'>
       <div className='reservation-container'>
-        <h2 className='title'>حجز الكشف </h2>
-        <div className='input-cont'>
+        <h2 className='title'>حجز الكشف</h2>
 
-          <div className='row'>
-            <label className='row-title'>العيادة </label>
-              <Select
-                style={{width : "300px" , maxWidth : "100%"}}
-                labelId="demo-simple-select-label"
-                id="demo-simple-select"
-                value={clinic}
-                onChange={handleChangeClinic}
-              >
-                {
-                  clinics? 
-                  clinics.map((item)=>{
-                    const clinicId = item.clinic_id ?? item.id;
-                    return ( <MenuItem key={clinicId} value={clinicId}>{item.clinicName || item.clinic_name}</MenuItem>)
-                  }) : ""
+        {isEmailUnverified && (
+          <div className="reservation-status-banner unverified">
+            <span className="material-symbols-outlined banner-icon">mark_email_unread</span>
+            <div className="banner-body">
+              <div className="banner-title">بريدك الإلكتروني غير مؤكد بعد</div>
+              <div className="banner-desc">
+                يرجى إدخال رمز التحقق (OTP) المرسل إلى بريدك الجامعي لتتمكن من حجز موعد الكشف الطبي.
+              </div>
+              <Button
+                variant="contained"
+                color="info"
+                size="small"
+                className="banner-action-btn"
+                onClick={() =>
+                  navigate('/verify-email', {
+                    state: { email: userData?.email || auth.user?.email },
+                  })
                 }
+              >
+                تأكيد البريد الإلكتروني الآن
+              </Button>
+            </div>
+          </div>
+        )}
 
-              </Select>
+        {!isEmailUnverified && isDocumentPending && (
+          <div className="reservation-status-banner pending">
+            <span className="material-symbols-outlined banner-icon">hourglass_top</span>
+            <div className="banner-body">
+              <div className="banner-title">المستندات قيد مراجعة الإدارة (Pending)</div>
+              <div className="banner-desc">
+                تم استلام مستنداتك بنجاح وجارٍ التحقق منها ومراجعتها من قبل إدارة المستشفى. ستتمكن من حجز الكشف فور اعتماد حسابك.
+              </div>
+            </div>
+          </div>
+        )}
+
+        {!isEmailUnverified && isDocumentRejected && (
+          <div className="reservation-status-banner rejected">
+            <span className="material-symbols-outlined banner-icon">cancel</span>
+            <div className="banner-body">
+              <div className="banner-title">تم رفض اعتماد المستندات</div>
+              <div className="banner-desc">
+                {userData?.rejection_reason
+                  ? `سبب الرفض: ${userData.rejection_reason}`
+                  : 'يرجى مراجعة إدارة المستشفى أو إعادة فحص المستندات المرفوعة.'}
+              </div>
+              <Button
+                variant="outlined"
+                color="error"
+                size="small"
+                className="banner-action-btn"
+                onClick={() => navigate(`/profile/${userId}`)}
+              >
+                عرض الملف الشخصي والمستندات
+              </Button>
+            </div>
+          </div>
+        )}
+
+        <div className='input-cont'>
+          <div className='row'>
+            <label className='row-title'>العيادة</label>
+            <Select
+              style={{ width: "300px", maxWidth: "100%" }}
+              labelId="demo-simple-select-label"
+              id="demo-simple-select"
+              value={clinic}
+              disabled={!canReserve}
+              onChange={handleChangeClinic}
+            >
+              {clinics
+                ? clinics.map((item) => {
+                    const clinicId = item.clinic_id ?? item.id;
+                    return (
+                      <MenuItem key={clinicId} value={clinicId}>
+                        {item.clinicName || item.clinic_name}
+                      </MenuItem>
+                    );
+                  })
+                : ""}
+            </Select>
           </div>
 
           <div className='row'>
-            <label className='row-title'>نوع الكشف </label>
-              <Select
-                style={{width : "300px" , maxWidth : "100%"}}
-                labelId="demo-simple-select-label"
-                id="demo-simple-select"
-                value={typeR}
-                onChange={handleChangeTypeR}
-              >
-                <MenuItem value={'كشف جديد'}>كشف جديد</MenuItem>
-                <MenuItem value={`متابعة`}> متابعة</MenuItem>
-                <MenuItem value={"طوارئ"}>طوارئ</MenuItem>
-              </Select>
+            <label className='row-title'>نوع الكشف</label>
+            <Select
+              style={{ width: "300px", maxWidth: "100%" }}
+              labelId="demo-simple-select-label"
+              id="demo-simple-select"
+              value={typeR}
+              disabled={!canReserve}
+              onChange={handleChangeTypeR}
+            >
+              <MenuItem value={'كشف جديد'}>كشف جديد</MenuItem>
+              <MenuItem value={`متابعة`}>متابعة</MenuItem>
+              <MenuItem value={"طوارئ"}>طوارئ</MenuItem>
+            </Select>
           </div>
 
           <div className='row'>
             <div className='row-title'>تاريخ الكشف</div>
-            <LocalizationProvider  dateAdapter={AdapterDayjs}>
-            <DemoContainer
-
-              components={[
-                'DatePicker',
-                'TimePicker',
-                'DateTimePicker',
-                'DateRangePicker',
-              ]}
-            >
-
-                <DatePicker onChange={(e)=>{handleChangeDate(e.$D , e.$M + 1 , e.$y); console.log(e)}  }  />
-
-
-            </DemoContainer>
-          </LocalizationProvider>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DemoContainer
+                components={[
+                  'DatePicker',
+                  'TimePicker',
+                  'DateTimePicker',
+                  'DateRangePicker',
+                ]}
+              >
+                <DatePicker
+                  disabled={!canReserve}
+                  onChange={(e) => {
+                    handleChangeDate(e.$D, e.$M + 1, e.$y);
+                  }}
+                />
+              </DemoContainer>
+            </LocalizationProvider>
           </div>
 
           <Button
             onClick={createReservationHandler}
-            disabled={isCreatingReservation}
+            disabled={isCreatingReservation || !canReserve}
             className='k-btn'
             variant="contained"
+            style={{
+              backgroundColor: !canReserve ? '#94a3b8' : undefined,
+              cursor: !canReserve ? 'not-allowed' : undefined,
+            }}
           >
-            {isCreatingReservation ? "جاري الحجز..." : "حجز"}
+            {isCreatingReservation
+              ? "جاري الحجز..."
+              : isEmailUnverified
+              ? "يرجى تأكيد البريد أولاً"
+              : isDocumentPending
+              ? "الحساب قيد المراجعة"
+              : isDocumentRejected
+              ? "المستندات مرفوضة"
+              : "حجز"}
           </Button>
-
-
         </div>
       </div>
     </section>
-  )
-}
+  );
+};
 
-export default ReservationPage
+export default ReservationPage;

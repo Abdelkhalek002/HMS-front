@@ -49,12 +49,20 @@ body, button, input, textarea, select, .MuiTableCell-root, .MuiTypography-root, 
 main{
   display: flex;
   background-color: var(--background-color);
+  min-height: 100vh;
 }
 /* End  Main  */
 
 
 .all-content{
   width: calc(100% - 270px);
+  flex: 1;
+  min-width: 0;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar-collapsed .all-content{
+  width: calc(100% - 80px);
 }
 
 @media(max-width:600px){

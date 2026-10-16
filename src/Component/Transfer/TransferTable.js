@@ -80,7 +80,7 @@ const headCells = [
         id: 'protein',
         numeric: true,
         disablePadding: false,
-        label: 'قبول او رفض',
+        label: 'إجراءات',
     },
 ];
 
