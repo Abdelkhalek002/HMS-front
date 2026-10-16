@@ -17,42 +17,76 @@ export const LEGACY_MEDICAL_CHECK_MANAGER_1 = `hsh_$mcm$9`;
 export const LEGACY_MEDICAL_CHECK_MANAGER_2 = `hsh__mcm_9`;
 export const LEGACY_EXTERNAL_HOSPITAL = `hsh_5*bh*3`;
 
-// Helper predicates to reliably check role regardless of whether backend returns Arabic string or hash code:
-export const isSuperAdminRole = (role) =>
-  role === SUPERADMINTYPE ||
-  role === LEGACY_SUPERADMIN ||
-  role === "super_admin";
+const normalizeRole = (role) => (typeof role === 'string' ? role.trim().toLowerCase() : '');
 
-export const isSecondSuperAdminRole = (role) =>
-  role === SECONDSUPERADMIN ||
-  role === LEGACY_SECONDSUPERADMIN ||
-  role === "second_manager";
+// Helper predicates to reliably check role regardless of whether backend returns Arabic string, hash code, or enum:
+export const isSuperAdminRole = (role) => {
+  const r = normalizeRole(role);
+  return (
+    role === SUPERADMINTYPE ||
+    role === LEGACY_SUPERADMIN ||
+    r === "super_admin" ||
+    r === "superadmin"
+  );
+};
 
-export const isCounterRole = (role) =>
-  role === COUNTERTYPE || role === LEGACY_COUNTER || role === "counter";
+export const isSecondSuperAdminRole = (role) => {
+  const r = normalizeRole(role);
+  return (
+    role === SECONDSUPERADMIN ||
+    role === LEGACY_SECONDSUPERADMIN ||
+    r === "second_manager" ||
+    r === "secondsuperadmin"
+  );
+};
 
-export const isTransferRole = (role) =>
-  role === TRANSFERTYPE ||
-  role === LEGACY_TRANSFER ||
-  role === "transfer" ||
-  role === "transfer_clerk";
+export const isCounterRole = (role) => {
+  const r = normalizeRole(role);
+  return (
+    role === COUNTERTYPE ||
+    role === LEGACY_COUNTER ||
+    r === "counter"
+  );
+};
 
-export const isViewerRole = (role) =>
-  role === VIEWERTYPE ||
-  role === LEGACY_VIEWER ||
-  role === "viewer" ||
-  role === "observer";
+export const isTransferRole = (role) => {
+  const r = normalizeRole(role);
+  return (
+    role === TRANSFERTYPE ||
+    role === LEGACY_TRANSFER ||
+    r === "transfer" ||
+    r === "transfer_clerk"
+  );
+};
 
-export const isMedicalCheckManagerRole = (role) =>
-  role === MEDICAL_CHECK_MANAGER ||
-  role === LEGACY_MEDICAL_CHECK_MANAGER_1 ||
-  role === LEGACY_MEDICAL_CHECK_MANAGER_2 ||
-  role === "medical_check_manager";
+export const isViewerRole = (role) => {
+  const r = normalizeRole(role);
+  return (
+    role === VIEWERTYPE ||
+    role === LEGACY_VIEWER ||
+    r === "viewer" ||
+    r === "observer"
+  );
+};
 
-export const isExternalHospitalAdminRole = (role) =>
-  role === EXTERNAL_HOSPITAL_ADMIN ||
-  role === LEGACY_EXTERNAL_HOSPITAL ||
-  role === "external_hospital_admin";
+export const isMedicalCheckManagerRole = (role) => {
+  const r = normalizeRole(role);
+  return (
+    role === MEDICAL_CHECK_MANAGER ||
+    role === LEGACY_MEDICAL_CHECK_MANAGER_1 ||
+    role === LEGACY_MEDICAL_CHECK_MANAGER_2 ||
+    r === "medical_check_manager"
+  );
+};
+
+export const isExternalHospitalAdminRole = (role) => {
+  const r = normalizeRole(role);
+  return (
+    role === EXTERNAL_HOSPITAL_ADMIN ||
+    role === LEGACY_EXTERNAL_HOSPITAL ||
+    r === "external_hospital_admin"
+  );
+};
 
 export const isAdminDashboardRole = (role) =>
   isSuperAdminRole(role) || isSecondSuperAdminRole(role) || isViewerRole(role);

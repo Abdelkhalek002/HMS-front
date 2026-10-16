@@ -80,7 +80,7 @@ const ReservationPage = () => {
       toast.warn("برجاء تأكيد بريدك الإلكتروني أولاً عن طريق رمز التحقق المرسل لك.", {
         autoClose: 5000,
       });
-      navigate('/verify-email', {
+      navigate('/verify-otp', {
         state: { email: userData?.email || auth.user?.email },
       });
       return;
@@ -115,7 +115,7 @@ const ReservationPage = () => {
 
             if (errorMsg.includes("رمز التحقق") || errorMsg.includes("تأكيد بريدك")) {
               toast.warn(errorMsg, { autoClose: 6000 });
-              navigate('/verify-email', {
+              navigate('/verify-otp', {
                 state: { email: userData?.email || auth.user?.email },
               });
               return;
@@ -153,7 +153,7 @@ const ReservationPage = () => {
                 size="small"
                 className="banner-action-btn"
                 onClick={() =>
-                  navigate('/verify-email', {
+                  navigate('/verify-otp', {
                     state: { email: userData?.email || auth.user?.email },
                   })
                 }

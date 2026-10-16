@@ -49,7 +49,11 @@ export default function LookupPage({
   const [page, setPage] = useState(1);
   const pageSize = 15;
 
-  const items = Array.isArray(data) ? data : [];
+  const items = Array.isArray(data)
+    ? data
+    : Array.isArray(data?.value)
+    ? data.value
+    : [];
   const totalPages = Math.ceil(items.length / pageSize);
 
   useEffect(() => {

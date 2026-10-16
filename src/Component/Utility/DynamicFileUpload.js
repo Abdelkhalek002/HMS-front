@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import './DynamicFileUpload.css';
 
 const formatFileSize = (bytes) => {
@@ -44,7 +45,20 @@ const DynamicFileUpload = ({
     if (!selectedFile) return;
 
     if (maxSizeMB && selectedFile.size > maxSizeMB * 1024 * 1024) {
-      alert(`حجم الملف كبير جداً. الحد الأقصى هو ${maxSizeMB} ميجابايت`);
+      toast.error(`حجم الملف كبير جداً. الحد الأقصى هو ${maxSizeMB} ميجابايت`);
+      return;
+    }
+
+    const isImage = selectedFile.type?.startsWith('image/') || /\.(jpg|jpeg|png|webp)$/i.test(selectedFile.name);
+    const isPdf = selectedFile.type === 'application/pdf' || selectedFile.name?.toLowerCase().endsWith('.pdf');
+
+    if (accept === 'image/*' && !isImage) {
+      toast.error('يرجى اختيار صورة صالحة (JPG, PNG)');
+      return;
+    }
+
+    if (!isImage && !isPdf) {
+      toast.error('يرجى اختيار صورة أو ملف PDF');
       return;
     }
 
@@ -55,6 +69,9 @@ const DynamicFileUpload = ({
     const selected = e.target.files?.[0];
     if (selected) {
       handleFile(selected);
+    }
+    if (e.target) {
+      e.target.value = '';
     }
   };
 
@@ -148,7 +165,18 @@ const DynamicFileUpload = ({
               onClick={() => window.open(previewUrl, '_blank')}
             />
           ) : (
-            <div className="file-icon-placeholder">
+            <div
+              className="file-icon-placeholder"
+              title={isPdf ? "اضغط لمعاينة ملف PDF" : ""}
+              style={{ cursor: isPdf && file instanceof File ? "pointer" : "default" }}
+              onClick={() => {
+                if (isPdf && file instanceof File) {
+                  const url = URL.createObjectURL(file);
+                  window.open(url, "_blank");
+                  setTimeout(() => URL.revokeObjectURL(url), 60000);
+                }
+              }}
+            >
               <span className="material-symbols-outlined">
                 {isPdf ? 'picture_as_pdf' : 'description'}
               </span>

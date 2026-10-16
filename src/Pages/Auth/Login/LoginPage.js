@@ -16,6 +16,7 @@ import {
     isTransferRole,
     isExternalHospitalAdminRole
 } from '../../../ActorType';
+import { getAuthorizedInitialRoute } from '../../../config/navigationConfig';
 
 
 const LoginPage = () => {
@@ -33,19 +34,9 @@ const LoginPage = () => {
             const userObj = Auth.user || {};
             const payloadObj = Auth.payLoad || {};
             const role = userObj.role || payloadObj.role;
-            const type = payloadObj.type || (role ? 'admin' : USERTYPE);
-
-            if (type === USERTYPE || role === USERTYPE || !role) {
-                navigate('/');
-            } else if (isAdminDashboardRole(role)) {
-                navigate('/ad');
-            } else if (isCounterRole(role) || isMedicalCheckManagerRole(role)) {
-                navigate('/co');
-            } else if (isTransferRole(role) || isExternalHospitalAdminRole(role)) {
-                navigate('/tr');
-            } else {
-                navigate('/ad');
-            }
+            const permissions = userObj.permissions || payloadObj.permissions || [];
+            const targetRoute = getAuthorizedInitialRoute(permissions, role);
+            navigate(targetRoute);
         }
     }, [Auth, navigate]);
 
@@ -123,8 +114,13 @@ const LoginPage = () => {
             const userData = { email, password };
             dispatch(loginHandlerAPI({ userData }))
                 .unwrap()
-                .then(() => {
+                .then((res) => {
                     toast.success('تم تسجيل الدخول بنجاح');
+                    const rawUser = res?.data || res?.user || {};
+                    const role = rawUser?.role;
+                    const permissions = rawUser?.permissions || [];
+                    const targetRoute = getAuthorizedInitialRoute(permissions, role);
+                    navigate(targetRoute);
                 })
                 .catch((error) => {
                     const message =
@@ -143,7 +139,7 @@ const LoginPage = () => {
 
                     if (isVerificationError) {
                         toast.warn(message, { autoClose: 4000 });
-                        navigate('/verify-email', { state: { email } });
+                        navigate('/verify-otp', { state: { email } });
                         return;
                     }
 

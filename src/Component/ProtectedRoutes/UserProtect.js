@@ -4,6 +4,14 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { getUserInfo, logout } from '../../RTK/Auth/AuthSlice';
 import { isTokenExpired } from '../../API_Route/axiosInterceptor';
 
+import {
+    isAdminDashboardRole,
+    isCounterRole,
+    isMedicalCheckManagerRole,
+    isTransferRole,
+    isExternalHospitalAdminRole
+} from '../../ActorType';
+
 const UserProtect = ({children}) => {
 
     const dispatch = useDispatch();
@@ -17,12 +25,19 @@ const UserProtect = ({children}) => {
             return <Navigate to={'/login'} />
         }
         const userObj = userData.user || userData.payLoad || {};
-        const isUser = userObj.type === 'user' || (!userObj.role && !userData.payLoad?.role) || userObj.role === 'user';
+        const role = userObj.role || userData.payLoad?.role;
+        const isUser = (!role || role === 'user' || userObj.type === 'user');
+
         if(isUser){
             return <Outlet />
-        }
-        else{
-            return <Navigate to={`/notfound`} />
+        } else if (isAdminDashboardRole(role)) {
+            return <Navigate to={'/ad'} />
+        } else if (isCounterRole(role) || isMedicalCheckManagerRole(role)) {
+            return <Navigate to={'/co'} />
+        } else if (isTransferRole(role) || isExternalHospitalAdminRole(role)) {
+            return <Navigate to={'/tr'} />
+        } else {
+            return <Navigate to={'/ad'} />
         }
     }else{
         console.log('You Are Not Registerd')

@@ -14,12 +14,14 @@ export const singupAPI = createAsyncThunk('auth/signup', async (args, thunkAPI) 
 export const verifyEmailAPI = createAsyncThunk('auth/verifyEmail', async (args, thunkAPI) => {
     const { rejectWithValue } = thunkAPI;
     try {
-        const response = await apiClient.post('/auth/verify-email', args.data);
+        const response = await apiClient.post('/auth/verify-otp', args.data);
         return response.data;
     } catch (error) {
         return rejectWithValue(error.response?.data || error.message);
     }
 });
+
+export const verifyOtpAPI = verifyEmailAPI;
 
 export const resendOtpAPI = createAsyncThunk('auth/resendOtp', async (args, thunkAPI) => {
     const { rejectWithValue } = thunkAPI;
@@ -41,8 +43,84 @@ export const loginHandlerAPI = createAsyncThunk('auth/login', async (args, thunk
     }
 });
 
+const parseJwtPayload = (token) => {
+    if (!token || typeof token !== "string") return null;
+    try {
+        const parts = token.split(".");
+        if (parts.length < 2) return null;
+        const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+        const json = decodeURIComponent(
+            atob(base64)
+                .split("")
+                .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+                .join("")
+        );
+        return JSON.parse(json);
+    } catch (e) {
+        return null;
+    }
+};
+
+const normalizeAuthPayload = (payload) => {
+    if (!payload) return null;
+    const token = payload?.token;
+    const decoded = parseJwtPayload(token);
+    const rawUser = payload?.data || payload?.user || decoded || {};
+    const role = rawUser?.role || decoded?.role || payload?.payLoad?.role || null;
+    const userType =
+        decoded?.userType ||
+        decoded?.type ||
+        payload?.payLoad?.type ||
+        (role && role !== 'user' && role !== 'USER' ? 'admin' : 'user');
+    const userId = rawUser?.id ?? decoded?.id ?? rawUser?.userId;
+    const username = rawUser?.username || rawUser?.userName || decoded?.username || '';
+    const email = rawUser?.email || decoded?.email || '';
+    const permissions = rawUser?.permissions || decoded?.permissions || payload?.payLoad?.permissions || [];
+
+    const userObj = {
+        ...decoded,
+        ...rawUser,
+        id: userId,
+        userId: userId,
+        username: username,
+        userName: username,
+        email: email,
+        role: role,
+        type: userType,
+        permissions: permissions,
+    };
+
+    return {
+        ...payload,
+        token,
+        user: userObj,
+        data: userObj,
+        payLoad: {
+            ...(payload?.payLoad || {}),
+            ...userObj,
+            userId,
+            username,
+            email,
+            role,
+            type: userType,
+            permissions,
+        },
+    };
+};
+
+const loadStoredAuth = () => {
+    try {
+        const stored = localStorage.getItem('auth');
+        if (!stored) return null;
+        const parsed = JSON.parse(stored);
+        return normalizeAuthPayload(parsed);
+    } catch (e) {
+        return null;
+    }
+};
+
 const initialState = {
-    user: localStorage.getItem('auth') ? JSON.parse(localStorage.getItem("auth")) : null,
+    user: loadStoredAuth(),
     load: false,
     error: null,
 };
@@ -65,23 +143,7 @@ const AuthSlice = createSlice({
             state.error = null;
         });
         builder.addCase(loginHandlerAPI.fulfilled, (state, action) => {
-            const rawUser = action.payload?.user;
-            const token = action.payload?.token;
-            const normalized = {
-                ...action.payload,
-                token,
-                user: rawUser,
-                payLoad: {
-                    userId: rawUser?.id,
-                    username: rawUser?.username,
-                    email: rawUser?.email,
-                    role: rawUser?.role,
-                    type: rawUser?.role ? 'admin' : 'user',
-                    permissions: rawUser?.permissions || [],
-                    ...(action.payload?.payLoad || {}),
-                    ...(rawUser || {})
-                }
-            };
+            const normalized = normalizeAuthPayload(action.payload);
             state.user = normalized;
             state.load = false;
             state.error = null;

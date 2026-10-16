@@ -39,7 +39,6 @@ const Signup = () => {
     dispatch(getAllFacultiesAPI());
     dispatch(getAllGovsAPI());
     dispatch(getAllLevelsAPI());
-    dispatch(getAllGovsAPI());
   }, [dispatch]);
 
   // For Access Faculty Slice
@@ -151,13 +150,20 @@ const Signup = () => {
   // For Access Date
   const [date, setDate] = useState("");
 
-  const handleChangeDate = (day, month, year) => {
-    setDate(
-      `${year}-${month.toString.length === 1 ? "0" + month.toString() : month.toString()}-${day.toString().length === 1 ? "0" + day : day}`,
-    );
+  const handleChangeDate = (newDate) => {
+    if (newDate && typeof newDate.format === "function") {
+      setDate(newDate.format("YYYY-MM-DD"));
+    } else if (newDate) {
+      try {
+        const d = new Date(newDate);
+        setDate(d.toISOString().split("T")[0]);
+      } catch (e) {
+        // ignore
+      }
+    } else {
+      setDate("");
+    }
   };
-
-  console.log(date);
 
   // For Access Profile Pic
   const [profilePic, setProfilePic] = useState(null);
@@ -167,6 +173,9 @@ const Signup = () => {
 
   // For Access Fee Pic
   const [feePic, setFeePic] = useState(null);
+
+  // Submission loading state
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -184,6 +193,16 @@ const Signup = () => {
       return;
     }
 
+    if (nationalID && (nationalID.length !== 14 || !/^\d{14}$/.test(nationalID))) {
+      toast.error("الرقم القومي يجب أن يتكون من 14 رقماً");
+      return;
+    }
+
+    if (phone && !/^01[0125][0-9]{8}$/.test(phone)) {
+      toast.error("يرجى إدخال رقم هاتف مصري صحيح مكون من 11 رقماً");
+      return;
+    }
+
     if (
       validMail === "valid" &&
       email !== "" &&
@@ -197,8 +216,11 @@ const Signup = () => {
       level !== "" &&
       faculty !== ""
     ) {
+      setLoading(true);
       const data = new FormData();
 
+      // Field names for backend validator and controller
+      data.append("username", name);
       data.append("userName", name);
       data.append("email", email);
       data.append("password", password);
@@ -207,11 +229,15 @@ const Signup = () => {
       data.append("level_id", level);
       data.append("national_id", nationalID);
       data.append("nationality_id", nationaltiy);
+      data.append("birth_date", `${date}`);
       data.append("birthDay", `${date}`);
+      data.append("phone_number", phone);
       data.append("phoneNumber", phone);
       data.append("gov_id", gov);
+
+      // Multer registration upload field names
       data.append(
-        "userImage_file",
+        "user_image_file",
         profilePic instanceof File ? profilePic : profilePic?.files?.[0] || profilePic
       );
       data.append(
@@ -222,16 +248,19 @@ const Signup = () => {
         "fees_file",
         feePic instanceof File ? feePic : feePic?.files?.[0] || feePic
       );
+
       dispatch(singupAPI({ data }))
         .unwrap()
         .then((res) => {
+          setLoading(false);
           const registeredEmail = res?.email || email;
           toast.success(
             res?.message || "تم إنشاء الحساب بنجاح! برجاء تفقد بريدك الإلكتروني لإدخال رمز التحقق."
           );
-          navigate("/verify-email", { state: { email: registeredEmail } });
+          navigate("/verify-otp", { state: { email: registeredEmail } });
         })
         .catch((error) => {
+          setLoading(false);
           const message =
             error?.message ||
             error?.error ||
@@ -334,7 +363,7 @@ const Signup = () => {
               <p style={{ color: "#bfc2c8" }}>النوع</p>
             </MenuItem>
             <MenuItem value={`ذكر`}>ذكر</MenuItem>
-            <MenuItem value={"انثي"}>انثي</MenuItem>
+            <MenuItem value={"أنثي"}>أنثى</MenuItem>
           </Select>
 
           <Select
@@ -358,24 +387,21 @@ const Signup = () => {
             id="demo-simple-select"
             value={faculty}
             className="karim-input"
-            placeholder=""
             displayEmpty
             onChange={handleFaculty}
           >
             <MenuItem value={""}>
-              {" "}
-              <p style={{ color: "#bfc2c8" }}>اختار الكلية</p>{" "}
+              <p style={{ color: "#bfc2c8" }}>اختار الكلية</p>
             </MenuItem>
-            {FacultyData
-              ? FacultyData.map((item) => {
-                return (
-                  <MenuItem key={item.faculty_id} value={item.faculty_id}>
-                    {" "}
-                    {item.facultyName}{" "}
-                  </MenuItem>
-                );
-              })
-              : ""}
+            {(Array.isArray(FacultyData) ? FacultyData : FacultyData?.value || []).map((item) => {
+              const id = item.faculty_id ?? item.id;
+              const label = item.facultyName ?? item.faculty_name;
+              return (
+                <MenuItem key={id} value={id}>
+                  {label}
+                </MenuItem>
+              );
+            })}
           </Select>
 
           <Select
@@ -383,21 +409,21 @@ const Signup = () => {
             id="demo-simple-select"
             value={level}
             className="karim-input"
-            placeholder=""
             displayEmpty
             onChange={handleLevel}
           >
             <MenuItem value={""}>
-              {" "}
-              <p style={{ color: "#bfc2c8" }}>اختار المستوي</p>{" "}
+              <p style={{ color: "#bfc2c8" }}>اختار المستوي</p>
             </MenuItem>
-            {levelData
-              ? levelData.map((item) => {
-                return (
-                  <MenuItem value={item.level_id}> {item.levelName}</MenuItem>
-                );
-              })
-              : ""}
+            {(Array.isArray(levelData) ? levelData : levelData?.value || []).map((item) => {
+              const id = item.level_id ?? item.id;
+              const label = item.levelName ?? item.level_name;
+              return (
+                <MenuItem key={id} value={id}>
+                  {label}
+                </MenuItem>
+              );
+            })}
           </Select>
 
           <Select
@@ -405,22 +431,21 @@ const Signup = () => {
             id="demo-simple-select"
             value={gov}
             className="karim-input"
-            placeholder=""
             displayEmpty
             onChange={handleGov}
           >
             <MenuItem value={""}>
-              {" "}
-              <p style={{ color: "#bfc2c8" }}>اختار المحافظة</p>{" "}
+              <p style={{ color: "#bfc2c8" }}>اختار المحافظة</p>
             </MenuItem>
-
-            {govDat
-              ? govDat.map((item) => {
-                return (
-                  <MenuItem value={item.gov_id}> {item.govName} </MenuItem>
-                );
-              })
-              : ""}
+            {(Array.isArray(govDat) ? govDat : govDat?.value || []).map((item) => {
+              const id = item.gov_id ?? item.id;
+              const label = item.govName ?? item.gov_name;
+              return (
+                <MenuItem key={id} value={id}>
+                  {label}
+                </MenuItem>
+              );
+            })}
           </Select>
 
           <TextField
@@ -458,9 +483,8 @@ const Signup = () => {
             >
               <DatePicker
                 className="karim-input"
-                onChange={(e) => {
-                  handleChangeDate(e.$D, e.$M, e.$y);
-                  console.log(e);
+                onChange={(newVal) => {
+                  handleChangeDate(newVal);
                 }}
               />
             </DemoContainer>
@@ -503,9 +527,9 @@ const Signup = () => {
             className="log-btn"
             variant="contained"
             color="info"
+            disabled={loading}
           >
-            {" "}
-            انشاء{" "}
+            {loading ? "جاري إنشاء الحساب ورفع المستندات..." : "انشاء"}
           </Button>
 
           <div className="login-redirect-section">

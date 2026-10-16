@@ -75,64 +75,80 @@ const FacultySlice = createSlice({
     extraReducers: (builder) => {
         //* For Get All Faculties
         builder.addCase(getAllFacultiesAPI.fulfilled, (state, action) => {
-            console.log("Successs")
-            state.data = action.payload;
-            state.status = StatusCode.IDLE
+            const rawList = Array.isArray(action.payload)
+                ? action.payload
+                : (action.payload?.value || []);
+            state.data = rawList.map(item => ({
+                ...item,
+                id: item.id ?? item.faculty_id,
+                faculty_id: item.faculty_id ?? item.id,
+                facultyName: item.facultyName ?? item.faculty_name ?? '',
+                faculty_name: item.faculty_name ?? item.facultyName ?? ''
+            }));
+            state.status = StatusCode.IDLE;
         })
         builder.addCase(getAllFacultiesAPI.pending, (state, action) => {
-            console.log("Penddding")
             state.status = StatusCode.LOADING
         })
         builder.addCase(getAllFacultiesAPI.rejected, (state, action) => {
-            console.log("REJJjjjected")
             state.status = StatusCode.ERROR
         })
 
-        //! For Delete Level
+        //! For Delete Faculty
         builder.addCase(deleteFacultyAPI.fulfilled, (state, action) => {
-            console.log("Successs")
-            state.data = state.data.filter(item => item.faculty_id !== action.payload.faculty_id)
-            state.status = StatusCode.IDLE
+            const targetId = action.payload?.faculty_id ?? action.payload?.id ?? action.payload;
+            state.data = state.data.filter(item => item.id !== targetId && item.faculty_id !== targetId);
+            state.status = StatusCode.IDLE;
         })
         builder.addCase(deleteFacultyAPI.pending, (state, action) => {
-            console.log("Penddding")
             state.status = StatusCode.LOADING
         })
         builder.addCase(deleteFacultyAPI.rejected, (state, action) => {
-            console.log("REJJjjjected")
             state.status = StatusCode.ERROR
         })
 
-        //? For Add Level
+        //? For Add Faculty
         builder.addCase(addNewFacultyAPI.fulfilled, (state, action) => {
-            console.log("Successs")
-            state.data.push(action.payload)
-            state.status = StatusCode.IDLE
+            const item = action.payload;
+            if (item) {
+                state.data.push({
+                    ...item,
+                    id: item.id ?? item.faculty_id,
+                    faculty_id: item.faculty_id ?? item.id,
+                    facultyName: item.facultyName ?? item.faculty_name ?? '',
+                    faculty_name: item.faculty_name ?? item.facultyName ?? ''
+                });
+            }
+            state.status = StatusCode.IDLE;
         })
         builder.addCase(addNewFacultyAPI.pending, (state, action) => {
-            console.log("Penddding")
             state.status = StatusCode.LOADING
         })
         builder.addCase(addNewFacultyAPI.rejected, (state, action) => {
-            console.log("REJJjjjected")
             state.status = StatusCode.ERROR
         })
 
-        //? For Update Level
+        //? For Update Faculty
         builder.addCase(updateFacultyAPI.fulfilled, (state, action) => {
-            console.log("Successs")
-            console.log(state.data)
-            const index = state.data.findIndex(item => item.faculty_id === action.payload.faculty_id)
-            state.data[index] = action.payload
-            state.status = StatusCode.IDLE
+            const targetId = action.payload?.id ?? action.payload?.faculty_id;
+            const index = state.data.findIndex(item => item.id === targetId || item.faculty_id === targetId);
+            if (index !== -1) {
+                state.data[index] = {
+                    ...state.data[index],
+                    ...action.payload,
+                    id: action.payload.id ?? action.payload.faculty_id ?? state.data[index].id,
+                    faculty_id: action.payload.faculty_id ?? action.payload.id ?? state.data[index].faculty_id,
+                    facultyName: action.payload.facultyName ?? action.payload.faculty_name ?? state.data[index].facultyName,
+                    faculty_name: action.payload.faculty_name ?? action.payload.facultyName ?? state.data[index].faculty_name
+                };
+            }
+            state.status = StatusCode.IDLE;
         })
 
         builder.addCase(updateFacultyAPI.pending, (state, action) => {
-            console.log("Penddding")
             state.status = StatusCode.LOADING
         })
         builder.addCase(updateFacultyAPI.rejected, (state, action) => {
-            console.log("REJJjjjected", action.payload)
             state.status = StatusCode.ERROR
         })
     }

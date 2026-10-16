@@ -36,6 +36,7 @@ import {
   EXTERNAL_HOSPITAL_ADMIN,
   isSuperAdminRole
 } from '../../ActorType';
+import { usePermission } from '../../hooks/usePermission';
 
 const modalStyle = {
   position: 'absolute',
@@ -75,8 +76,9 @@ const rtlInputSx = {
 
 const AdminPage = () => {
   const dispatch = useDispatch();
-  const { token, payLoad } = useSelector(getUserInfo) || {};
-  const isSuperAdmin = isSuperAdminRole(payLoad?.role);
+  const { token } = useSelector(getUserInfo) || {};
+  const { can, isSuperAdmin } = usePermission();
+  const canCreateAdmin = isSuperAdmin || can('admins:create');
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -197,7 +199,7 @@ const AdminPage = () => {
     <div className='k-group-user-page'>
       <div className='admin-header-row'>
         <h2 className='title'>المسؤولين</h2>
-        {isSuperAdmin && (
+        {canCreateAdmin && (
           <Button
             variant='contained'
             color='primary'

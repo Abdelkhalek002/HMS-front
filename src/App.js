@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 import './App.css';
 import CounterPage from './Pages/Counter/CounterPage';
 import ProfilePage from './Pages/Profile/ProfilePage';
@@ -33,10 +33,12 @@ import AdminProtect from './Component/ProtectedRoutes/AdminProtect.js';
 import ProfilePageAdminViewer from './Pages/Profile/ProfilePageAdminViewer.js';
 import UserHistoryAdmin from './Component/Profile/UserHistoryAdmin.js';
 import SharedComponentCounter from './Component/Utility/SharedComponentCounter.js';
+import SharedComponentTransfer from './Component/Utility/SharedComponentTransfer.js';
 import CounterProtect from './Component/ProtectedRoutes/CounterProtect.js';
 import TransferProtect from './Component/ProtectedRoutes/TranferProtect.js';
-import SharedComponentTransfer from './Component/Utility/SharedComponentTransfer.js';
 import { SidebarProvider } from './Component/Utility/SidebarContext.js';
+import PermissionProtect from './Component/ProtectedRoutes/PermissionProtect.js';
+import { PERMISSIONS } from './utils/permissionUtils.js';
 
 function App() {
 
@@ -84,34 +86,31 @@ function App() {
               <Route index  element={<UserDetails />} />
               <Route path='history' element={<UserHistoryAdmin />} />
             </Route>
-          
 
-            {/* For Transfer */}
-            <Route path='transfer' element={<TransferPage />} />
+            {/* Guarded by Transfers permission */}
+            <Route element={<PermissionProtect requiredPermission={PERMISSIONS.TRANSFERS_READ} />}>
+              <Route path='transfer' element={<TransferPage />} />
+            </Route>
 
-            {/* Admin Route */}
-            <Route path='allusers' element={<GroupUserPage />} />
+            {/* Guarded by Users permission */}
+            <Route element={<PermissionProtect requiredPermission={PERMISSIONS.USERS_READ} />}>
+              <Route path='allusers' element={<GroupUserPage />} />
+            </Route>
 
-            {/* Levels */}
-            <Route path='levels' element={<LevelsPage />} />
+            {/* Guarded by Logs permission */}
+            <Route element={<PermissionProtect requiredPermission={PERMISSIONS.LOGS_READ} />}>
+              <Route path='history' element={<HistoryPage />} />
+            </Route>
 
-            {/* Clinics */}
-            <Route path='clinics' element={<ClinicsPage />} />
-
-            {/* Faculties */}
-            <Route path='faculties' element={<FacultiesPage />} />
-
-            {/* ExHospital */}
-            <Route path='exhospital' element={<ExHospitalPage />} />
-
-            {/* Governorates */}
-            <Route path='governorates' element={<GovernoratesPage />} />
-
-            {/* History */}
-            <Route path='history' element={<HistoryPage />} />
-
-            {/* Admins */}
-            <Route path='admins' element={<AdminPage />} />
+            {/* Guarded by Admins permission (Admins & System Lookups) */}
+            <Route element={<PermissionProtect requiredPermission={PERMISSIONS.ADMINS_READ} />}>
+              <Route path='admins' element={<AdminPage />} />
+              <Route path='levels' element={<LevelsPage />} />
+              <Route path='clinics' element={<ClinicsPage />} />
+              <Route path='faculties' element={<FacultiesPage />} />
+              <Route path='exhospital' element={<ExHospitalPage />} />
+              <Route path='governorates' element={<GovernoratesPage />} />
+            </Route>
 
           </Route>
         </Route>
@@ -132,10 +131,10 @@ function App() {
         </Route>
 
 
-        {/* Global Route For Admin and User */}
         <Route path='/login' element={<LoginPage />} />
         <Route path='/signup' element={<Signup />} />
-        <Route path='/verify-email' element={<VerifyEmailPage />} />
+        <Route path='/verify-otp' element={<VerifyEmailPage />} />
+        <Route path='/verify-email' element={<Navigate to="/verify-otp" replace />} />
         <Route path='/forgetpassword' element={<ForgetPasswordPage />}>
           <Route index element={<SendOtp />} />
           <Route path='otp' element={<OtpComponent />} />
