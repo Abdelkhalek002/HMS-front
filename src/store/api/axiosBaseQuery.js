@@ -1,4 +1,4 @@
-import apiClient from "../../API_Route/axiosClient";
+import apiClient from "../../services/http/apiClient";
 
 /**
  * Custom baseQuery implementation for RTK Query that wraps our centralized Axios client.
@@ -29,3 +29,5 @@ export const axiosBaseQuery =
       };
     }
   };
+
+export default axiosBaseQuery;

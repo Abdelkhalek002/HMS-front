@@ -18,11 +18,11 @@ import { Tooltip } from '@mui/material';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
-import { acceptOrDeclineAPI, getAllReservationListAPI, getReservationData } from '../../../RTK/Admins/CounterSlice';
+import { acceptOrDeclineAPI, getAllReservationListAPI, getReservationData } from '../../admins/CounterSlice';
 import StatusCode from '../../../StatusCode';
-import { getUserInfo } from '../../../RTK/Auth/AuthSlice';
+import { getUserInfo } from '../../auth';
 import { useState } from 'react';
-import { BASE_URL } from '../../../API_Route/GlobalRoute';
+import { BASE_URL } from '../../../services/http';
 import { useTableSelection } from '../../../components/table/useTableSelection';
 import TableToolbar from '../../../components/table/TableToolbar';
 

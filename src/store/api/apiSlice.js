@@ -11,3 +11,5 @@ export const apiSlice = createApi({
   tagTypes: ["Reservation", "Clinic", "User", "Auth"],
   endpoints: () => ({}),
 });
+
+export default apiSlice;

@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { getUserInfo } from '../RTK/Auth/AuthSlice';
+import { getUserInfo } from '../features/auth';
 import { isExternalHospitalAdminRole } from '../ActorType';
 import BaseSidebar from './BaseSidebar.jsx';
 

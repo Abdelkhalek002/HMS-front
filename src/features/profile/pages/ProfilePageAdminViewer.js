@@ -3,13 +3,13 @@ import { useEffect, useRef, useState } from 'react';
 import "./profile.css";
 import { NavLink, Outlet, useParams, useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { getUserInfo } from "../../../RTK/Auth/AuthSlice";
-import { getUserProfile, getUserProfileAPi, getUserReservationAPI } from '../../../RTK/User/UserSlice';
+import { getUserInfo } from "../../auth";
+import { getUserProfile, getUserProfileAPi, getUserReservationAPI } from '../../users';
 import { Box, Button, Modal, Skeleton, Typography } from '@mui/material';
 
-import { sendObservations } from '../../../RTK/UserControl/UserControlSlice.js';
+import { sendObservations } from '../../users';
 import { toast } from 'react-toastify';
-import { BASE_URL } from '../../../API_Route/GlobalRoute';
+import { BASE_URL } from '../../../services/http';
 import userPic from '../../../images/userProfile.jpg';
 
 const ProfilePageAdminViewer = () => {

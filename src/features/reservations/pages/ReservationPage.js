@@ -7,10 +7,10 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { toast } from 'react-toastify';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { getUserInfo } from '../../../RTK/Auth/AuthSlice';
-import { useCreateReservationMutation } from '../../../RTK/Reservation/reservationApi';
-import { getUserProfile, getUserProfileAPi } from '../../../RTK/User/UserSlice';
-import { getAllClinics, getAllClinicsAPI } from '../../../RTK/Clinic/ClinicSlice';
+import { getUserInfo } from '../../auth';
+import { useCreateReservationMutation } from '../reservationApi';
+import { getUserProfile, getUserProfileAPi } from '../../users';
+import { getAllClinics, getAllClinicsAPI } from '../../lookups';
 
 
 const ReservationPage = () => {

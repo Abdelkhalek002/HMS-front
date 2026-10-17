@@ -1,5 +1,5 @@
 import { useSelector } from 'react-redux';
-import { getUserInfo } from '../RTK/Auth/AuthSlice';
+import { getUserInfo } from '../features/auth';
 import { hasPermission, hasAllPermissions, PERMISSIONS } from '../utils/permissionUtils';
 import { isSuperAdminRole } from '../ActorType';
 

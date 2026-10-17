@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import apiClient from "../../API_Route/axiosClient";
+import apiClient from "../../services/http/apiClient";
 import { parseJwtPayload } from "../../utils/jwt";
 
 export const singupAPI = createAsyncThunk('auth/signup', async (args, thunkAPI) => {
@@ -159,4 +159,3 @@ export const getToken = state => state.AuthSlice.user?.token;
 
 export default AuthSlice.reducer;
 export const { logout } = AuthSlice.actions;
-

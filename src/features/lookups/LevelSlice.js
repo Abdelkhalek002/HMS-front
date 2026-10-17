@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import apiClient from "../../API_Route/axiosClient";
+import apiClient from "../../services/http/apiClient";
 import StatusCode from "../../StatusCode.js";
 
 export const getAllLevelsAPI = createAsyncThunk('level/getall', async (_, thunkAPI) => {
@@ -47,18 +47,15 @@ export const updateLevelsAPI = createAsyncThunk('level/update', async (args, thu
     }
 });
 
-
 const initialState = {
     data: [],
     status: StatusCode.IDLE
-}
+};
 
 const LevelSlice = createSlice({
     name: "level",
     initialState,
-    reducers: {
-
-    },
+    reducers: {},
     extraReducers: (builder) => {
         //* For Get All Levels
         builder.addCase(getAllLevelsAPI.fulfilled, (state, action) => {
@@ -73,26 +70,26 @@ const LevelSlice = createSlice({
                 level_name: item.level_name ?? item.levelName ?? ''
             }));
             state.status = StatusCode.IDLE;
-        })
-        builder.addCase(getAllLevelsAPI.pending, (state, action) => {
-            state.status = StatusCode.LOADING
-        })
-        builder.addCase(getAllLevelsAPI.rejected, (state, action) => {
-            state.status = StatusCode.ERROR
-        })
+        });
+        builder.addCase(getAllLevelsAPI.pending, (state) => {
+            state.status = StatusCode.LOADING;
+        });
+        builder.addCase(getAllLevelsAPI.rejected, (state) => {
+            state.status = StatusCode.ERROR;
+        });
 
         //! For Delete Level
         builder.addCase(deleteLevelsAPI.fulfilled, (state, action) => {
             const targetId = action.payload?.level_id ?? action.payload?.id ?? action.payload;
             state.data = state.data.filter(item => item.id !== targetId && item.level_id !== targetId);
             state.status = StatusCode.IDLE;
-        })
-        builder.addCase(deleteLevelsAPI.pending, (state, action) => {
-            state.status = StatusCode.LOADING
-        })
-        builder.addCase(deleteLevelsAPI.rejected, (state, action) => {
-            state.status = StatusCode.ERROR
-        })
+        });
+        builder.addCase(deleteLevelsAPI.pending, (state) => {
+            state.status = StatusCode.LOADING;
+        });
+        builder.addCase(deleteLevelsAPI.rejected, (state) => {
+            state.status = StatusCode.ERROR;
+        });
 
         //? For Add Level
         builder.addCase(addNewLevelsAPI.fulfilled, (state, action) => {
@@ -107,13 +104,13 @@ const LevelSlice = createSlice({
                 });
             }
             state.status = StatusCode.IDLE;
-        })
-        builder.addCase(addNewLevelsAPI.pending, (state, action) => {
-            state.status = StatusCode.LOADING
-        })
-        builder.addCase(addNewLevelsAPI.rejected, (state, action) => {
-            state.status = StatusCode.ERROR
-        })
+        });
+        builder.addCase(addNewLevelsAPI.pending, (state) => {
+            state.status = StatusCode.LOADING;
+        });
+        builder.addCase(addNewLevelsAPI.rejected, (state) => {
+            state.status = StatusCode.ERROR;
+        });
 
         //? For Update Level
         builder.addCase(updateLevelsAPI.fulfilled, (state, action) => {
@@ -130,18 +127,16 @@ const LevelSlice = createSlice({
                 };
             }
             state.status = StatusCode.IDLE;
-        })
+        });
 
-        builder.addCase(updateLevelsAPI.pending, (state, action) => {
-            state.status = StatusCode.LOADING
-        })
-        builder.addCase(updateLevelsAPI.rejected, (state, action) => {
-            state.status = StatusCode.ERROR
-        })
+        builder.addCase(updateLevelsAPI.pending, (state) => {
+            state.status = StatusCode.LOADING;
+        });
+        builder.addCase(updateLevelsAPI.rejected, (state) => {
+            state.status = StatusCode.ERROR;
+        });
     }
-})
+});
 
-
-export default LevelSlice.reducer
-
+export default LevelSlice.reducer;
 export const getAllLevels = state => state.LevelSlice.data; 

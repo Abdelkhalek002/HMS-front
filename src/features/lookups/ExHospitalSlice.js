@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import apiClient from "../../API_Route/axiosClient";
+import apiClient from "../../services/http/apiClient";
 import StatusCode from "../../StatusCode.js";
 
 export const getAllExhospitalsAPI = createAsyncThunk('exhospital/getall', async (_, thunkAPI) => {
@@ -47,84 +47,67 @@ export const updateExhospitalAPI = createAsyncThunk('exhospital/update', async (
     }
 });
 
-
 const initialState = {
     data: [],
     status: StatusCode.IDLE
-}
+};
 
 const exHospitalSlice = createSlice({
     name: "exhospital",
     initialState,
-    reducers: {
-
-    },
+    reducers: {},
     extraReducers: (builder) => {
         //* For Get All exhospitals
         builder.addCase(getAllExhospitalsAPI.fulfilled, (state, action) => {
-            console.log("Successs")
             state.data = action.payload;
-            state.status = StatusCode.IDLE
-        })
-        builder.addCase(getAllExhospitalsAPI.pending, (state, action) => {
-            console.log("Penddding")
-            state.status = StatusCode.LOADING
-        })
-        builder.addCase(getAllExhospitalsAPI.rejected, (state, action) => {
-            console.log("REJJjjjected")
-            state.status = StatusCode.ERROR
-        })
+            state.status = StatusCode.IDLE;
+        });
+        builder.addCase(getAllExhospitalsAPI.pending, (state) => {
+            state.status = StatusCode.LOADING;
+        });
+        builder.addCase(getAllExhospitalsAPI.rejected, (state) => {
+            state.status = StatusCode.ERROR;
+        });
 
         //! For Delete exhospital
         builder.addCase(deleteExhospitalAPI.fulfilled, (state, action) => {
-            console.log("Successs")
-            state.data = state.data.filter(item => item.exhospital_id !== action.payload.exhospital_id)
-            state.status = StatusCode.IDLE
-        })
-        builder.addCase(deleteExhospitalAPI.pending, (state, action) => {
-            console.log("Penddding")
-            state.status = StatusCode.LOADING
-        })
-        builder.addCase(deleteExhospitalAPI.rejected, (state, action) => {
-            console.log("REJJjjjected")
-            state.status = StatusCode.ERROR
-        })
+            state.data = state.data.filter(item => item.exhospital_id !== action.payload.exhospital_id);
+            state.status = StatusCode.IDLE;
+        });
+        builder.addCase(deleteExhospitalAPI.pending, (state) => {
+            state.status = StatusCode.LOADING;
+        });
+        builder.addCase(deleteExhospitalAPI.rejected, (state) => {
+            state.status = StatusCode.ERROR;
+        });
 
         //? For Add exhospital
         builder.addCase(addNewExhospitalAPI.fulfilled, (state, action) => {
-            console.log("Successs")
-            state.data.push(action.payload)
-            state.status = StatusCode.IDLE
-        })
-        builder.addCase(addNewExhospitalAPI.pending, (state, action) => {
-            console.log("Penddding")
-            state.status = StatusCode.LOADING
-        })
-        builder.addCase(addNewExhospitalAPI.rejected, (state, action) => {
-            console.log("REJJjjjected")
-            state.status = StatusCode.ERROR
-        })
+            state.data.push(action.payload);
+            state.status = StatusCode.IDLE;
+        });
+        builder.addCase(addNewExhospitalAPI.pending, (state) => {
+            state.status = StatusCode.LOADING;
+        });
+        builder.addCase(addNewExhospitalAPI.rejected, (state) => {
+            state.status = StatusCode.ERROR;
+        });
 
         //? For Update exhospital
         builder.addCase(updateExhospitalAPI.fulfilled, (state, action) => {
-            console.log("Successs")
-            console.log(state.data)
-            const index = state.data.findIndex(item => item.exhospital_id === action.payload.exhospital_id)
-            state.data[index] = action.payload
-            state.status = StatusCode.IDLE
-        })
+            const index = state.data.findIndex(item => item.exhospital_id === action.payload.exhospital_id);
+            state.data[index] = action.payload;
+            state.status = StatusCode.IDLE;
+        });
 
-        builder.addCase(updateExhospitalAPI.pending, (state, action) => {
-            console.log("Penddding")
-            state.status = StatusCode.LOADING
-        })
-        builder.addCase(updateExhospitalAPI.rejected, (state, action) => {
-            console.log("REJJjjjected", action.payload)
-            state.status = StatusCode.ERROR
-        })
+        builder.addCase(updateExhospitalAPI.pending, (state) => {
+            state.status = StatusCode.LOADING;
+        });
+        builder.addCase(updateExhospitalAPI.rejected, (state) => {
+            state.status = StatusCode.ERROR;
+        });
     }
-})
+});
 
-
-export default exHospitalSlice.reducer
+export default exHospitalSlice.reducer;
 export const getAllExhospitals = state => state.exHospitalSlice.data; 

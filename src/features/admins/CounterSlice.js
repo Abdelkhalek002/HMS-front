@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import apiClient from "../../API_Route/axiosClient";
+import apiClient from "../../services/http/apiClient";
 import StatusCode from "../../StatusCode";
 
 // For Filter Reservation

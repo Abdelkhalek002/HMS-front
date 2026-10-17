@@ -10,4 +10,5 @@ export { default as SendOtp } from './components/SendOtp';
 export { default as OtpComponent } from './components/OtpComponent';
 export { default as NewPasswordComponent } from './components/NewPasswordComponent';
 
-export * from '../../RTK/Auth/AuthSlice';
+export * from './AuthSlice';
+export * from './ForgetPasswordSlice';

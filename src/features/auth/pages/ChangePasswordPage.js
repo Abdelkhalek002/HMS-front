@@ -4,8 +4,8 @@ import { Button, FormControl, IconButton, InputAdornment, OutlinedInput } from '
 import { Visibility, VisibilityOff } from '@mui/icons-material'
 import { toast } from 'react-toastify'
 import { useDispatch, useSelector } from 'react-redux'
-import { getUserInfo } from '../../../RTK/Auth/AuthSlice'
-import { changePasswordAPI } from '../../../RTK/User/UserSlice'
+import { getUserInfo } from '../AuthSlice';
+import { changePasswordAPI } from '../../users';
 
 const ChangePasswordPage = () => {
 

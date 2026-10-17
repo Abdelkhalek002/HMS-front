@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import apiClient from "../../API_Route/axiosClient";
+import apiClient from "../../services/http/apiClient";
 import StatusCode from "../../StatusCode.js";
 
 export const getAllFacultiesAPI = createAsyncThunk('faculties/getall', async (_, thunkAPI) => {
@@ -47,18 +47,15 @@ export const updateFacultyAPI = createAsyncThunk('faculties/update', async (args
     }
 });
 
-
 const initialState = {
     data: [],
     status: StatusCode.IDLE
-}
+};
 
 const FacultySlice = createSlice({
     name: "faculties",
     initialState,
-    reducers: {
-
-    },
+    reducers: {},
     extraReducers: (builder) => {
         //* For Get All Faculties
         builder.addCase(getAllFacultiesAPI.fulfilled, (state, action) => {
@@ -73,26 +70,26 @@ const FacultySlice = createSlice({
                 faculty_name: item.faculty_name ?? item.facultyName ?? ''
             }));
             state.status = StatusCode.IDLE;
-        })
-        builder.addCase(getAllFacultiesAPI.pending, (state, action) => {
-            state.status = StatusCode.LOADING
-        })
-        builder.addCase(getAllFacultiesAPI.rejected, (state, action) => {
-            state.status = StatusCode.ERROR
-        })
+        });
+        builder.addCase(getAllFacultiesAPI.pending, (state) => {
+            state.status = StatusCode.LOADING;
+        });
+        builder.addCase(getAllFacultiesAPI.rejected, (state) => {
+            state.status = StatusCode.ERROR;
+        });
 
         //! For Delete Faculty
         builder.addCase(deleteFacultyAPI.fulfilled, (state, action) => {
             const targetId = action.payload?.faculty_id ?? action.payload?.id ?? action.payload;
             state.data = state.data.filter(item => item.id !== targetId && item.faculty_id !== targetId);
             state.status = StatusCode.IDLE;
-        })
-        builder.addCase(deleteFacultyAPI.pending, (state, action) => {
-            state.status = StatusCode.LOADING
-        })
-        builder.addCase(deleteFacultyAPI.rejected, (state, action) => {
-            state.status = StatusCode.ERROR
-        })
+        });
+        builder.addCase(deleteFacultyAPI.pending, (state) => {
+            state.status = StatusCode.LOADING;
+        });
+        builder.addCase(deleteFacultyAPI.rejected, (state) => {
+            state.status = StatusCode.ERROR;
+        });
 
         //? For Add Faculty
         builder.addCase(addNewFacultyAPI.fulfilled, (state, action) => {
@@ -107,13 +104,13 @@ const FacultySlice = createSlice({
                 });
             }
             state.status = StatusCode.IDLE;
-        })
-        builder.addCase(addNewFacultyAPI.pending, (state, action) => {
-            state.status = StatusCode.LOADING
-        })
-        builder.addCase(addNewFacultyAPI.rejected, (state, action) => {
-            state.status = StatusCode.ERROR
-        })
+        });
+        builder.addCase(addNewFacultyAPI.pending, (state) => {
+            state.status = StatusCode.LOADING;
+        });
+        builder.addCase(addNewFacultyAPI.rejected, (state) => {
+            state.status = StatusCode.ERROR;
+        });
 
         //? For Update Faculty
         builder.addCase(updateFacultyAPI.fulfilled, (state, action) => {
@@ -130,21 +127,16 @@ const FacultySlice = createSlice({
                 };
             }
             state.status = StatusCode.IDLE;
-        })
+        });
 
-        builder.addCase(updateFacultyAPI.pending, (state, action) => {
-            state.status = StatusCode.LOADING
-        })
-        builder.addCase(updateFacultyAPI.rejected, (state, action) => {
-            state.status = StatusCode.ERROR
-        })
+        builder.addCase(updateFacultyAPI.pending, (state) => {
+            state.status = StatusCode.LOADING;
+        });
+        builder.addCase(updateFacultyAPI.rejected, (state) => {
+            state.status = StatusCode.ERROR;
+        });
     }
-})
+});
 
-
-export default FacultySlice.reducer
+export default FacultySlice.reducer;
 export const getAllFaculties = state => state.FacultySlice.data; 
-
-
-
-

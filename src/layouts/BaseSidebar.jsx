@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import Logo from '../images/Gemini_Generated_logoggggg-removebg-preview.png';
-import { logout } from '../RTK/Auth/AuthSlice';
+import { logout } from '../features/auth';
 import { useSidebar } from './SidebarContext';
 
 export default function BaseSidebar({ title, children, footer, className = '', style }) {

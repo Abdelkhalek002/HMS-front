@@ -4,7 +4,7 @@ import { useDispatch } from 'react-redux';
 import { Button, TextField, CircularProgress } from '@mui/material';
 import OtpInput from 'react-otp-input';
 import { toast } from 'react-toastify';
-import { verifyEmailAPI, resendOtpAPI } from '../../../RTK/Auth/AuthSlice';
+import { verifyEmailAPI, resendOtpAPI } from '../AuthSlice';
 import maroPic from '../../../images/mero.png';
 import './Login.css';
 import './VerifyEmail.css';

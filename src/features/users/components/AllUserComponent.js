@@ -1,8 +1,8 @@
 import React from 'react';
 import UserComponent from './UserComponent';
 import { useDispatch, useSelector } from 'react-redux';
-import { getUserInfo } from '../../../RTK/Auth/AuthSlice';
-import { blockUserApi, deleteUserApi, getAllUserApi, unblockUserApi } from '../../../RTK/UserControl/UserControlSlice.js';
+import { getUserInfo } from '../../auth';
+import { blockUserApi, deleteUserApi, getAllUserApi, unblockUserApi } from '../UserControlSlice.js';
 import StatusCode from '../../../StatusCode.js';
 import { Button, Skeleton } from '@mui/material';
 import swal from 'sweetalert';

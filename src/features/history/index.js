@@ -1,4 +1,4 @@
 // History / Logs Feature Entry Point
 export { default as HistoryPage } from './pages/HistoryPage';
 
-export * from '../../RTK/History/HistorySlice';
+export * from './HistorySlice';

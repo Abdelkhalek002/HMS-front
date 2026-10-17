@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
-import { BASE_URL } from "../../API_Route/GlobalRoute";
+import { BASE_URL } from "../../services/http";
 import { toast } from "react-toastify";
 import StatusCode from "../../StatusCode";
 
@@ -276,18 +276,18 @@ const UserSlice = createSlice({
       state.data = action.payload;
       state.load = false;
     });
-    builder.addCase(getUserProfileAPi.rejected, (state, action) => {
+    builder.addCase(getUserProfileAPi.rejected, (state) => {
       state.load = false;
     });
-    builder.addCase(getUserProfileAPi.pending, (state, action) => {
+    builder.addCase(getUserProfileAPi.pending, (state) => {
       state.load = true;
     });
     // Forget Password
-    builder.addCase(changePasswordAPI.fulfilled, (state, action) => {
+    builder.addCase(changePasswordAPI.fulfilled, () => {
       toast.success("تم تغيير كلمة السر بنجاح");
     });
-    builder.addCase(changePasswordAPI.pending, (state, action) => { });
-    builder.addCase(changePasswordAPI.rejected, (state, action) => {
+    builder.addCase(changePasswordAPI.pending, () => { });
+    builder.addCase(changePasswordAPI.rejected, () => {
       toast.error("كلمة المرور القديمة غير صحيحة برجاء المحاولة مرة اخرى");
     });
     // For Upload Profile Picture
@@ -298,7 +298,7 @@ const UserSlice = createSlice({
       if (updated) {
         const photoVal =
           action.payload?.profile_photo_url ||
-          updated.profile_photo_url
+          updated.profile_photo_url;
         if (state.data) {
           state.data = {
             ...state.data,
@@ -308,8 +308,8 @@ const UserSlice = createSlice({
         }
       }
     });
-    builder.addCase(updateProfilePicAPI.pending, (state, action) => { });
-    builder.addCase(updateProfilePicAPI.rejected, (state, action) => {
+    builder.addCase(updateProfilePicAPI.pending, () => { });
+    builder.addCase(updateProfilePicAPI.rejected, () => {
       toast.error("حدث خطا اثناء رفع الصورة برجاء اعادة المحاولة");
     });
     // For Get Reservation List
@@ -318,7 +318,7 @@ const UserSlice = createSlice({
       state.statusReservation = StatusCode.SUCCESS;
       state.totalHistoryPage = action.payload?.totalPages ?? 1;
     });
-    builder.addCase(getUserReservationAPI.pending, (state, action) => {
+    builder.addCase(getUserReservationAPI.pending, (state) => {
       state.statusReservation = StatusCode.LOADING;
     });
     builder.addCase(getUserReservationAPI.rejected, (state, action) => {
@@ -339,12 +339,12 @@ const UserSlice = createSlice({
       }
       toast.success("تم مسح الكشف بنجاح");
     });
-    builder.addCase(deleteReservationAPI.rejected, (state, action) => {
+    builder.addCase(deleteReservationAPI.rejected, (state) => {
       state.status = StatusCode.UNAUTHORIZED;
     });
 
     // For Update User Data
-    builder.addCase(updateProfileAPI.fulfilled, (state, action) => {
+    builder.addCase(updateProfileAPI.fulfilled, () => {
       toast.success("تم تعديل البينات بنجاح");
     });
   },

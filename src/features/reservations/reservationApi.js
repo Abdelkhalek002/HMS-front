@@ -1,4 +1,4 @@
-import { apiSlice } from "../Api/apiSlice";
+import { apiSlice } from "../../store/api/apiSlice";
 
 export const reservationApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -73,3 +73,5 @@ export const {
   useDeleteReservationMutation,
   useUpdateReservationStatusMutation,
 } = reservationApi;
+
+export default reservationApi;

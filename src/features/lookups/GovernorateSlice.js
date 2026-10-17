@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import apiClient from "../../API_Route/axiosClient";
+import apiClient from "../../services/http/apiClient";
 import StatusCode from "../../StatusCode.js";
 
 export const getAllGovsAPI = createAsyncThunk('governorates/getAll', async (_, thunkAPI) => {
@@ -50,14 +50,12 @@ export const updateGovernorateAPI = createAsyncThunk('governorates/update', asyn
 const initialState = {
     data: [],
     status: StatusCode.IDLE
-}
+};
 
 const GovernorateSlice = createSlice({
     name: "governorates",
     initialState,
-    reducers: {
-
-    },
+    reducers: {},
     extraReducers: (builder) => {
         builder.addCase(getAllGovsAPI.fulfilled, (state, action) => {
             const rawList = Array.isArray(action.payload)
@@ -71,25 +69,25 @@ const GovernorateSlice = createSlice({
                 gov_name: item.gov_name ?? item.govName ?? ''
             }));
             state.status = StatusCode.IDLE;
-        })
-        builder.addCase(getAllGovsAPI.pending, (state, action) => {
-            state.status = StatusCode.LOADING
-        })
-        builder.addCase(getAllGovsAPI.rejected, (state, action) => {
-            state.status = StatusCode.ERROR
-        })
+        });
+        builder.addCase(getAllGovsAPI.pending, (state) => {
+            state.status = StatusCode.LOADING;
+        });
+        builder.addCase(getAllGovsAPI.rejected, (state) => {
+            state.status = StatusCode.ERROR;
+        });
 
         builder.addCase(deleteGovernorateAPI.fulfilled, (state, action) => {
             const targetId = action.payload?.id ?? action.payload?.gov_id ?? action.payload;
             state.data = state.data.filter(item => item.id !== targetId && item.gov_id !== targetId);
             state.status = StatusCode.IDLE;
-        })
-        builder.addCase(deleteGovernorateAPI.pending, (state, action) => {
-            state.status = StatusCode.LOADING
-        })
-        builder.addCase(deleteGovernorateAPI.rejected, (state, action) => {
-            state.status = StatusCode.ERROR
-        })
+        });
+        builder.addCase(deleteGovernorateAPI.pending, (state) => {
+            state.status = StatusCode.LOADING;
+        });
+        builder.addCase(deleteGovernorateAPI.rejected, (state) => {
+            state.status = StatusCode.ERROR;
+        });
 
         builder.addCase(addNewGovernorateAPI.fulfilled, (state, action) => {
             const item = action.payload;
@@ -103,13 +101,13 @@ const GovernorateSlice = createSlice({
                 });
             }
             state.status = StatusCode.IDLE;
-        })
-        builder.addCase(addNewGovernorateAPI.pending, (state, action) => {
-            state.status = StatusCode.LOADING
-        })
-        builder.addCase(addNewGovernorateAPI.rejected, (state, action) => {
-            state.status = StatusCode.ERROR
-        })
+        });
+        builder.addCase(addNewGovernorateAPI.pending, (state) => {
+            state.status = StatusCode.LOADING;
+        });
+        builder.addCase(addNewGovernorateAPI.rejected, (state) => {
+            state.status = StatusCode.ERROR;
+        });
 
         builder.addCase(updateGovernorateAPI.fulfilled, (state, action) => {
             const targetId = action.payload?.id ?? action.payload?.gov_id;
@@ -125,15 +123,15 @@ const GovernorateSlice = createSlice({
                 };
             }
             state.status = StatusCode.IDLE;
-        })
-        builder.addCase(updateGovernorateAPI.pending, (state, action) => {
-            state.status = StatusCode.LOADING
-        })
-        builder.addCase(updateGovernorateAPI.rejected, (state, action) => {
-            state.status = StatusCode.ERROR
-        })
+        });
+        builder.addCase(updateGovernorateAPI.pending, (state) => {
+            state.status = StatusCode.LOADING;
+        });
+        builder.addCase(updateGovernorateAPI.rejected, (state) => {
+            state.status = StatusCode.ERROR;
+        });
     }
-})
+});
 
-export default GovernorateSlice.reducer
+export default GovernorateSlice.reducer;
 export const getAllGovernorates = state => state.GovernorateSlice.data; 

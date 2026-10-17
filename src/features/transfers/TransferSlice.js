@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import apiClient from "../../API_Route/axiosClient";
+import apiClient from "../../services/http/apiClient";
 import StatusCode from "../../StatusCode";
-import { getAllReservationListAPI } from "../Admins/CounterSlice";
+import { getAllReservationListAPI } from "../admins/CounterSlice";
 import { toast } from "react-toastify";
 
 // For Update Transfer
@@ -74,11 +74,10 @@ const TransferSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     // For Transfer Student
-    builder.addCase(transferAPI.fulfilled, (state, action) => {
+    builder.addCase(transferAPI.fulfilled, () => {
       toast.success(`تم تحويل الطالب بنجاح`);
-      state.status = StatusCode.SUCCESS;
     });
-    builder.addCase(transferAPI.pending, (state, action) => {
+    builder.addCase(transferAPI.pending, (state) => {
       state.status = StatusCode.LOADING;
     });
     builder.addCase(transferAPI.rejected, (state, action) => {
@@ -86,11 +85,11 @@ const TransferSlice = createSlice({
       console.log(action.payload);
     });
     // For Update Transfer Student
-    builder.addCase(updateTransferAPI.fulfilled, (state, action) => {
+    builder.addCase(updateTransferAPI.fulfilled, () => {
       toast.success("تم تعديل البينات بنجاح");
     });
-    builder.addCase(updateTransferAPI.pending, (state, action) => {});
-    builder.addCase(updateTransferAPI.rejected, (state, action) => {
+    builder.addCase(updateTransferAPI.pending, () => {});
+    builder.addCase(updateTransferAPI.rejected, () => {
       toast.error("حدث خطا برجاء المحاولة مرة اخري");
     });
   },

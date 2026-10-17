@@ -2,8 +2,8 @@ import React, { useEffect } from 'react';
 import "./Counter.css";
 import EnhancedTable from '../components/CounterTable';
 import { useDispatch, useSelector } from 'react-redux';
-import { getUserInfo } from '../../../RTK/Auth/AuthSlice';
-import { getAllReservationListAPI, getReservationData } from '../../../RTK/Admins/CounterSlice';
+import { getUserInfo } from '../../auth';
+import { getAllReservationListAPI, getReservationData } from '../../admins/CounterSlice';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Pagination, PaginationItem, Stack } from '@mui/material';
 

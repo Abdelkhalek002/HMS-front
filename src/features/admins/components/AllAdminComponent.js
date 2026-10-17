@@ -1,12 +1,12 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { getUserInfo } from '../../../RTK/Auth/AuthSlice';
+import { getUserInfo } from '../../auth';
 import StatusCode from '../../../StatusCode.js';
 import { CircleLoader } from 'react-spinners';
 import swal from 'sweetalert';
 import { toast } from 'react-toastify';
 import AdminComponent from './AdminComponent.js';
-import { deleteAdminApi, getAllAdminsApi } from '../../../RTK/Admins/AdminSlice.js';
+import { deleteAdminApi, getAllAdminsApi } from '../AdminSlice.js';
 import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline';
 
 const AllAdminComponent = () => {

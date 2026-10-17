@@ -1,8 +1,8 @@
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { getUserInfo, logout } from '../RTK/Auth/AuthSlice';
-import { isTokenExpired } from '../services/http/axiosInterceptor';
+import { getUserInfo, logout } from '../features/auth';
+import { isTokenExpired } from '../services/http';
 import { usePermission } from '../hooks/usePermission';
 import { ROUTES } from './routePaths';
 import {

@@ -1,13 +1,13 @@
 import React, { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import LookupPage from '../components/LookupPage.jsx';
-import { getUserInfo } from '../../../RTK/Auth/AuthSlice.js';
+import { getUserInfo } from '../../auth';
 import {
   addNewFacultyAPI,
   deleteFacultyAPI,
   getAllFacultiesAPI,
   updateFacultyAPI,
-} from '../../../RTK/Faculty/FacultySlice.js';
+} from '../FacultySlice';
 
 export default function FacultiesPage() {
   const dispatch = useDispatch();

@@ -1,7 +1,7 @@
 import { Button, TextField } from '@mui/material'
 import React, { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import { sendOtpAPI } from '../../../RTK/ForgetPassword/ForgetPasswordSlice';
+import { sendOtpAPI } from '../ForgetPasswordSlice';
 import { toast } from 'react-toastify';
 import StatusCode from '../../../StatusCode';
 import { useNavigate } from 'react-router-dom';

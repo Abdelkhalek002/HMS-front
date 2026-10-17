@@ -6,7 +6,7 @@ import maroPic from "./../../../images/mero.png";
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
-import { getUserInfo, loginHandlerAPI, loginLoad } from '../../../RTK/Auth/AuthSlice';
+import { getUserInfo, loginHandlerAPI, loginLoad } from '../AuthSlice';
 import { getAuthorizedInitialRoute } from '../../../config/navigationConfig';
 
 

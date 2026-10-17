@@ -8,3 +8,9 @@ export { default as FacultiesPage } from './pages/FacultiesPage.jsx';
 export { default as LevelsPage } from './pages/LevelsPage.jsx';
 export { default as GovernoratesPage } from './pages/GovernoratesPage.jsx';
 export { default as ExHospitalPage } from './pages/ExHospitalPage.jsx';
+
+export * from './ClinicSlice';
+export * from './FacultySlice';
+export * from './LevelSlice';
+export * from './GovernorateSlice';
+export * from './ExHospitalSlice';

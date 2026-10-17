@@ -7,8 +7,8 @@ import { Tooltip } from '@mui/material';
 import './usercomp.css'
 import { Block, RemoveCircleOutlineRounded } from '@mui/icons-material';
 import { useSelector } from 'react-redux';
-import { getUserInfo } from '../../../RTK/Auth/AuthSlice.js';
-import { BASE_URL } from '../../../API_Route/GlobalRoute.js';
+import { getUserInfo } from '../../auth';
+import { BASE_URL } from '../../../services/http';
 
 const UserComponent = ({ id, title, email, date, status, image, active, blocked, handleDelete, handleBlock, handleUnblock }) => {
     const auth = useSelector(getUserInfo);

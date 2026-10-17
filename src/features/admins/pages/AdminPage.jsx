@@ -2,8 +2,8 @@ import React, { useRef, useState } from 'react';
 import "./AdminPage.css";
 import AllAdminComponent from '../components/AllAdminComponent';
 import { useDispatch, useSelector } from 'react-redux';
-import { getUserInfo } from '../../../RTK/Auth/AuthSlice';
-import { addNewAdminApi, getAllAdminsApi } from '../../../RTK/Admins/AdminSlice';
+import { getUserInfo } from '../../auth';
+import { addNewAdminApi, getAllAdminsApi } from '../AdminSlice';
 import {
   Avatar,
   Box,

@@ -4,17 +4,17 @@ import userPic from '../../../images/userProfile.jpg';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import { useDispatch, useSelector } from 'react-redux';
-import { getUserInfo } from '../../../RTK/Auth/AuthSlice';
+import { getUserInfo } from '../../auth';
 import {
   getUserProfile,
   getUserProfileAPi,
   updateProfileAPI,
-} from '../../../RTK/User/UserSlice';
+} from '../../users';
 import { Button, Skeleton } from '@mui/material';
 import UploadPhotoModal from './UploadPhotoModal';
 import { toast } from 'react-toastify';
 import { motion } from 'framer-motion';
-import { BASE_URL } from '../../../API_Route/GlobalRoute';
+import { BASE_URL } from '../../../services/http';
 
 const EditProfile = () => {
   const dispatch = useDispatch();

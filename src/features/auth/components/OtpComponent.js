@@ -4,7 +4,7 @@ import OtpInput from 'react-otp-input';
 import { Button } from '@mui/material';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { saveOtp } from '../../../RTK/ForgetPassword/ForgetPasswordSlice';
+import { saveOtp } from '../ForgetPasswordSlice';
 import { toast } from 'react-toastify';
 
 

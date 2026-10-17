@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import apiClient from "../../API_Route/axiosClient";
+import apiClient from "../../services/http/apiClient";
 import StatusCode from "../../StatusCode.js";
 
 export const getAllHistoryAPI = createAsyncThunk(
@@ -50,10 +50,10 @@ const HistorySlice = createSlice({
         state.status = StatusCode.IDLE;
       })
 
-      .addCase(getAllHistoryAPI.pending, (state, action) => {
+      .addCase(getAllHistoryAPI.pending, (state) => {
         state.status = StatusCode.LOADING;
       })
-      .addCase(getAllHistoryAPI.rejected, (state, action) => {
+      .addCase(getAllHistoryAPI.rejected, (state) => {
         state.status = StatusCode.FAILED;
       })
 
@@ -61,14 +61,15 @@ const HistorySlice = createSlice({
         state.data = [];
         state.status = StatusCode.IDLE;
       })
-      .addCase(deleteHistoryAPI.pending, (state, action) => {
+      .addCase(deleteHistoryAPI.pending, (state) => {
         state.status = StatusCode.LOADING;
       })
-      .addCase(deleteHistoryAPI.rejected, (state, action) => {
+      .addCase(deleteHistoryAPI.rejected, (state) => {
         state.status = StatusCode.FAILED;
       });
   },
 });
+
 export const { clearHistory } = HistorySlice.actions;
 export default HistorySlice.reducer;
 export const getAllHistory = (state) => state.HistorySlice.data;

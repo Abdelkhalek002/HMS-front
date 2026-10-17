@@ -19,13 +19,15 @@ import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
 import { toast } from "react-toastify";
-import { singupAPI } from "../../../RTK/Auth/AuthSlice";
+import { singupAPI } from "../AuthSlice";
 import {
   getAllFaculties,
   getAllFacultiesAPI,
-} from "../../../RTK/Faculty/FacultySlice";
-import { getAllGovernorates, getAllGovsAPI } from "../../../RTK/Governorate/GovernorateSlice";
-import { getAllLevels, getAllLevelsAPI } from "./../../../RTK/Level/LevelSlice";
+  getAllGovernorates,
+  getAllGovsAPI,
+  getAllLevels,
+  getAllLevelsAPI,
+} from "../../lookups";
 import DynamicFileUpload from "../../../components/ui/DynamicFileUpload";
 
 const Signup = () => {

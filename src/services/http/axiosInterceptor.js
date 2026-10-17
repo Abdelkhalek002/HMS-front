@@ -1,7 +1,7 @@
 import axios from "axios";
 import apiClient from "./apiClient";
-import store from "../../RTK/Store/store";
-import { logout } from "../../RTK/Auth/AuthSlice";
+import store from "../../store";
+import { logout } from "../../features/auth/AuthSlice";
 import { toast } from "react-toastify";
 import { isTokenExpired } from "../../utils/jwt";
 

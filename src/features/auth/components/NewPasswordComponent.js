@@ -2,7 +2,7 @@ import { Button, TextField } from '@mui/material'
 import React, { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
-import { forgetPasswordAPI } from '../../../RTK/ForgetPassword/ForgetPasswordSlice';
+import { forgetPasswordAPI } from '../ForgetPasswordSlice';
 import StatusCode from '../../../StatusCode';
 import { useNavigate } from 'react-router-dom';
 

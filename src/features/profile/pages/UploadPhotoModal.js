@@ -2,9 +2,9 @@ import React, { useState } from 'react'
 import "./UploadModal.css"
 import { Button } from '@mui/material'
 import { useDispatch, useSelector } from 'react-redux'
-import { getUserInfo } from '../../../RTK/Auth/AuthSlice'
-import { toast } from 'react-toastify'
-import { updateProfilePicAPI } from '../../../RTK/User/UserSlice'
+import { getUserInfo } from '../../auth';
+import { toast } from 'react-toastify';
+import { updateProfilePicAPI } from '../../users';
 
 const UploadPhotoModal = ({ handleClosePhoto }) => {
 

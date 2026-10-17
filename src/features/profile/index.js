@@ -8,4 +8,4 @@ export { default as UserDetails } from './components/UserDetails';
 export { default as UserHistroy } from './components/UserHistroy';
 export { default as UserHistoryAdmin } from './components/UserHistoryAdmin';
 
-export * from '../../RTK/User/UserSlice';
+export * from '../users/UserSlice';

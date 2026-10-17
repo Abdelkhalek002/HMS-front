@@ -1,12 +1,12 @@
 import React from 'react'
 import "./Utility.css"
 import Logo from "../images/Gemini_Generated_logoggggg-removebg-preview.png";
-import { getUserInfo, logout } from '../RTK/Auth/AuthSlice';
+import { getUserInfo, logout } from '../features/auth';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import userPic from "../images/userProfile.jpg";
-import { getUserProfile } from '../RTK/User/UserSlice';
-import { BASE_URL } from '../API_Route/GlobalRoute';
+import { getUserProfile } from '../features/users';
+import { BASE_URL } from '../services/http';
 import { useSidebar } from './SidebarContext';
 
 

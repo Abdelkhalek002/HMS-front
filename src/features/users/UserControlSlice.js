@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import apiClient from "../../API_Route/axiosClient";
+import apiClient from "../../services/http/apiClient";
 import StatusCode from "../../StatusCode.js";
 
 // For Get All Users
@@ -67,8 +67,6 @@ export const transfer = createAsyncThunk(
         }
     }
 );
-
-
 
 const initialState = {
     data: [],
@@ -198,4 +196,4 @@ export default UserControlSlice.reducer;
 
 export const getAllAdmins = (state) => state.UserControlSlice.data;
 
-export const getTotalPageUser = state => state.UserControlSlice.totalPages
+export const getTotalPageUser = state => state.UserControlSlice.totalPages;

@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import apiClient from "../../API_Route/axiosClient";
+import apiClient from "../../services/http/apiClient";
 import StatusCode from "../../StatusCode.js";
 
 export const getAllAdminsApi = createAsyncThunk('admins', async (_, { rejectWithValue }) => {
@@ -121,7 +121,7 @@ const AdminSlice = createSlice({
             })
             .addCase(updateAdminApi.rejected, (state) => {
                 state.status = StatusCode.REJECTED;
-            })
+            });
 
     }
 });

@@ -2,8 +2,8 @@ import React from 'react'
 import "../../../layouts/Popup.css"
 import { Button, MenuItem, Select, TextField } from '@mui/material'
 import { useDispatch, useSelector } from 'react-redux'
-import { getUserProfile } from '../../../RTK/User/UserSlice'
-import { getAllLevels } from '../../../RTK/Level/LevelSlice'
+import { getUserProfile } from '../../users';
+import { getAllLevels } from '../../lookups';
 
 const EditePopup = () => {
     const profileInfo = useSelector(getUserProfile);

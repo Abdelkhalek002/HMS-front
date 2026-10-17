@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import apiClient from "../../API_Route/axiosClient";
+import apiClient from "../../services/http/apiClient";
 import StatusCode from "../../StatusCode.js";
 
 export const getAllClinicsAPI = createAsyncThunk(
@@ -82,11 +82,11 @@ const ClinicSlice = createSlice({
       }));
       state.status = StatusCode.IDLE;
     });
-    builder.addCase(getAllClinicsAPI.pending, (state, action) => {
+    builder.addCase(getAllClinicsAPI.pending, (state) => {
       console.log("Penddding");
       state.status = StatusCode.LOADING;
     });
-    builder.addCase(getAllClinicsAPI.rejected, (state, action) => {
+    builder.addCase(getAllClinicsAPI.rejected, (state) => {
       console.log("REJJjjjected");
       state.status = StatusCode.ERROR;
     });
@@ -99,11 +99,11 @@ const ClinicSlice = createSlice({
       );
       state.status = StatusCode.IDLE;
     });
-    builder.addCase(deleteClinicsAPI.pending, (state, action) => {
+    builder.addCase(deleteClinicsAPI.pending, (state) => {
       console.log("Penddding");
       state.status = StatusCode.LOADING;
     });
-    builder.addCase(deleteClinicsAPI.rejected, (state, action) => {
+    builder.addCase(deleteClinicsAPI.rejected, (state) => {
       console.log("REJJjjjected");
       state.status = StatusCode.ERROR;
     });
@@ -114,11 +114,11 @@ const ClinicSlice = createSlice({
       state.data.push(action.payload);
       state.status = StatusCode.IDLE;
     });
-    builder.addCase(addNewClinicsAPI.pending, (state, action) => {
+    builder.addCase(addNewClinicsAPI.pending, (state) => {
       console.log("Penddding");
       state.status = StatusCode.LOADING;
     });
-    builder.addCase(addNewClinicsAPI.rejected, (state, action) => {
+    builder.addCase(addNewClinicsAPI.rejected, (state) => {
       console.log("REJJjjjected");
       state.status = StatusCode.ERROR;
     });
@@ -133,7 +133,7 @@ const ClinicSlice = createSlice({
       state.data[index] = action.payload;
       state.status = StatusCode.IDLE;
     });
-    builder.addCase(updateClinicsAPI.pending, (state, action) => {
+    builder.addCase(updateClinicsAPI.pending, (state) => {
       console.log("Penddding");
       state.status = StatusCode.LOADING;
     });

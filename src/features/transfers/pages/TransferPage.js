@@ -1,16 +1,18 @@
 import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import { getAllReservationListAPI, getReservationData } from '../../../RTK/Admins/CounterSlice';
-import { getUserInfo } from '../../../RTK/Auth/AuthSlice';
+import { getAllReservationListAPI, getReservationData } from '../../admins/CounterSlice';
+import { getUserInfo } from '../../auth';
 import { useSearchParams } from 'react-router-dom';
 import { Pagination, PaginationItem, Stack } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import EnhancedTable from '../components/TransferTable';
-import { getAllExhospitalsAPI } from '../../../RTK/ExHospital/ExHospitalSlice';
-import { getAllClinicsAPI } from '../../../RTK/Clinic/ClinicSlice';
-import { getAllLevelsAPI } from '../../../RTK/Level/LevelSlice';
-import { getAllFacultiesAPI } from '../../../RTK/Faculty/FacultySlice';
+import {
+  getAllExhospitalsAPI,
+  getAllClinicsAPI,
+  getAllLevelsAPI,
+  getAllFacultiesAPI,
+} from '../../lookups';
 
 const TransferPage = () => {
   // For Dispatch Action

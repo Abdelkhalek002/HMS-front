@@ -16,8 +16,8 @@ import { Box , Pagination, PaginationItem, Stack, Tooltip } from '@mui/material'
 import { Helmet } from 'react-helmet';
 import { CircleLoader } from 'react-spinners';
 import { toast } from 'react-toastify';
-import { deleteHistoryAPI, getAllHistoryAPI } from '../../../RTK/History/HistorySlice.js';
-import { getUserInfo } from '../../../RTK/Auth/AuthSlice.js';
+import { deleteHistoryAPI, getAllHistoryAPI } from '../HistorySlice.js';
+import { getUserInfo } from '../../auth';
 import { useSearchParams } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';

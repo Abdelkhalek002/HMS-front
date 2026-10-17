@@ -4,7 +4,7 @@ import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { Tooltip } from '@mui/material';
 import './admincomp.css';
-import { BASE_URL } from '../../../API_Route/GlobalRoute';
+import { BASE_URL } from '../../../services/http';
 
 import {
     isSuperAdminRole,

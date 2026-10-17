@@ -6,8 +6,8 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { useSearchParams } from 'react-router-dom';
 import { Pagination, PaginationItem, Stack } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
-import { getAllUserApi, getTotalPageUser } from '../../../RTK/UserControl/UserControlSlice';
-import { getUserInfo } from '../../../RTK/Auth/AuthSlice';
+import { getAllUserApi, getTotalPageUser } from '../UserControlSlice';
+import { getUserInfo } from '../../auth';
 
 
 const GroupUserPage = () => {
