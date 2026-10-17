@@ -231,3 +231,104 @@
     align-items: center;
     justify-content: center;
 }
+
+/* Admin Filters Bar */
+.admin-filters-container,
+.admin-filters-container * {
+    font-family: "Cairo", sans-serif !important;
+}
+
+.admin-filters-container {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 16px 20px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+    border: 1px solid #e5e7eb;
+}
+
+.admin-filters-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.admin-search-input {
+    flex: 1 1 260px;
+}
+
+.admin-search-input input::placeholder {
+    font-family: "Cairo", sans-serif !important;
+}
+
+.admin-filter-select {
+    min-width: 190px;
+    flex: 0 1 220px;
+}
+
+.admin-reset-btn {
+    font-family: "Cairo", sans-serif !important;
+    border-radius: 10px !important;
+    text-transform: none !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    border-color: #d1d5db !important;
+    color: #4b5563 !important;
+    padding: 6px 16px !important;
+    transition: all 0.2s ease !important;
+}
+
+.admin-reset-btn:hover {
+    border-color: #ef4444 !important;
+    color: #ef4444 !important;
+    background-color: #fef2f2 !important;
+}
+
+.admin-filter-count-chip {
+    font-family: "Cairo", sans-serif !important;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1d4ed8;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    padding: 6px 14px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-right: auto;
+}
+
+.search-empty-state {
+    border-color: #cbd5e1;
+    background: #f8fafc;
+}
+
+.search-empty-state .empty-users-title,
+.search-empty-state .empty-users-desc {
+    font-family: "Cairo", sans-serif !important;
+}
+
+@media(max-width: 768px) {
+    .admin-filters-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .admin-search-input,
+    .admin-filter-select {
+        width: 100%;
+        flex: 1 1 100%;
+    }
+
+    .admin-filter-count-chip {
+        margin-right: 0;
+        justify-content: center;
+    }
+
+    .admin-reset-btn {
+        width: 100%;
+    }
+}

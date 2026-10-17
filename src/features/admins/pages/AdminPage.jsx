@@ -1,6 +1,8 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useMemo } from 'react';
 import "./AdminPage.css";
 import AllAdminComponent from '../components/AllAdminComponent';
+import AdminFilterBar from '../components/AdminFilterBar';
+import { matchesSearch, matchesRole, matchesStatus } from '../adminFilterUtils';
 import { useDispatch, useSelector } from 'react-redux';
 import { getUserInfo } from '../../auth';
 import { addNewAdminApi, getAllAdminsApi } from '../AdminSlice';
@@ -74,8 +76,30 @@ const rtlInputSx = {
 const AdminPage = () => {
   const dispatch = useDispatch();
   const { token } = useSelector(getUserInfo) || {};
+  const { data: allUserData = [], status: adminsStatus } = useSelector(state => state.AdminSlice);
   const { can, isSuperAdmin } = usePermission();
   const canCreateAdmin = isSuperAdmin || can('admins:create');
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [roleFilter, setRoleFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+
+  const filteredAdmins = useMemo(() => {
+    if (!Array.isArray(allUserData)) return [];
+    return allUserData.filter((item) => {
+      return (
+        matchesSearch(item, searchTerm) &&
+        matchesRole(item?.role, roleFilter) &&
+        matchesStatus(item, statusFilter)
+      );
+    });
+  }, [allUserData, searchTerm, roleFilter, statusFilter]);
+
+  const handleResetFilters = () => {
+    setSearchTerm('');
+    setRoleFilter('all');
+    setStatusFilter('all');
+  };
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -208,7 +232,25 @@ const AdminPage = () => {
         )}
       </div>
 
-      <AllAdminComponent />
+      <AdminFilterBar
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        roleFilter={roleFilter}
+        onRoleChange={setRoleFilter}
+        statusFilter={statusFilter}
+        onStatusChange={setStatusFilter}
+        onReset={handleResetFilters}
+        totalCount={allUserData?.length || 0}
+        filteredCount={filteredAdmins?.length || 0}
+        disabled={adminsStatus === 'loading'}
+      />
+
+      <AllAdminComponent
+        searchTerm={searchTerm}
+        roleFilter={roleFilter}
+        statusFilter={statusFilter}
+        onResetFilters={handleResetFilters}
+      />
 
       {/* Add Admin Modal */}
       <Modal

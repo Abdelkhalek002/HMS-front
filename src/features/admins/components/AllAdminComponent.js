@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getUserInfo } from '../../auth';
 import StatusCode from '../../../StatusCode.js';
@@ -8,8 +8,17 @@ import { toast } from 'react-toastify';
 import AdminComponent from './AdminComponent.js';
 import { deleteAdminApi, getAllAdminsApi } from '../AdminSlice.js';
 import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline';
+import PersonSearchIcon from '@mui/icons-material/PersonSearch';
+import RestartAltIcon from '@mui/icons-material/RestartAlt';
+import { Button } from '@mui/material';
+import { matchesSearch, matchesRole, matchesStatus } from '../adminFilterUtils.js';
 
-const AllAdminComponent = () => {
+const AllAdminComponent = ({
+  searchTerm = '',
+  roleFilter = 'all',
+  statusFilter = 'all',
+  onResetFilters,
+}) => {
   const { token, payLoad } = useSelector(getUserInfo) || {};
   const { status, data: allUserData } = useSelector(state => state.AdminSlice);
   const dispatch = useDispatch();
@@ -60,6 +69,16 @@ const AllAdminComponent = () => {
       });
   };
 
+  const filteredData = useMemo(() => {
+    if (!Array.isArray(allUserData)) return [];
+    return allUserData.filter((item) => {
+      const matchSearch = matchesSearch(item, searchTerm);
+      const matchRole = matchesRole(item?.role, roleFilter);
+      const matchStatus = matchesStatus(item, statusFilter);
+      return matchSearch && matchRole && matchStatus;
+    });
+  }, [allUserData, searchTerm, roleFilter, statusFilter]);
+
   // For Loading
   if (status === StatusCode.LOADING) {
     return (
@@ -69,7 +88,7 @@ const AllAdminComponent = () => {
     );
   }
 
-  // For Empty State
+  // For Empty Database State
   if (!allUserData || allUserData.length === 0) {
     return (
       <div className="empty-users-box">
@@ -80,9 +99,34 @@ const AllAdminComponent = () => {
     );
   }
 
+  // For Empty Filter Results State
+  if (filteredData.length === 0) {
+    return (
+      <div className="empty-users-box search-empty-state">
+        <PersonSearchIcon className="empty-users-icon" sx={{ fontSize: 58 }} />
+        <h3 className="empty-users-title">لا توجد نتائج مطابقة</h3>
+        <p className="empty-users-desc">
+          لم يتم العثور على أي مسؤول يتطابق مع معايير البحث أو التصفية المحددة.
+        </p>
+        {onResetFilters && (
+          <Button
+            variant="outlined"
+            color="primary"
+            startIcon={<RestartAltIcon />}
+            onClick={onResetFilters}
+            className="admin-reset-btn"
+            sx={{ mt: 2 }}
+          >
+            إعادة تعيين الفلاتر
+          </Button>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className='all-users'>
-      {allUserData.map((item, idx) => {
+      {filteredData.map((item, idx) => {
         const adminId = item.id;
         const isActive = item.is_active !== undefined ? item.is_active : item.status;
         const isConfirmed = item.is_confirmed !== undefined ? item.is_confirmed : null;
