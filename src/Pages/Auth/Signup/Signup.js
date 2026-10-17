@@ -221,7 +221,6 @@ const Signup = () => {
 
       // Field names for backend validator and controller
       data.append("username", name);
-      data.append("userName", name);
       data.append("email", email);
       data.append("password", password);
       data.append("faculty_id", faculty);
@@ -230,14 +229,12 @@ const Signup = () => {
       data.append("national_id", nationalID);
       data.append("nationality_id", nationaltiy);
       data.append("birth_date", `${date}`);
-      data.append("birthDay", `${date}`);
       data.append("phone_number", phone);
-      data.append("phoneNumber", phone);
       data.append("gov_id", gov);
 
       // Multer registration upload field names
       data.append(
-        "user_image_file",
+        "user_profile_photo",
         profilePic instanceof File ? profilePic : profilePic?.files?.[0] || profilePic
       );
       data.append(

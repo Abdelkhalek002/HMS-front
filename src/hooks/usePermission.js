@@ -11,13 +11,11 @@ export const usePermission = () => {
   const auth = useSelector(getUserInfo);
 
   const permissions =
-    auth?.payLoad?.permissions ||
     auth?.user?.permissions ||
     auth?.data?.permissions ||
     [];
 
   const role =
-    auth?.payLoad?.role ||
     auth?.user?.role ||
     auth?.data?.role ||
     null;

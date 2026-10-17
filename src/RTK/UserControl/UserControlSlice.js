@@ -1,21 +1,14 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import axios from "axios";
-import { BASE_URL } from "../../API_Route/GlobalRoute";
+import apiClient from "../../API_Route/axiosClient";
 import StatusCode from "../../StatusCode.js";
-
 
 // For Get All Users
 export const getAllUserApi = createAsyncThunk('userControl/allUsers', async (args, { rejectWithValue }) => {
     try {
         const page = args?.page || 1;
         const limit = args?.limit || 8;
-        const { data } = await axios.get(`${BASE_URL}/users?page=${page}&limit=${limit}`, {
-            headers: {
-                Authorization: `Bearer ${args.token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        return data;
+        const response = await apiClient.get(`/users?page=${page}&limit=${limit}`);
+        return response.data;
     } catch (error) {
         return rejectWithValue(error.response?.data || error.message);
     }
@@ -23,59 +16,42 @@ export const getAllUserApi = createAsyncThunk('userControl/allUsers', async (arg
 
 export const deleteUserApi = createAsyncThunk('userControl/deleteUser', async (args, { rejectWithValue }) => {
     try {
-        const { data } = await axios.delete(`${BASE_URL}/users/${args.data}`, {
-            Authorization: `Bearer ${args.token}`,
-            'Content-Type': 'application/json'
-        });
-        return data;
+        const id = typeof args === 'object' ? (args.data || args.id) : args;
+        const response = await apiClient.delete(`/users/${id}`);
+        return response.data;
     } catch (error) {
-        return rejectWithValue(error.response);
+        return rejectWithValue(error.response?.data || error.message);
     }
 });
 
-export const blockUserApi = createAsyncThunk('userControl/blockUser', async (args, { rejectWithValue, dispatch }) => {
-
+export const blockUserApi = createAsyncThunk('userControl/blockUser', async (args, { rejectWithValue }) => {
     try {
-        const { data } = await axios.patch(`${BASE_URL}/users/${args.data}/block`, {}, {
-            headers: {
-                Authorization: `Bearer ${args.token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        return data;
+        const id = typeof args === 'object' ? (args.data || args.id) : args;
+        const response = await apiClient.patch(`/users/${id}/block`);
+        return response.data;
     } catch (error) {
-        return rejectWithValue(error.response);
+        return rejectWithValue(error.response?.data || error.message);
     }
-
 });
 
 export const unblockUserApi = createAsyncThunk('userControl/unblockUser', async (args, { rejectWithValue }) => {
     try {
-        const { data } = await axios.patch(`${BASE_URL}/users/${args.data}/unblock`, {}, {
-            headers: {
-                Authorization: `Bearer ${args.token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        return data;
+        const id = typeof args === 'object' ? (args.data || args.id) : args;
+        const response = await apiClient.patch(`/users/${id}/unblock`);
+        return response.data;
     } catch (error) {
-        return rejectWithValue(error.response);
+        return rejectWithValue(error.response?.data || error.message);
     }
 });
 
 export const sendObservations = createAsyncThunk(
     'userControl/sendObservations',
-    async ({ id, message, token }, { rejectWithValue }) => {
+    async ({ id, message }, { rejectWithValue }) => {
         try {
-            const { data } = await axios.post(`${BASE_URL}/admin/${id}`, { observation: message }, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            return data;
+            const response = await apiClient.post(`/admin/${id}`, { observation: message });
+            return response.data;
         } catch (error) {
-            return rejectWithValue(error.response);
+            return rejectWithValue(error.response?.data || error.message);
         }
     }
 );
@@ -84,13 +60,13 @@ export const transfer = createAsyncThunk(
     'userControl/transfer',
     async ({ id, clinic_id }, { rejectWithValue }) => {
         try {
-            const { data } = await axios.patch(`${BASE_URL}/users/${id}/transfer`, { clinic_id: clinic_id });
-            return data;
+            const response = await apiClient.patch(`/users/${id}/transfer`, { clinic_id });
+            return response.data;
         } catch (error) {
-            return rejectWithValue(error.response);
+            return rejectWithValue(error.response?.data || error.message);
         }
     }
-)
+);
 
 
 

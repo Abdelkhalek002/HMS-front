@@ -1,64 +1,51 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import axios from "axios";
-import { BASE_URL } from "../../API_Route/GlobalRoute";
+import apiClient from "../../API_Route/axiosClient";
 import StatusCode from "../../StatusCode.js";
 
-
-
 export const getAllFacultiesAPI = createAsyncThunk('faculties/getall', async (_, thunkAPI) => {
-    const { rejectWithValue } = thunkAPI
+    const { rejectWithValue } = thunkAPI;
     try {
-        const { data } = await axios.get(`${BASE_URL}/sysdata/faculties`)
-        return data
+        const response = await apiClient.get('/sysdata/faculties');
+        return response.data;
     } catch (error) {
-        return rejectWithValue({ message: "Failed to fetch faculties", error: error.message });
+        return rejectWithValue(error.response?.data || { message: "Failed to fetch faculties", error: error.message });
     }
-})
+});
 
 export const deleteFacultyAPI = createAsyncThunk('faculties/delete', async (args, thunkAPI) => {
-    const { rejectWithValue } = thunkAPI
+    const { rejectWithValue, dispatch } = thunkAPI;
+    const id = args?.data ?? args;
     try {
-        const { data } = await axios.delete(`${BASE_URL}/sysdata/faculties/${args.data}` , {
-            headers :{
-                Authorization: `Bearer ${args.token}`,
-                'Content-Type': 'application/json'
-            }
-        })
-        return data
+        const response = await apiClient.delete(`/sysdata/faculties/${id}`);
+        dispatch(getAllFacultiesAPI());
+        return response.data;
     } catch (error) {
-        return rejectWithValue({ message: "Failed to delete faculty", error: error.message });
+        return rejectWithValue(error.response?.data || { message: "Failed to delete faculty", error: error.message });
     }
-})
+});
 
 export const addNewFacultyAPI = createAsyncThunk('faculties/add', async (args, thunkAPI) => {
-    const { rejectWithValue } = thunkAPI
+    const { rejectWithValue, dispatch } = thunkAPI;
     try {
-        const { data } = await axios.post(`${BASE_URL}/sysdata/faculties`, args.data , {
-            headers : {
-            Authorization: `Bearer ${args.token}`,
-            'Content-Type': 'application/json'
-            }
-        })
-        return data
+        const response = await apiClient.post('/sysdata/faculties', args?.data || args);
+        dispatch(getAllFacultiesAPI());
+        return response.data;
     } catch (error) {
-        return rejectWithValue({ message: "Failed to add faculty", error: error.message });
+        return rejectWithValue(error.response?.data || { message: "Failed to add faculty", error: error.message });
     }
-})
+});
 
 export const updateFacultyAPI = createAsyncThunk('faculties/update', async (args, thunkAPI) => {
-    const { rejectWithValue } = thunkAPI
+    const { rejectWithValue, dispatch } = thunkAPI;
+    const payload = args?.data || args;
     try {
-        const { data } = await axios.put(`${BASE_URL}/sysdata/faculties/${args.data.id}`, args.data , {
-            headers : {
-            Authorization: `Bearer ${args.token}`,
-            'Content-Type': 'application/json'
-            }
-        })
-        return data
+        const response = await apiClient.put(`/sysdata/faculties/${payload.id}`, payload);
+        dispatch(getAllFacultiesAPI());
+        return response.data;
     } catch (error) {
-        return rejectWithValue({ message: "Failed to update faculty", error: error.message });
+        return rejectWithValue(error.response?.data || { message: "Failed to update faculty", error: error.message });
     }
-})
+});
 
 
 const initialState = {

@@ -1,75 +1,53 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import axios from "axios";
-import { BASE_URL } from "../../API_Route/GlobalRoute";
+import apiClient from "../../API_Route/axiosClient";
 import StatusCode from "../../StatusCode.js";
 
-
-export const getAllAdminsApi = createAsyncThunk('admins', async (args, { rejectWithValue }) => {
+export const getAllAdminsApi = createAsyncThunk('admins', async (_, { rejectWithValue }) => {
     try {
-        const config = args?.token ? {
-            headers: {
-                Authorization: `Bearer ${args.token}`,
-                'Content-Type': 'application/json'
-            }
-        } : {};
-        const { data } = await axios.get(`${BASE_URL}/admins`, config);
-        return data;
+        const response = await apiClient.get('/admins');
+        return response.data;
     } catch (error) {
-        return rejectWithValue(error.response);
+        return rejectWithValue(error.response?.data || error.message);
     }
 });
 
 export const deleteAdminApi = createAsyncThunk('admins/delete', async (args, { rejectWithValue }) => {
     try {
         const id = typeof args === 'object' ? (args.id || args.data) : args;
-        const token = typeof args === 'object' ? args.token : null;
-        const config = token ? {
-            headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        } : {};
-        const { data } = await axios.delete(`${BASE_URL}/admins/${id}`, config);
-        return { data, id };
+        const response = await apiClient.delete(`/admins/${id}`);
+        return { data: response.data, id };
     } catch (error) {
-        return rejectWithValue(error.response);
+        return rejectWithValue(error.response?.data || error.message);
     }
 });
 
 export const addNewAdminApi = createAsyncThunk('admins/add', async (args, { rejectWithValue }) => {
     try {
-        const token = args?.token;
         const payload = args?.data !== undefined ? args.data : args;
-        const isFormData = typeof FormData !== 'undefined' && payload instanceof FormData;
-        const headers = {};
-        if (token) {
-            headers.Authorization = `Bearer ${token}`;
-        }
-        if (!isFormData) {
-            headers['Content-Type'] = 'application/json';
-        }
-        const { data } = await axios.post(`${BASE_URL}/admins`, payload, { headers });
-        return data;
+        const response = await apiClient.post('/admins', payload);
+        return response.data;
     } catch (error) {
-        return rejectWithValue(error.response);
+        return rejectWithValue(error.response?.data || error.message);
     }
 });
 
 export const updateAdminApi = createAsyncThunk('admins/update', async (args, { rejectWithValue }) => {
     try {
-        const { data } = await axios.put(`${BASE_URL}/admins/${args.user_id}`, args);
-        return data;
+        const payload = args?.data !== undefined ? args.data : args;
+        const id = payload.user_id || payload.id;
+        const response = await apiClient.put(`/admins/${id}`, payload);
+        return response.data;
     } catch (error) {
-        return rejectWithValue(error.response);
+        return rejectWithValue(error.response?.data || error.message);
     }
 });
 
 export const getAllUserApi = createAsyncThunk('admin/allUsers', async (_, { rejectWithValue }) => {
     try {
-        const { data } = await axios.get(`${BASE_URL}/users`);
-        return data;
+        const response = await apiClient.get('/users');
+        return response.data;
     } catch (error) {
-        return rejectWithValue(error.response);
+        return rejectWithValue(error.response?.data || error.message);
     }
 });
 

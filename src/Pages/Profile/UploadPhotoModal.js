@@ -6,23 +6,23 @@ import { getUserInfo } from '../../RTK/Auth/AuthSlice'
 import { toast } from 'react-toastify'
 import { updateProfilePicAPI } from '../../RTK/User/UserSlice'
 
-const UploadPhotoModal = ({handleClosePhoto}) => {
+const UploadPhotoModal = ({ handleClosePhoto }) => {
 
     // For Access Token and ID
-    const {token , payLoad} = useSelector(getUserInfo) ; 
+    const { token, payLoad } = useSelector(getUserInfo);
 
     // For Dispatch Action 
-    const dispatch = useDispatch() ; 
+    const dispatch = useDispatch();
 
     // For Access Input Photo
-    const [photo , setPhoto ] = useState('') ; 
+    const [photo, setPhoto] = useState('');
 
     console.log(photo)
 
     const updatePhotoHandler = () => {
         if (photo) {
             const data = new FormData();
-            data.append('user_image_file', photo);
+            data.append('user_profile_photo', photo);
             handleClosePhoto();
             dispatch(updateProfilePicAPI({ token, id: payLoad?.userId, data }))
                 .unwrap()
@@ -36,19 +36,19 @@ const UploadPhotoModal = ({handleClosePhoto}) => {
     };
 
 
-  return (
-    <div className='upload-container'>
-        <div className='upload-bb'>
-            <input  onChange={(e)=>{setPhoto(e.target.files[0])}} type='file' className='upload-in' />
-            <span  class="material-symbols-outlined">
-                add_photo_alternate
-            </span>
-            <h5>اضافة صورة </h5>
-            <p>او اسحب صورة</p>
+    return (
+        <div className='upload-container'>
+            <div className='upload-bb'>
+                <input onChange={(e) => { setPhoto(e.target.files[0]) }} type='file' className='upload-in' />
+                <span class="material-symbols-outlined">
+                    add_photo_alternate
+                </span>
+                <h5>اضافة صورة </h5>
+                <p>او اسحب صورة</p>
+            </div>
+            <Button onClick={updatePhotoHandler} disabled={!photo ? true : false} fullWidth style={{ marginTop: "10px" }} variant='contained'>تحميل </Button>
         </div>
-        <Button onClick={updatePhotoHandler} disabled={!photo ? true : false } fullWidth style={{marginTop : "10px"}} variant='contained'>تحميل </Button>
-    </div>
-  )
+    )
 }
 
 export default UploadPhotoModal

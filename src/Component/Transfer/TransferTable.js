@@ -31,56 +31,57 @@ import { getAllFaculties } from '../../RTK/Faculty/FacultySlice';
 import { getAllClinics } from '../../RTK/Clinic/ClinicSlice';
 import { getAllLevels } from '../../RTK/Level/LevelSlice';
 import { BASE_URL } from '../../API_Route/GlobalRoute';
-
-
-
-
-
-
+import { useTableSelection } from '../../hooks/useTableSelection';
 
 const headCells = [
     {
-        id: 'name',
+        id: 'studentName',
         numeric: false,
         disablePadding: true,
         label: 'اسم الطالب',
+        sortable: true,
     },
     {
-        id: 'calories',
-        numeric: true,
+        id: 'nationalId',
+        numeric: false,
         disablePadding: false,
         label: 'الرقم القومي',
+        sortable: true,
     },
     {
-        id: 'fat',
+        id: 'clinic',
         numeric: false,
         disablePadding: false,
         label: 'العيادة',
+        sortable: true,
     },
-
     {
-        id: 'carbs',
+        id: 'date',
         numeric: false,
         disablePadding: false,
         label: 'تاريخ الحجز',
+        sortable: true,
     },
     {
-        id: 'fat',
+        id: 'examType',
         numeric: false,
         disablePadding: false,
         label: ' نوع الكشف',
+        sortable: true,
     },
     {
-        id: 'fat',
+        id: 'status',
         numeric: false,
         disablePadding: false,
         label: 'حالة الكشف',
+        sortable: true,
     },
     {
-        id: 'protein',
-        numeric: true,
+        id: 'actions',
+        numeric: false,
         disablePadding: false,
         label: 'إجراءات',
+        sortable: false,
     },
 ];
 
@@ -90,13 +91,19 @@ function EnhancedTableHead(props) {
         onRequestSort(event, property);
     };
 
-
-
     return (
         <TableHead>
             <TableRow style={{ borderBottom: "none" }} >
                 <TableCell padding="checkbox">
-
+                    <Checkbox
+                        color="primary"
+                        indeterminate={numSelected > 0 && numSelected < rowCount}
+                        checked={rowCount > 0 && numSelected === rowCount}
+                        onChange={onSelectAllClick}
+                        inputProps={{
+                            'aria-label': 'تحديد جميع الحجوزات',
+                        }}
+                    />
                 </TableCell>
                 {headCells.map((headCell) => (
                     <TableCell
@@ -105,18 +112,22 @@ function EnhancedTableHead(props) {
                         padding={headCell.disablePadding ? 'none' : 'normal'}
                         sortDirection={orderBy === headCell.id ? order : false}
                     >
-                        <TableSortLabel
-                            active={orderBy === headCell.id}
-                            direction={orderBy === headCell.id ? order : 'asc'}
-                            onClick={createSortHandler(headCell.id)}
-                        >
+                        {headCell.sortable !== false ? (
+                            <TableSortLabel
+                                active={orderBy === headCell.id}
+                                direction={orderBy === headCell.id ? order : 'desc'}
+                                onClick={createSortHandler(headCell.id)}
+                            >
+                                <h3>{headCell.label}</h3>
+                                {orderBy === headCell.id ? (
+                                    <Box component="span" sx={visuallyHidden}>
+                                        {order === 'asc' ? 'sorted descending' : 'sorted ascending'}
+                                    </Box>
+                                ) : null}
+                            </TableSortLabel>
+                        ) : (
                             <h3>{headCell.label}</h3>
-                            {orderBy === headCell.id ? (
-                                <Box component="span" sx={visuallyHidden}>
-                                    {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
-                                </Box>
-                            ) : null}
-                        </TableSortLabel>
+                        )}
                     </TableCell>
                 ))}
             </TableRow>
@@ -174,13 +185,19 @@ EnhancedTableToolbar.propTypes = {
 
 export default function EnhancedTable() {
     const [order, setOrder] = React.useState('asc');
-    const [orderBy, setOrderBy] = React.useState('calories');
-    const [selected, setSelected] = React.useState([]);
+    const [orderBy, setOrderBy] = React.useState('date');
     const [page, setPage] = React.useState(0);
     const [dense, setDense] = React.useState(false);
     const [rowsPerPage, setRowsPerPage] = React.useState(20);
 
-
+    const {
+        selected,
+        excel,
+        handleClick,
+        isSelected,
+        selectAll,
+        clearSelection,
+    } = useTableSelection();
 
     const style = {
         position: 'absolute',
@@ -194,70 +211,54 @@ export default function EnhancedTable() {
         borderRadius: "7px"
     };
 
-
     const handleRequestSort = (event, property) => {
         const isAsc = orderBy === property && order === 'asc';
         setOrder(isAsc ? 'desc' : 'asc');
         setOrderBy(property);
     };
 
-    const handleSelectAllClick = (event) => {
-        if (event.target.checked && data) {
-            const acceptedItems = data.filter((item) => item.status === 'مقبول');
-            const newSelected = acceptedItems.map((n) => n.id ?? n.medicEx_id);
-            setSelected(newSelected);
-            return;
-        }
-        setSelected([]);
-    };
-
-    //   For Handle Excel Print 
-    const [excel, setExcel] = useState([]);
-
     // For Access Reservation Data 
     const { data, status } = useSelector(getReservationData);
 
-    console.log(data);
+    const sortedAcceptedData = React.useMemo(() => {
+        if (!Array.isArray(data)) return [];
+        const accepted = data.filter((item) => item.status === 'مقبول');
+        return [...accepted].sort((a, b) => {
+            let aVal = '';
+            let bVal = '';
+            if (orderBy === 'studentName') {
+                aVal = a.student?.name ?? a.student_name ?? '';
+                bVal = b.student?.name ?? b.student_name ?? '';
+            } else if (orderBy === 'nationalId') {
+                aVal = String(a.student?.nationalId ?? a.national_id ?? '');
+                bVal = String(b.student?.nationalId ?? b.national_id ?? '');
+            } else if (orderBy === 'clinic') {
+                aVal = a.clinic?.name ?? a.clinic_name ?? '';
+                bVal = b.clinic?.name ?? b.clinic_name ?? '';
+            } else if (orderBy === 'date') {
+                aVal = a.date ?? '';
+                bVal = b.date ?? '';
+            } else if (orderBy === 'examType') {
+                aVal = a.examType ?? a.exam_type ?? '';
+                bVal = b.examType ?? b.exam_type ?? '';
+            } else if (orderBy === 'status') {
+                aVal = a.status ?? '';
+                bVal = b.status ?? '';
+            }
 
+            if (aVal < bVal) return order === 'asc' ? -1 : 1;
+            if (aVal > bVal) return order === 'asc' ? 1 : -1;
+            return 0;
+        });
+    }, [data, order, orderBy]);
 
-    const handleClick = (event, id, rowIt) => {
-        console.log(`the ID Selectd ${id}`)
-
-        const selectedIndex = selected.indexOf(id);
-        let newSelected = [];
-
-        if (selectedIndex === -1) {
-            newSelected = newSelected.concat(selected, id);
-            setExcel(excel.concat(rowIt))
-        } else if (selectedIndex === 0) {
-
-            setExcel(excel.filter((item) => {
-                return (item.id ?? item.medicEx_id) !== (+id);
-            }))
-            newSelected = newSelected.concat(selected.slice(1));
-
-        } else if (selectedIndex === selected.length - 1) {
-            setExcel(excel.filter((item) => {
-                return (item.id ?? item.medicEx_id) !== (+id);
-            }))
-            newSelected = newSelected.concat(selected.slice(0, -1));
-        } else if (selectedIndex > 0) {
-            setExcel(excel.filter((item) => {
-                return (item.id ?? item.medicEx_id) !== (+id);
-            }))
-
-            newSelected = newSelected.concat(
-                selected.slice(0, selectedIndex),
-                selected.slice(selectedIndex + 1),
-            );
+    const handleSelectAllClick = (event) => {
+        if (event.target.checked && sortedAcceptedData?.length > 0) {
+            selectAll(sortedAcceptedData);
+        } else {
+            clearSelection();
         }
-        setSelected(newSelected);
     };
-
-    const isSelected = (id) => selected.indexOf(id) !== -1;
-
-
-
 
     // For Dispatch Action
     const dispatch = useDispatch();
@@ -623,10 +624,10 @@ export default function EnhancedTable() {
                                 orderBy={orderBy}
                                 onSelectAllClick={handleSelectAllClick}
                                 onRequestSort={handleRequestSort}
-                                rowCount={data ? data.filter((item) => item.status === 'مقبول').length : 0}
+                                rowCount={sortedAcceptedData?.length || 0}
                             />
                             <TableBody>
-                                {status === StatusCode.SUCCESS && data.length !== 0 ? data.filter((item) => item.status === 'مقبول').map((krow, index) => {
+                                {status === StatusCode.SUCCESS && sortedAcceptedData.length !== 0 ? sortedAcceptedData.map((krow, index) => {
                                     const krowId = krow.id ?? krow.medicEx_id;
                                     const isItemSelected = isSelected(krowId);
                                     const labelId = `enhanced-table-checkbox-${krowId ?? index}`;

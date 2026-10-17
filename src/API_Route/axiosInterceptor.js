@@ -4,29 +4,9 @@ import store from "../RTK/Store/store";
 import { logout } from "../RTK/Auth/AuthSlice";
 import { toast } from "react-toastify";
 
-/**
- * Checks whether a JWT token is expired based on its exp timestamp.
- */
-export const isTokenExpired = (token) => {
-  if (!token || typeof token !== "string") return true;
-  try {
-    const parts = token.split(".");
-    if (parts.length < 2) return true;
-    const base64Url = parts[1];
-    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split("")
-        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-        .join("")
-    );
-    const { exp } = JSON.parse(jsonPayload);
-    if (!exp) return false;
-    return Date.now() >= exp * 1000;
-  } catch (e) {
-    return true;
-  }
-};
+import { isTokenExpired } from "../utils/jwt";
+
+export { isTokenExpired };
 
 let isHandling401 = false;
 

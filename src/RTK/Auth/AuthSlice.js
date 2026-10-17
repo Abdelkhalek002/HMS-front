@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import apiClient from "../../API_Route/axiosClient";
+import { parseJwtPayload } from "../../utils/jwt";
 
 export const singupAPI = createAsyncThunk('auth/signup', async (args, thunkAPI) => {
     const { rejectWithValue } = thunkAPI;
@@ -42,24 +43,6 @@ export const loginHandlerAPI = createAsyncThunk('auth/login', async (args, thunk
         return rejectWithValue(error.response?.data || error.message);
     }
 });
-
-const parseJwtPayload = (token) => {
-    if (!token || typeof token !== "string") return null;
-    try {
-        const parts = token.split(".");
-        if (parts.length < 2) return null;
-        const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
-        const json = decodeURIComponent(
-            atob(base64)
-                .split("")
-                .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-                .join("")
-        );
-        return JSON.parse(json);
-    } catch (e) {
-        return null;
-    }
-};
 
 const normalizeAuthPayload = (payload) => {
     if (!payload) return null;

@@ -1,67 +1,51 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import axios from "axios";
-import { BASE_URL } from "../../API_Route/GlobalRoute";
+import apiClient from "../../API_Route/axiosClient";
 import StatusCode from "../../StatusCode.js";
 
-export const getAllExhospitalsAPI = createAsyncThunk('exhospital/getall', async (args, thunkAPI) => {
-    const { rejectWithValue } = thunkAPI
+export const getAllExhospitalsAPI = createAsyncThunk('exhospital/getall', async (_, thunkAPI) => {
+    const { rejectWithValue } = thunkAPI;
     try {
-        const { data } = await axios.get(`${BASE_URL}/sysdata/hospitals` , {
-            headers : {
-                Authorization: `Bearer ${args.token}`,
-                'Content-Type': 'application/json'
-            }
-        }) ; 
-        return data
+        const response = await apiClient.get('/sysdata/hospitals');
+        return response.data;
     } catch (error) {
-        return rejectWithValue({ message: "Failed to fetch hospital", error: error.message });
+        return rejectWithValue(error.response?.data || { message: "Failed to fetch hospital", error: error.message });
     }
-})
+});
 
 export const deleteExhospitalAPI = createAsyncThunk('exhospital/delete', async (args, thunkAPI) => {
-    const { rejectWithValue } = thunkAPI
+    const { rejectWithValue, dispatch } = thunkAPI;
+    const id = args?.data ?? args;
     try {
-        const { data } = await axios.delete(`${BASE_URL}/sysdata/hospitals/${args.data}` , {
-            headers : {
-                Authorization: `Bearer ${args.token}`,
-                'Content-Type': 'application/json'
-            }
-        })
-        return data
+        const response = await apiClient.delete(`/sysdata/hospitals/${id}`);
+        dispatch(getAllExhospitalsAPI());
+        return response.data;
     } catch (error) {
-        return rejectWithValue({ message: "Failed to delete exhospital", error: error.message });
+        return rejectWithValue(error.response?.data || { message: "Failed to delete exhospital", error: error.message });
     }
-})
+});
 
 export const addNewExhospitalAPI = createAsyncThunk('exhospital/add', async (args, thunkAPI) => {
-    const { rejectWithValue } = thunkAPI
+    const { rejectWithValue, dispatch } = thunkAPI;
     try {
-        const { data } = await axios.post(`${BASE_URL}/sysdata/hospitals`, args.data , {
-            headers : {
-                Authorization: `Bearer ${args.token}`,
-                'Content-Type': 'application/json'
-            }
-        })
-        return data
+        const response = await apiClient.post('/sysdata/hospitals', args?.data || args);
+        dispatch(getAllExhospitalsAPI());
+        return response.data;
     } catch (error) {
-        return rejectWithValue({ message: "Failed to add exhospital", error: error.message });
+        return rejectWithValue(error.response?.data || { message: "Failed to add exhospital", error: error.message });
     }
-})
+});
 
 export const updateExhospitalAPI = createAsyncThunk('exhospital/update', async (args, thunkAPI) => {
-    const { rejectWithValue } = thunkAPI
+    const { rejectWithValue, dispatch } = thunkAPI;
+    const payload = args?.data || args;
     try {
-        const { data } = await axios.put(`${BASE_URL}/sysdata/hospitals/${args.data.id}`, args.data , {
-            headers : {
-                Authorization: `Bearer ${args.token}`,
-                'Content-Type': 'application/json'
-            }
-        })
-        return data
+        const response = await apiClient.put(`/sysdata/hospitals/${payload.id}`, payload);
+        dispatch(getAllExhospitalsAPI());
+        return response.data;
     } catch (error) {
-        return rejectWithValue({ message: "Failed to update exhospital", error: error.message });
+        return rejectWithValue(error.response?.data || { message: "Failed to update exhospital", error: error.message });
     }
-})
+});
 
 
 const initialState = {

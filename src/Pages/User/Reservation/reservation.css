@@ -1,26 +1,28 @@
 .k-reservation-page{
-    padding: 10px 40px;
+    padding: 10px 40px 40px;
     height: 100vh;
-    overflow-y: scroll
+    overflow-y: auto;
 }
 @media(max-width:550px){
     .k-reservation-page{
-        padding: 10px 10px;
-
+        padding: 10px 10px 30px;
     }
 }
 
 .k-reservation-page .reservation-container{
     margin-top: 30px;
+    margin-bottom: 40px;
     width: 95%;
-    
     border-radius: 12px;
-    height: 610px;
+    min-height: 610px;
+    height: auto;
     background-color: white;
+    padding-bottom: 10px;
 }
 @media(max-width:550px){
     .k-reservation-page .reservation-container{
-        width:100% ;
+        width: 100%;
+        margin-bottom: 25px;
     }
 }
 
@@ -36,7 +38,7 @@
 }
 
 .k-reservation-page .reservation-container .input-cont {
-padding: 20px 30px;
+    padding: 20px 30px 35px;
 }
 
 .k-reservation-page .reservation-container .input-cont .row{

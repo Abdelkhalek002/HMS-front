@@ -12,8 +12,6 @@ import 'react-toastify/dist/ReactToastify.css';
 import { Flip, ToastContainer } from 'react-toastify';
 import LevelsPage from './Pages/Levels/LevelsPage.jsx';
 import ClinicsPage from './Pages/Clinics/ClinicsPage.jsx';
-import SharedComponentUser from './Component/Utility/SharedComponent';
-import SharedComponentAdmin from './Component/Utility/SharedComponentAdmin.js';
 import ChangePasswordPage from './Pages/ChangePassword/ChangePasswordPage.js';
 import Signup from './Pages/Auth/Signup/Signup.js';
 import VerifyEmailPage from './Pages/Auth/VerifyEmail/VerifyEmailPage.js';
@@ -32,8 +30,11 @@ import UserProtect from './Component/ProtectedRoutes/UserProtect.js';
 import AdminProtect from './Component/ProtectedRoutes/AdminProtect.js';
 import ProfilePageAdminViewer from './Pages/Profile/ProfilePageAdminViewer.js';
 import UserHistoryAdmin from './Component/Profile/UserHistoryAdmin.js';
-import SharedComponentCounter from './Component/Utility/SharedComponentCounter.js';
-import SharedComponentTransfer from './Component/Utility/SharedComponentTransfer.js';
+import AppLayout from './Component/Utility/AppLayout.jsx';
+import SideBar from './Component/Utility/SideBar.js';
+import SideBarAdmin from './Component/Utility/SideBarAdmin.js';
+import SideBarCounter from './Component/Utility/SideBarCounter.js';
+import SideBarTransfer from './Component/Utility/SideBarTransfer.js';
 import CounterProtect from './Component/ProtectedRoutes/CounterProtect.js';
 import TransferProtect from './Component/ProtectedRoutes/TranferProtect.js';
 import { SidebarProvider } from './Component/Utility/SidebarContext.js';
@@ -52,7 +53,7 @@ function App() {
 
         {/* Contain All Route User */}
         <Route element={<UserProtect />}>
-          <Route path='/' element={ <SharedComponentUser /> }>
+          <Route path='/' element={<AppLayout sidebar={SideBar} />}>
 
             {/* Reservation Page */}
             <Route index element={ <ReservationPage /> }   />
@@ -75,7 +76,7 @@ function App() {
 
         {/* Contain All Route For Admin */}
         <Route path='ad' element={<AdminProtect />}>
-          <Route  element={<SharedComponentAdmin />} >
+          <Route element={<AppLayout sidebar={SideBarAdmin} />}>
 
 
             {/* For Counter  */}
@@ -117,14 +118,14 @@ function App() {
 
         {/* Contain All Route Of Counter */}
         <Route path='co' element={ <CounterProtect />}>
-          <Route element={<SharedComponentCounter />}>
+          <Route element={<AppLayout sidebar={SideBarCounter} />}>
             <Route index element={<CounterPage />} />
 
           </Route>
         </Route>
         {/* Contain All Route Of Transfer */}
         <Route path='tr' element={<TransferProtect />}>
-          <Route element={<SharedComponentTransfer />}>
+          <Route element={<AppLayout sidebar={SideBarTransfer} />}>
             <Route index element={<TransferPage />} />
 
           </Route>

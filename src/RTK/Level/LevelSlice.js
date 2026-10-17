@@ -1,66 +1,51 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import axios from "axios";
-import { BASE_URL } from "../../API_Route/GlobalRoute";
+import apiClient from "../../API_Route/axiosClient";
 import StatusCode from "../../StatusCode.js";
 
-
-
-export const getAllLevelsAPI = createAsyncThunk('level/getall', async (args, thunkAPI) => {
-    const { rejectWithValue } = thunkAPI
-    try {
-        const { data } = await axios.get(`${BASE_URL}/sysdata/levels`)
-        return data
-    } catch (error) {
-        return rejectWithValue(error.response)
-    }
-})
-
-export const deleteLevelsAPI = createAsyncThunk('level/delete', async (args, thunkAPI) => {
+export const getAllLevelsAPI = createAsyncThunk('level/getall', async (_, thunkAPI) => {
     const { rejectWithValue } = thunkAPI;
-
     try {
-        const { data } = await axios.delete(`${BASE_URL}/sysdata/levels/${args.data}`, {
-            headers: {
-                Authorization: `Bearer ${args.token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        return data;
+        const response = await apiClient.get('/sysdata/levels');
+        return response.data;
     } catch (error) {
-        return rejectWithValue(error.response);
+        return rejectWithValue(error.response?.data || error.message);
     }
 });
 
+export const deleteLevelsAPI = createAsyncThunk('level/delete', async (args, thunkAPI) => {
+    const { rejectWithValue, dispatch } = thunkAPI;
+    const id = args?.data ?? args;
+    try {
+        const response = await apiClient.delete(`/sysdata/levels/${id}`);
+        dispatch(getAllLevelsAPI());
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response?.data || error.message);
+    }
+});
 
 export const addNewLevelsAPI = createAsyncThunk('level/add', async (args, thunkAPI) => {
-    const { rejectWithValue } = thunkAPI
+    const { rejectWithValue, dispatch } = thunkAPI;
     try {
-        const { data } = await axios.post(`${BASE_URL}/sysdata/levels`, args.data, {
-            headers: {
-                Authorization: `Bearer ${args.token}`,
-                'Content-Type': 'application/json'
-            }
-        })
-        return data
+        const response = await apiClient.post('/sysdata/levels', args?.data || args);
+        dispatch(getAllLevelsAPI());
+        return response.data;
     } catch (error) {
-        return rejectWithValue(error.response)
+        return rejectWithValue(error.response?.data || error.message);
     }
-})
+});
 
 export const updateLevelsAPI = createAsyncThunk('level/update', async (args, thunkAPI) => {
-    const { rejectWithValue } = thunkAPI
+    const { rejectWithValue, dispatch } = thunkAPI;
+    const payload = args?.data || args;
     try {
-        const { data } = await axios.put(`${BASE_URL}/sysdata/levels/${args.data.id}`, args.data, {
-            headers: {
-                Authorization: `Bearer ${args.token}`,
-                'Content-Type': 'application/json'
-            }
-        })
-        return data
+        const response = await apiClient.put(`/sysdata/levels/${payload.id}`, payload);
+        dispatch(getAllLevelsAPI());
+        return response.data;
     } catch (error) {
-        return rejectWithValue(error.response)
+        return rejectWithValue(error.response?.data || error.message);
     }
-})
+});
 
 
 const initialState = {

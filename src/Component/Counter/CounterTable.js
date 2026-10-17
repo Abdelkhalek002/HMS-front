@@ -26,50 +26,57 @@ import { getUserInfo } from '../../RTK/Auth/AuthSlice';
 import { useState } from 'react';
 import printPic from "./../../images/printer-print-svgrepo-com.svg";
 import { BASE_URL } from '../../API_Route/GlobalRoute';
+import { useTableSelection } from '../../hooks/useTableSelection';
 
 const headCells = [
   {
-    id: 'name',
+    id: 'studentName',
     numeric: false,
     disablePadding: true,
     label: 'اسم الطالب',
+    sortable: true,
   },
   {
-    id: 'calories',
-    numeric: true,
+    id: 'nationalId',
+    numeric: false,
     disablePadding: false,
     label: 'الرقم القومي',
+    sortable: true,
   },
   {
-    id: 'fat',
+    id: 'clinic',
     numeric: false,
     disablePadding: false,
     label: 'العيادة',
+    sortable: true,
   },
-
   {
-    id: 'carbs',
+    id: 'date',
     numeric: false,
     disablePadding: false,
     label: 'تاريخ الحجز',
+    sortable: true,
   },
   {
-    id: 'fat',
+    id: 'examType',
     numeric: false,
     disablePadding: false,
     label: ' نوع الكشف',
+    sortable: true,
   },
   {
-    id: 'fat',
+    id: 'status',
     numeric: false,
     disablePadding: false,
     label: 'حالة الكشف',
+    sortable: true,
   },
   {
-    id: 'protein',
-    numeric: true,
+    id: 'actions',
+    numeric: false,
     disablePadding: false,
     label: 'إجراءات',
+    sortable: false,
   },
 ];
 
@@ -93,7 +100,7 @@ function EnhancedTableHead(props) {
             checked={rowCount > 0 && numSelected === rowCount}
             onChange={onSelectAllClick}
             inputProps={{
-              'aria-label': 'select all desserts',
+              'aria-label': 'تحديد جميع الحجوزات',
             }}
           />
         </TableCell>
@@ -104,18 +111,22 @@ function EnhancedTableHead(props) {
             padding={headCell.disablePadding ? 'none' : 'normal'}
             sortDirection={orderBy === headCell.id ? order : false}
           >
-            <TableSortLabel
-              active={orderBy === headCell.id}
-              direction={orderBy === headCell.id ? order : 'desc'}
-              onClick={createSortHandler(headCell.id)}
-            >
+            {headCell.sortable !== false ? (
+              <TableSortLabel
+                active={orderBy === headCell.id}
+                direction={orderBy === headCell.id ? order : 'desc'}
+                onClick={createSortHandler(headCell.id)}
+              >
+                <h3>{headCell.label}</h3>
+                {orderBy === headCell.id ? (
+                  <Box component="span" sx={visuallyHidden}>
+                    {order === 'asc' ? 'sorted descending' : 'sorted ascending'}
+                  </Box>
+                ) : null}
+              </TableSortLabel>
+            ) : (
               <h3>{headCell.label}</h3>
-              {orderBy === headCell.id ? (
-                <Box component="span" sx={visuallyHidden}>
-                  {order === 'asc' ? 'sorted descending' : 'sorted ascending'}
-                </Box>
-              ) : null}
-            </TableSortLabel>
+            )}
           </TableCell>
         ))}
       </TableRow>
@@ -173,11 +184,19 @@ EnhancedTableToolbar.propTypes = {
 
 export default function EnhancedTable() {
   const [order, setOrder] = React.useState('asc');
-  const [orderBy, setOrderBy] = React.useState('calories');
-  const [selected, setSelected] = React.useState([]);
+  const [orderBy, setOrderBy] = React.useState('date');
   const [page, setPage] = React.useState(0);
   const [dense, setDense] = React.useState(false);
   const [rowsPerPage, setRowsPerPage] = React.useState(20);
+
+  const {
+    selected,
+    excel,
+    handleClick,
+    isSelected,
+    selectAll,
+    clearSelection,
+  } = useTableSelection();
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -185,66 +204,47 @@ export default function EnhancedTable() {
     setOrderBy(property);
   };
 
-
-  //   For Handle Excel Print 
-  const [excel, setExcel] = React.useState([]);
-
   // For Access Reservation Data 
   const { data, status } = useSelector(getReservationData);
 
+  const sortedData = React.useMemo(() => {
+    if (!Array.isArray(data)) return [];
+    return [...data].sort((a, b) => {
+      let aVal = '';
+      let bVal = '';
+      if (orderBy === 'studentName') {
+        aVal = a.student?.name ?? a.student_name ?? '';
+        bVal = b.student?.name ?? b.student_name ?? '';
+      } else if (orderBy === 'nationalId') {
+        aVal = String(a.student?.nationalId ?? a.national_id ?? '');
+        bVal = String(b.student?.nationalId ?? b.national_id ?? '');
+      } else if (orderBy === 'clinic') {
+        aVal = a.clinic?.name ?? a.clinic_name ?? '';
+        bVal = b.clinic?.name ?? b.clinic_name ?? '';
+      } else if (orderBy === 'date') {
+        aVal = a.date ?? '';
+        bVal = b.date ?? '';
+      } else if (orderBy === 'examType') {
+        aVal = a.examType ?? a.exam_type ?? '';
+        bVal = b.examType ?? b.exam_type ?? '';
+      } else if (orderBy === 'status') {
+        aVal = a.status ?? '';
+        bVal = b.status ?? '';
+      }
+
+      if (aVal < bVal) return order === 'asc' ? -1 : 1;
+      if (aVal > bVal) return order === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [data, order, orderBy]);
+
   const handleSelectAllClick = (event) => {
-    if (event.target.checked && data) {
-      const newSelected = data.map((n) => n.id ?? n.medicEx_id);
-      setSelected(newSelected);
-      return;
+    if (event.target.checked && sortedData) {
+      selectAll(sortedData);
+    } else {
+      clearSelection();
     }
-    setSelected([]);
   };
-
-
-  console.log(data);
-
-
-  const handleClick = (event, id, rowIt) => {
-    console.log(`the ID Selectd ${id}`)
-
-    const selectedIndex = selected.indexOf(id);
-    let newSelected = [];
-
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, id);
-      console.log("Entered 1")
-      setExcel(excel.concat(rowIt))
-    } else if (selectedIndex === 0) {
-      console.log("Entered 2")
-      console.log("Entered 3")
-      setExcel(excel.filter((item) => {
-        return item.id !== (+id);
-      }))
-      newSelected = newSelected.concat(selected.slice(1));
-
-    } else if (selectedIndex === selected.length - 1) {
-      console.log("Entered 3")
-      setExcel(excel.filter((item) => {
-        return item.id !== (+id);
-      }))
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      console.log("Entered 4")
-      console.log("Entered 3")
-      setExcel(excel.filter((item) => {
-        return item.id !== (+id);
-      }))
-
-      newSelected = newSelected.concat(
-        selected.slice(0, selectedIndex),
-        selected.slice(selectedIndex + 1),
-      );
-    }
-    setSelected(newSelected);
-  };
-
-  const isSelected = (id) => selected.indexOf(id) !== -1;
 
 
 
@@ -336,10 +336,10 @@ export default function EnhancedTable() {
                 orderBy={orderBy}
                 onSelectAllClick={handleSelectAllClick}
                 onRequestSort={handleRequestSort}
-                rowCount={data?.length || 0}
+                rowCount={sortedData?.length || 0}
               />
               <TableBody>
-                {status === StatusCode.SUCCESS && data.length !== 0 ? data.map((row, index) => {
+                {status === StatusCode.SUCCESS && sortedData.length !== 0 ? sortedData.map((row, index) => {
                   const rowId = row.id ?? row.medicEx_id;
                   const isItemSelected = isSelected(rowId);
                   const labelId = `enhanced-table-checkbox-${index}`;

@@ -1,62 +1,51 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import axios from "axios";
-import { BASE_URL } from "../../API_Route/GlobalRoute";
+import apiClient from "../../API_Route/axiosClient";
 import StatusCode from "../../StatusCode.js";
 
 export const getAllGovsAPI = createAsyncThunk('governorates/getAll', async (_, thunkAPI) => {
-    const { rejectWithValue } = thunkAPI
+    const { rejectWithValue } = thunkAPI;
     try {
-        const { data } = await axios.get(`${BASE_URL}/sysdata/governorates`)
-        return data
+        const response = await apiClient.get('/sysdata/governorates');
+        return response.data;
     } catch (error) {
-        return rejectWithValue({ message: "Failed to fetch governorates", error: error.message });
+        return rejectWithValue(error.response?.data || { message: "Failed to fetch governorates", error: error.message });
     }
-})
+});
 
 export const deleteGovernorateAPI = createAsyncThunk('governorates/delete', async (args, thunkAPI) => {
-    const { rejectWithValue } = thunkAPI
+    const { rejectWithValue, dispatch } = thunkAPI;
+    const id = args?.data ?? args;
     try {
-        const { data } = await axios.delete(`${BASE_URL}/sysdata/governorates/${args.data}` , {
-            headers : {
-                Authorization: `Bearer ${args.token}`,
-                'Content-Type': 'application/json'
-            }
-        })
-        return data
+        const response = await apiClient.delete(`/sysdata/governorates/${id}`);
+        dispatch(getAllGovsAPI());
+        return response.data;
     } catch (error) {
-        return rejectWithValue({ message: "Failed to delete governorate", error: error.message });
+        return rejectWithValue(error.response?.data || { message: "Failed to delete governorate", error: error.message });
     }
-})
+});
 
 export const addNewGovernorateAPI = createAsyncThunk('governorates/add', async (args, thunkAPI) => {
-    const { rejectWithValue } = thunkAPI
+    const { rejectWithValue, dispatch } = thunkAPI;
     try {
-        const { data } = await axios.post(`${BASE_URL}/sysdata/governorates`, args.data , {
-            headers : {
-                Authorization: `Bearer ${args.token}`,
-                'Content-Type': 'application/json'
-            }
-        })
-        return data
+        const response = await apiClient.post('/sysdata/governorates', args?.data || args);
+        dispatch(getAllGovsAPI());
+        return response.data;
     } catch (error) {
-        return rejectWithValue({ message: "Failed to add governorate", error: error.message });
+        return rejectWithValue(error.response?.data || { message: "Failed to add governorate", error: error.message });
     }
-})
+});
 
 export const updateGovernorateAPI = createAsyncThunk('governorates/update', async (args, thunkAPI) => {
-    const { rejectWithValue } = thunkAPI
+    const { rejectWithValue, dispatch } = thunkAPI;
+    const payload = args?.data || args;
     try {
-        const { data } = await axios.put(`${BASE_URL}/sysdata/governorates/${args.data.id}`, args.data , {
-            headers : {
-                Authorization: `Bearer ${args.token}`,
-                'Content-Type': 'application/json'
-            }
-        })
-        return data
+        const response = await apiClient.put(`/sysdata/governorates/${payload.id}`, payload);
+        dispatch(getAllGovsAPI());
+        return response.data;
     } catch (error) {
-        return rejectWithValue({ message: "Failed to update governorate", error: error.message });
+        return rejectWithValue(error.response?.data || { message: "Failed to update governorate", error: error.message });
     }
-})
+});
 
 const initialState = {
     data: [],

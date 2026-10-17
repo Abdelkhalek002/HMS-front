@@ -1,43 +1,31 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import axios from "axios";
-import { BASE_URL } from "../../API_Route/GlobalRoute";
+import apiClient from "../../API_Route/axiosClient";
 import StatusCode from "../../StatusCode.js";
 
 export const getAllHistoryAPI = createAsyncThunk(
   "history/getall",
   async (args, thunkAPI) => {
     const { rejectWithValue } = thunkAPI;
+    const page = args?.page || 1;
+    const limit = args?.limit || 5;
     try {
-      const { data } = await axios.get(
-        `${BASE_URL}/admins/logs?page=${args.page}&limit=5`,
-        {
-          headers: {
-            Authorization: `Bearer ${args.token}`,
-            "Content-Type": "application/json",
-          },
-        },
-      );
-      return data;
+      const response = await apiClient.get(`/admins/logs?page=${page}&limit=${limit}`);
+      return response.data;
     } catch (error) {
-      return rejectWithValue(error.response);
+      return rejectWithValue(error.response?.data || error.message);
     }
   },
 );
 
 export const deleteHistoryAPI = createAsyncThunk(
   "history/delete",
-  async (args, thunkAPI) => {
+  async (_, thunkAPI) => {
     const { rejectWithValue } = thunkAPI;
     try {
-      const { data } = await axios.delete(`${BASE_URL}/admins/logs`, {
-        headers: {
-          Authorization: `Bearer ${args.token}`,
-          "Content-Type": "application/json",
-        },
-      });
-      return data;
+      const response = await apiClient.delete('/admins/logs');
+      return response.data;
     } catch (error) {
-      return rejectWithValue(error.response);
+      return rejectWithValue(error.response?.data || error.message);
     }
   },
 );

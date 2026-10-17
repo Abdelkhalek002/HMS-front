@@ -1,24 +1,16 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import axios from "axios";
-import { BASE_URL } from "../../API_Route/GlobalRoute";
+import apiClient from "../../API_Route/axiosClient";
 import StatusCode from "../../StatusCode.js";
 
 export const getAllClinicsAPI = createAsyncThunk(
   "clinic/getall",
-  async (args, thunkAPI) => {
+  async (_, thunkAPI) => {
     const { rejectWithValue } = thunkAPI;
     try {
-      const { data } = await axios.get(`${BASE_URL}/sysdata/clinics`, {
-        headers: {
-          Authorization: `Bearer ${args.token}`,
-          "Content-Type": "application/json",
-        },
-      });
-      console.log("inside Slice");
-      console.log(data);
-      return data;
+      const response = await apiClient.get("/sysdata/clinics");
+      return response.data;
     } catch (error) {
-      return rejectWithValue(error.response);
+      return rejectWithValue(error.response?.data || error.message);
     }
   },
 );
@@ -26,24 +18,15 @@ export const getAllClinicsAPI = createAsyncThunk(
 export const deleteClinicsAPI = createAsyncThunk(
   "clinic/delete",
   async (args, thunkAPI) => {
-    const { rejectWithValue, getState, dispatch } = thunkAPI;
-    const token = getState().UserSlice.token;
+    const { rejectWithValue, dispatch } = thunkAPI;
+    const id = args?.data ?? args;
 
     try {
-      const { data } = await axios.delete(
-        `${BASE_URL}/sysdata/clinics/${args.data}`,
-        {
-          headers: {
-            Authorization: `Bearer ${args.token}`,
-            "Content-Type": "application/json",
-          },
-        },
-      );
-      dispatch(getAllClinicsAPI({ token }));
-
-      return data;
+      const response = await apiClient.delete(`/sysdata/clinics/${id}`);
+      dispatch(getAllClinicsAPI());
+      return response.data;
     } catch (error) {
-      return rejectWithValue(error.response);
+      return rejectWithValue(error.response?.data || error.message);
     }
   },
 );
@@ -51,24 +34,13 @@ export const deleteClinicsAPI = createAsyncThunk(
 export const addNewClinicsAPI = createAsyncThunk(
   "clinic/add",
   async (args, thunkAPI) => {
-    const { rejectWithValue, getState, dispatch } = thunkAPI;
-    const token = getState().UserSlice.token;
+    const { rejectWithValue, dispatch } = thunkAPI;
     try {
-      const { data } = await axios.post(
-        `${BASE_URL}/sysdata/clinics`,
-        args.data,
-        {
-          headers: {
-            Authorization: `Bearer ${args.token}`,
-            "Content-Type": "application/json",
-          },
-        },
-      );
-
-      dispatch(getAllClinicsAPI({ token: args.token }));
-      return data;
+      const response = await apiClient.post("/sysdata/clinics", args?.data || args);
+      dispatch(getAllClinicsAPI());
+      return response.data;
     } catch (error) {
-      return rejectWithValue(error.response);
+      return rejectWithValue(error.response?.data || error.message);
     }
   },
 );
@@ -76,21 +48,14 @@ export const addNewClinicsAPI = createAsyncThunk(
 export const updateClinicsAPI = createAsyncThunk(
   "clinic/update",
   async (args, thunkAPI) => {
-    const { rejectWithValue } = thunkAPI;
+    const { rejectWithValue, dispatch } = thunkAPI;
+    const payload = args?.data || args;
     try {
-      const { data } = await axios.put(
-        `${BASE_URL}/sysdata/clinics/${args.data.id}`,
-        args.data,
-        {
-          headers: {
-            Authorization: `Bearer ${args.token}`,
-            "Content-Type": "application/json",
-          },
-        },
-      );
-      return data;
+      const response = await apiClient.put(`/sysdata/clinics/${payload.id}`, payload);
+      dispatch(getAllClinicsAPI());
+      return response.data;
     } catch (error) {
-      return rejectWithValue(error.response);
+      return rejectWithValue(error.response?.data || error.message);
     }
   },
 );
