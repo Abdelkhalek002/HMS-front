@@ -1,1 +1,1 @@
-export const BASE_URL = `http://localhost:7000/api/v1` ; 
+export { BASE_URL } from '../services/http/apiClient';
