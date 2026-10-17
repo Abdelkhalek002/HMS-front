@@ -5,7 +5,7 @@ import StatusCode from "../../StatusCode.js";
 export const getAllLevelsAPI = createAsyncThunk('level/getall', async (_, thunkAPI) => {
     const { rejectWithValue } = thunkAPI;
     try {
-        const response = await apiClient.get('/sysdata/levels');
+        const response = await apiClient.get('/levels');
         return response.data;
     } catch (error) {
         return rejectWithValue(error.response?.data || error.message);
@@ -16,7 +16,7 @@ export const deleteLevelsAPI = createAsyncThunk('level/delete', async (args, thu
     const { rejectWithValue, dispatch } = thunkAPI;
     const id = args?.data ?? args;
     try {
-        const response = await apiClient.delete(`/sysdata/levels/${id}`);
+        const response = await apiClient.delete(`/levels/${id}`);
         dispatch(getAllLevelsAPI());
         return response.data;
     } catch (error) {
@@ -27,7 +27,7 @@ export const deleteLevelsAPI = createAsyncThunk('level/delete', async (args, thu
 export const addNewLevelsAPI = createAsyncThunk('level/add', async (args, thunkAPI) => {
     const { rejectWithValue, dispatch } = thunkAPI;
     try {
-        const response = await apiClient.post('/sysdata/levels', args?.data || args);
+        const response = await apiClient.post('/levels', args?.data || args);
         dispatch(getAllLevelsAPI());
         return response.data;
     } catch (error) {
@@ -39,7 +39,7 @@ export const updateLevelsAPI = createAsyncThunk('level/update', async (args, thu
     const { rejectWithValue, dispatch } = thunkAPI;
     const payload = args?.data || args;
     try {
-        const response = await apiClient.put(`/sysdata/levels/${payload.id}`, payload);
+        const response = await apiClient.put(`/levels/${payload.id}`, payload);
         dispatch(getAllLevelsAPI());
         return response.data;
     } catch (error) {

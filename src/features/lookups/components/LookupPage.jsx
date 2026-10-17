@@ -25,6 +25,7 @@ import {
   TableContainerStyled,
   modalBoxStyle,
 } from './TableStyles.js';
+import EmptyStatePlaceholder from './EmptyStatePlaceholder.jsx';
 
 export default function LookupPage({
   pageTitle,
@@ -38,6 +39,14 @@ export default function LookupPage({
   onCreate,
   onUpdate,
   onDelete,
+  iconName,
+  customIcon,
+  emptyTitle,
+  emptyDescription,
+  hint,
+  addButtonText,
+  entityIndefinite,
+  pageSize = 8,
 }) {
   const [modalState, setModalState] = useState({
     open: false,
@@ -47,7 +56,6 @@ export default function LookupPage({
   });
 
   const [page, setPage] = useState(1);
-  const pageSize = 15;
 
   const items = Array.isArray(data)
     ? data
@@ -173,10 +181,11 @@ export default function LookupPage({
     return (
       <Box
         sx={{
-          height: '100vh',
+          minHeight: '360px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          py: 6,
         }}
       >
         <CircleLoader color="#0061ff" />
@@ -281,16 +290,16 @@ export default function LookupPage({
         </Box>
       </Modal>
 
-      <div className="k-group-user-page">
+      <Box sx={{ width: '100%', mt: 1, pb: 4 }}>
         {/* Header with Title and Add Button */}
         <Box
           sx={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            maxWidth: 800,
-            margin: '0 auto 24px auto',
-            px: 1,
+            width: '100%',
+            mb: 2.5,
+            px: 0.5,
           }}
         >
           <Typography
@@ -324,154 +333,172 @@ export default function LookupPage({
           </Tooltip>
         </Box>
 
-        {/* Table */}
-        <TableContainerStyled component={Paper}>
-          <Table sx={{ width: '100%' }} aria-label="customized table">
-            <TableHead>
-              <TableRow>
-                <StyledTableCell
-                  align="center"
-                  style={{
-                    width: '80px',
-                    fontWeight: 'bold',
-                    fontSize: '16px',
-                  }}
-                >
-                  #
-                </StyledTableCell>
-                <StyledTableCell
-                  align="center"
-                  style={{
-                    fontWeight: 'bold',
-                    fontSize: '16px',
-                  }}
-                >
-                  {entitySingular}
-                </StyledTableCell>
-                <StyledTableCell
-                  align="center"
-                  style={{
-                    width: '160px',
-                    fontWeight: 'bold',
-                    fontSize: '16px',
-                  }}
-                >
-                  العمليات
-                </StyledTableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {paginatedItems.map((item, idx) => {
-                const globalIndex = startIndex + idx + 1;
-                return (
-                  <StyledTableRow key={item[idKey] || globalIndex}>
+        {/* Content: Empty State Placeholder or Table */}
+        {items.length === 0 ? (
+          <EmptyStatePlaceholder
+            entitySingular={entitySingular}
+            entityIndefinite={entityIndefinite}
+            addButtonText={addButtonText}
+            pageTitle={pageTitle}
+            iconName={iconName}
+            customIcon={customIcon}
+            emptyTitle={emptyTitle}
+            emptyDescription={emptyDescription}
+            hint={hint}
+            onAdd={handleOpenAddModal}
+          />
+        ) : (
+          <>
+            {/* Table */}
+            <TableContainerStyled component={Paper}>
+              <Table sx={{ width: '100%' }} aria-label="customized table">
+                <TableHead>
+                  <TableRow>
                     <StyledTableCell
                       align="center"
                       style={{
                         width: '80px',
-                        fontWeight: 600,
-                        color: '#64748b',
-                        fontSize: '15px',
+                        fontWeight: 'bold',
+                        fontSize: '16px',
                       }}
                     >
-                      {globalIndex}
+                      #
                     </StyledTableCell>
                     <StyledTableCell
                       align="center"
                       style={{
-                        fontSize: '15px',
-                        fontWeight: 500,
-                        color: '#1e293b',
+                        fontWeight: 'bold',
+                        fontSize: '16px',
                       }}
                     >
-                      {item[nameKey]}
+                      {entitySingular}
                     </StyledTableCell>
-                    <StyledTableCell align="center" style={{ width: '160px' }}>
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          gap: 1.5,
-                        }}
-                      >
-                        <Tooltip title={`تعديل ${entitySingular}`} arrow>
-                          <IconButton
-                            aria-label="edit"
-                            size="small"
-                            onClick={() =>
-                              handleOpenEditModal(item[idKey], item[nameKey])
-                            }
+                    <StyledTableCell
+                      align="center"
+                      style={{
+                        width: '160px',
+                        fontWeight: 'bold',
+                        fontSize: '16px',
+                      }}
+                    >
+                      العمليات
+                    </StyledTableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {paginatedItems.map((item, idx) => {
+                    const globalIndex = startIndex + idx + 1;
+                    return (
+                      <StyledTableRow key={item[idKey] || globalIndex}>
+                        <StyledTableCell
+                          align="center"
+                          style={{
+                            width: '80px',
+                            fontWeight: 600,
+                            color: '#64748b',
+                            fontSize: '15px',
+                          }}
+                        >
+                          {globalIndex}
+                        </StyledTableCell>
+                        <StyledTableCell
+                          align="center"
+                          style={{
+                            fontSize: '15px',
+                            fontWeight: 500,
+                            color: '#1e293b',
+                          }}
+                        >
+                          {item[nameKey]}
+                        </StyledTableCell>
+                        <StyledTableCell align="center" style={{ width: '160px' }}>
+                          <Box
                             sx={{
-                              backgroundColor: '#f1f5f9',
-                              color: '#475569',
-                              borderRadius: '8px',
-                              p: 1,
-                              '&:hover': {
-                                backgroundColor: '#e2e8f0',
-                                color: '#1e293b',
-                              },
+                              display: 'flex',
+                              justifyContent: 'center',
+                              alignItems: 'center',
+                              gap: 1.5,
                             }}
                           >
-                            <Edit fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title={`حذف ${entitySingular}`} arrow>
-                          <IconButton
-                            aria-label="delete"
-                            size="small"
-                            onClick={() => handleDelete(item[idKey])}
-                            sx={{
-                              backgroundColor: '#fef2f2',
-                              color: '#ef4444',
-                              borderRadius: '8px',
-                              p: 1,
-                              '&:hover': {
-                                backgroundColor: '#fee2e2',
-                                color: '#dc2626',
-                              },
-                            }}
-                          >
-                            <Delete fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      </Box>
-                    </StyledTableCell>
-                  </StyledTableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </TableContainerStyled>
+                            <Tooltip title={`تعديل ${entitySingular}`} arrow>
+                              <IconButton
+                                aria-label="edit"
+                                size="small"
+                                onClick={() =>
+                                  handleOpenEditModal(item[idKey], item[nameKey])
+                                }
+                                sx={{
+                                  backgroundColor: '#f1f5f9',
+                                  color: '#475569',
+                                  borderRadius: '8px',
+                                  p: 1,
+                                  '&:hover': {
+                                    backgroundColor: '#e2e8f0',
+                                    color: '#1e293b',
+                                  },
+                                }}
+                              >
+                                <Edit fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title={`حذف ${entitySingular}`} arrow>
+                              <IconButton
+                                aria-label="delete"
+                                size="small"
+                                onClick={() => handleDelete(item[idKey])}
+                                sx={{
+                                  backgroundColor: '#fef2f2',
+                                  color: '#ef4444',
+                                  borderRadius: '8px',
+                                  p: 1,
+                                  '&:hover': {
+                                    backgroundColor: '#fee2e2',
+                                    color: '#dc2626',
+                                  },
+                                }}
+                              >
+                                <Delete fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </Box>
+                        </StyledTableCell>
+                      </StyledTableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainerStyled>
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              mt: 3,
-              mb: 2,
-            }}
-          >
-            <Pagination
-              count={totalPages}
-              page={page}
-              onChange={(e, value) => setPage(value)}
-              color="primary"
-              shape="rounded"
-              size="medium"
-              sx={{
-                '& .MuiPaginationItem-root': {
-                  fontFamily: '"Cairo", sans-serif !important',
-                  fontWeight: 600,
-                },
-              }}
-            />
-          </Box>
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  mt: 3,
+                  mb: 2,
+                }}
+              >
+                <Pagination
+                  count={totalPages}
+                  page={page}
+                  onChange={(e, value) => setPage(value)}
+                  color="primary"
+                  shape="rounded"
+                  size="medium"
+                  sx={{
+                    '& .MuiPaginationItem-root': {
+                      fontFamily: '"Cairo", sans-serif !important',
+                      fontWeight: 600,
+                    },
+                  }}
+                />
+              </Box>
+            )}
+          </>
         )}
-      </div>
+      </Box>
     </>
   );
 }

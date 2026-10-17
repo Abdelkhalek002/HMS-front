@@ -7,7 +7,7 @@ export const getAllClinicsAPI = createAsyncThunk(
   async (_, thunkAPI) => {
     const { rejectWithValue } = thunkAPI;
     try {
-      const response = await apiClient.get("/sysdata/clinics");
+      const response = await apiClient.get("/clinics");
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
@@ -22,7 +22,7 @@ export const deleteClinicsAPI = createAsyncThunk(
     const id = args?.data ?? args;
 
     try {
-      const response = await apiClient.delete(`/sysdata/clinics/${id}`);
+      const response = await apiClient.delete(`/clinics/${id}`);
       dispatch(getAllClinicsAPI());
       return response.data;
     } catch (error) {
@@ -36,7 +36,7 @@ export const addNewClinicsAPI = createAsyncThunk(
   async (args, thunkAPI) => {
     const { rejectWithValue, dispatch } = thunkAPI;
     try {
-      const response = await apiClient.post("/sysdata/clinics", args?.data || args);
+      const response = await apiClient.post("/clinics", args?.data || args);
       dispatch(getAllClinicsAPI());
       return response.data;
     } catch (error) {
@@ -51,7 +51,7 @@ export const updateClinicsAPI = createAsyncThunk(
     const { rejectWithValue, dispatch } = thunkAPI;
     const payload = args?.data || args;
     try {
-      const response = await apiClient.put(`/sysdata/clinics/${payload.id}`, payload);
+      const response = await apiClient.put(`/clinics/${payload.id}`, payload);
       dispatch(getAllClinicsAPI());
       return response.data;
     } catch (error) {

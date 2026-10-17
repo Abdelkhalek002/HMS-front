@@ -5,7 +5,7 @@ import StatusCode from "../../StatusCode.js";
 export const getAllFacultiesAPI = createAsyncThunk('faculties/getall', async (_, thunkAPI) => {
     const { rejectWithValue } = thunkAPI;
     try {
-        const response = await apiClient.get('/sysdata/faculties');
+        const response = await apiClient.get('/faculties');
         return response.data;
     } catch (error) {
         return rejectWithValue(error.response?.data || { message: "Failed to fetch faculties", error: error.message });
@@ -16,7 +16,7 @@ export const deleteFacultyAPI = createAsyncThunk('faculties/delete', async (args
     const { rejectWithValue, dispatch } = thunkAPI;
     const id = args?.data ?? args;
     try {
-        const response = await apiClient.delete(`/sysdata/faculties/${id}`);
+        const response = await apiClient.delete(`/faculties/${id}`);
         dispatch(getAllFacultiesAPI());
         return response.data;
     } catch (error) {
@@ -27,7 +27,7 @@ export const deleteFacultyAPI = createAsyncThunk('faculties/delete', async (args
 export const addNewFacultyAPI = createAsyncThunk('faculties/add', async (args, thunkAPI) => {
     const { rejectWithValue, dispatch } = thunkAPI;
     try {
-        const response = await apiClient.post('/sysdata/faculties', args?.data || args);
+        const response = await apiClient.post('/faculties', args?.data || args);
         dispatch(getAllFacultiesAPI());
         return response.data;
     } catch (error) {
@@ -39,7 +39,7 @@ export const updateFacultyAPI = createAsyncThunk('faculties/update', async (args
     const { rejectWithValue, dispatch } = thunkAPI;
     const payload = args?.data || args;
     try {
-        const response = await apiClient.put(`/sysdata/faculties/${payload.id}`, payload);
+        const response = await apiClient.put(`/faculties/${payload.id}`, payload);
         dispatch(getAllFacultiesAPI());
         return response.data;
     } catch (error) {

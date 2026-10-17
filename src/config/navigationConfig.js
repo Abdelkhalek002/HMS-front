@@ -45,33 +45,9 @@ export const ADMIN_NAV_ITEMS = [
     permission: PERMISSIONS.LOGS_READ,
   },
   {
-    path: '/ad/levels',
-    title: 'المراحل التعليمية',
-    icon: 'school',
-    permission: PERMISSIONS.ADMINS_READ,
-  },
-  {
-    path: '/ad/clinics',
-    title: 'العيادات',
-    icon: 'monitor_heart',
-    permission: PERMISSIONS.ADMINS_READ,
-  },
-  {
-    path: '/ad/faculties',
-    title: 'الكليات',
-    icon: 'school',
-    permission: PERMISSIONS.ADMINS_READ,
-  },
-  {
-    path: '/ad/exhospital',
-    title: 'المستشفيات الخارجية',
-    icon: 'local_hospital',
-    permission: PERMISSIONS.ADMINS_READ,
-  },
-  {
-    path: '/ad/governorates',
-    title: 'المحافظات',
-    icon: 'location_city',
+    path: '/ad/system-data',
+    title: 'بيانات النظام',
+    icon: 'storage',
     permission: PERMISSIONS.ADMINS_READ,
   },
 ];

@@ -40,8 +40,7 @@ export const StyledTableRow = styled(TableRow)(() => ({
 
 export const TableContainerStyled = styled(TableContainer)(() => ({
   borderRadius: 16,
-  margin: '0 auto',
-  maxWidth: 800,
+  width: '100%',
   boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
   border: '1px solid #eef2f6',
   overflow: 'hidden',

@@ -5,7 +5,7 @@ import StatusCode from "../../StatusCode.js";
 export const getAllGovsAPI = createAsyncThunk('governorates/getAll', async (_, thunkAPI) => {
     const { rejectWithValue } = thunkAPI;
     try {
-        const response = await apiClient.get('/sysdata/governorates');
+        const response = await apiClient.get('/governorates');
         return response.data;
     } catch (error) {
         return rejectWithValue(error.response?.data || { message: "Failed to fetch governorates", error: error.message });
@@ -16,7 +16,7 @@ export const deleteGovernorateAPI = createAsyncThunk('governorates/delete', asyn
     const { rejectWithValue, dispatch } = thunkAPI;
     const id = args?.data ?? args;
     try {
-        const response = await apiClient.delete(`/sysdata/governorates/${id}`);
+        const response = await apiClient.delete(`/governorates/${id}`);
         dispatch(getAllGovsAPI());
         return response.data;
     } catch (error) {
@@ -27,7 +27,7 @@ export const deleteGovernorateAPI = createAsyncThunk('governorates/delete', asyn
 export const addNewGovernorateAPI = createAsyncThunk('governorates/add', async (args, thunkAPI) => {
     const { rejectWithValue, dispatch } = thunkAPI;
     try {
-        const response = await apiClient.post('/sysdata/governorates', args?.data || args);
+        const response = await apiClient.post('/governorates', args?.data || args);
         dispatch(getAllGovsAPI());
         return response.data;
     } catch (error) {
@@ -39,7 +39,7 @@ export const updateGovernorateAPI = createAsyncThunk('governorates/update', asyn
     const { rejectWithValue, dispatch } = thunkAPI;
     const payload = args?.data || args;
     try {
-        const response = await apiClient.put(`/sysdata/governorates/${payload.id}`, payload);
+        const response = await apiClient.put(`/governorates/${payload.id}`, payload);
         dispatch(getAllGovsAPI());
         return response.data;
     } catch (error) {

@@ -5,7 +5,7 @@ import StatusCode from "../../StatusCode.js";
 export const getAllExhospitalsAPI = createAsyncThunk('exhospital/getall', async (_, thunkAPI) => {
     const { rejectWithValue } = thunkAPI;
     try {
-        const response = await apiClient.get('/sysdata/hospitals');
+        const response = await apiClient.get('/hospitals');
         return response.data;
     } catch (error) {
         return rejectWithValue(error.response?.data || { message: "Failed to fetch hospital", error: error.message });
@@ -16,7 +16,7 @@ export const deleteExhospitalAPI = createAsyncThunk('exhospital/delete', async (
     const { rejectWithValue, dispatch } = thunkAPI;
     const id = args?.data ?? args;
     try {
-        const response = await apiClient.delete(`/sysdata/hospitals/${id}`);
+        const response = await apiClient.delete(`/hospitals/${id}`);
         dispatch(getAllExhospitalsAPI());
         return response.data;
     } catch (error) {
@@ -27,7 +27,7 @@ export const deleteExhospitalAPI = createAsyncThunk('exhospital/delete', async (
 export const addNewExhospitalAPI = createAsyncThunk('exhospital/add', async (args, thunkAPI) => {
     const { rejectWithValue, dispatch } = thunkAPI;
     try {
-        const response = await apiClient.post('/sysdata/hospitals', args?.data || args);
+        const response = await apiClient.post('/hospitals', args?.data || args);
         dispatch(getAllExhospitalsAPI());
         return response.data;
     } catch (error) {
@@ -39,7 +39,7 @@ export const updateExhospitalAPI = createAsyncThunk('exhospital/update', async (
     const { rejectWithValue, dispatch } = thunkAPI;
     const payload = args?.data || args;
     try {
-        const response = await apiClient.put(`/sysdata/hospitals/${payload.id}`, payload);
+        const response = await apiClient.put(`/hospitals/${payload.id}`, payload);
         dispatch(getAllExhospitalsAPI());
         return response.data;
     } catch (error) {

@@ -2,11 +2,7 @@ import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 import './App.css';
 // Core Layouts & Domain Features
 import {
-  ClinicsPage,
-  FacultiesPage,
-  LevelsPage,
-  GovernoratesPage,
-  ExHospitalPage,
+  SystemDataPage,
 } from './features/lookups';
 import { CounterPage, ReservationPage } from './features/reservations';
 import { TransferPage } from './features/transfers';
@@ -114,14 +110,16 @@ function App() {
               <Route path='history' element={<HistoryPage />} />
             </Route>
 
-            {/* Guarded by Admins permission (Admins & System Lookups) */}
+            {/* Guarded by Admins permission (Admins & System Data) */}
             <Route element={<PermissionProtect requiredPermission={PERMISSIONS.ADMINS_READ} />}>
               <Route path='admins' element={<AdminPage />} />
-              <Route path='levels' element={<LevelsPage />} />
-              <Route path='clinics' element={<ClinicsPage />} />
-              <Route path='faculties' element={<FacultiesPage />} />
-              <Route path='exhospital' element={<ExHospitalPage />} />
-              <Route path='governorates' element={<GovernoratesPage />} />
+              <Route path='system-data' element={<SystemDataPage />} />
+              <Route path='sysdata' element={<Navigate to="/ad/system-data" replace />} />
+              <Route path='levels' element={<Navigate to="/ad/system-data?tab=levels" replace />} />
+              <Route path='clinics' element={<Navigate to="/ad/system-data?tab=clinics" replace />} />
+              <Route path='faculties' element={<Navigate to="/ad/system-data?tab=faculties" replace />} />
+              <Route path='exhospital' element={<Navigate to="/ad/system-data?tab=hospitals" replace />} />
+              <Route path='governorates' element={<Navigate to="/ad/system-data?tab=governorates" replace />} />
             </Route>
 
           </Route>
