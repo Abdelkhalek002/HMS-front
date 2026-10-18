@@ -25,6 +25,7 @@ import { useState } from 'react';
 import { BASE_URL } from '../../../services/http';
 import { useTableSelection } from '../../../components/table/useTableSelection';
 import TableToolbar from '../../../components/table/TableToolbar';
+import { getAllClinics, getAllFaculties, getAllLevels } from '../../lookups';
 
 const headCells = [
   {
@@ -79,14 +80,12 @@ const headCells = [
 ];
 
 function EnhancedTableHead(props) {
-  const { onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort } = props;
-  console.log(`The Props `)
-  console.log(props);
+  const { onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort, showActions = true } = props;
   const createSortHandler = (property) => (event) => {
     onRequestSort(event, property);
   };
 
-
+  const visibleHeadCells = headCells.filter((cell) => cell.id !== 'actions' || showActions);
 
   return (
     <TableHead>
@@ -102,7 +101,7 @@ function EnhancedTableHead(props) {
             }}
           />
         </TableCell>
-        {headCells.map((headCell) => (
+        {visibleHeadCells.map((headCell) => (
           <TableCell
             key={headCell.id}
             align={"center"}
@@ -139,6 +138,7 @@ EnhancedTableHead.propTypes = {
   order: PropTypes.oneOf(['asc', 'desc']).isRequired,
   orderBy: PropTypes.string.isRequired,
   rowCount: PropTypes.number.isRequired,
+  showActions: PropTypes.bool,
 };
 
 function EnhancedTableToolbar(props) {
@@ -202,20 +202,33 @@ export default function EnhancedTable() {
   // For Access Reservation Data 
   const { data, status } = useSelector(getReservationData);
 
+  const formattedExcelData = React.useMemo(() => {
+    return excel.map((item) => ({
+      'المعرف': item.id ?? item.medicEx_id,
+      'اسم الطالب / المريض': item.user?.name ?? item.student?.name ?? item.student_name ?? item.patient_name ?? item.Name ?? '',
+      'الرقم القومي': item.user?.national_id ?? item.student?.nationalId ?? item.national_id ?? item.nationalId ?? '',
+      'رقم الهاتف': item.user?.phone_number ?? item.phoneNumber ?? item.phone_number ?? '',
+      'العيادة': typeof item.clinic === 'string' ? item.clinic : (item.clinic?.name ?? item.clinic_name ?? ''),
+      'تاريخ الحجز': item.date ? (typeof item.date === 'string' && item.date.includes(',') ? item.date.split(',')[0] : String(item.date).slice(0, 10)) : '',
+      'نوع الكشف': item.examType ?? item.exam_type ?? '',
+      'حالة الكشف': item.status ?? '',
+    }));
+  }, [excel]);
+
   const sortedData = React.useMemo(() => {
     if (!Array.isArray(data)) return [];
     return [...data].sort((a, b) => {
       let aVal = '';
       let bVal = '';
       if (orderBy === 'studentName') {
-        aVal = a.student?.name ?? a.student_name ?? '';
-        bVal = b.student?.name ?? b.student_name ?? '';
+        aVal = a.user?.name ?? a.student?.name ?? a.student_name ?? a.patient_name ?? a.Name ?? '';
+        bVal = b.user?.name ?? b.student?.name ?? b.student_name ?? b.patient_name ?? b.Name ?? '';
       } else if (orderBy === 'nationalId') {
-        aVal = String(a.student?.nationalId ?? a.national_id ?? '');
-        bVal = String(b.student?.nationalId ?? b.national_id ?? '');
+        aVal = String(a.user?.national_id ?? a.student?.nationalId ?? a.national_id ?? a.nationalId ?? '');
+        bVal = String(b.user?.national_id ?? b.student?.nationalId ?? b.national_id ?? b.nationalId ?? '');
       } else if (orderBy === 'clinic') {
-        aVal = a.clinic?.name ?? a.clinic_name ?? '';
-        bVal = b.clinic?.name ?? b.clinic_name ?? '';
+        aVal = typeof a.clinic === 'string' ? a.clinic : (a.clinic?.name ?? a.clinic_name ?? '');
+        bVal = typeof b.clinic === 'string' ? b.clinic : (b.clinic?.name ?? b.clinic_name ?? '');
       } else if (orderBy === 'date') {
         aVal = a.date ?? '';
         bVal = b.date ?? '';
@@ -241,25 +254,96 @@ export default function EnhancedTable() {
     }
   };
 
-
-
-
-
-  console.log(status)
-
   // For Dispatch Action
   const dispatch = useDispatch();
-
 
   // For Token 
   const { token } = useSelector(getUserInfo);
 
+  // For Access Lookups
+  const clinics = useSelector(getAllClinics);
+  const faculties = useSelector(getAllFaculties);
+  const levels = useSelector(getAllLevels);
+
+  const clinicsList = Array.isArray(clinics) ? clinics : (clinics?.value || []);
+  const facultiesList = Array.isArray(faculties) ? faculties : (faculties?.value || []);
+  const levelsList = Array.isArray(levels) ? levels : (levels?.value || []);
+
   // For Access Params
   const [searchParams, setSearchParams] = useSearchParams();
+  const activeStatus = searchParams.get('status') === 'finished' ? 'finished' : 'pending';
+  const clinicId = searchParams.get('clinic_id') || '';
+  const dateFilter = searchParams.get('date') || '';
+  const facultyId = searchParams.get('faculty_id') || '';
+  const levelId = searchParams.get('level_id') || '';
+  const genderFilter = searchParams.get('gender') || '';
+  const nationalityId = searchParams.get('nationality_id') || '';
 
-  //  For Accept and Decline 
-  const acceptOrDecline = (reservationId, userId, isAccepted) => {
+  // Advanced demographic active count
+  const activeDemographicCount = [facultyId, levelId, genderFilter, nationalityId].filter(Boolean).length;
+  const hasActiveFilters = Boolean(
+    searchParams.get('search') ||
+    clinicId ||
+    dateFilter ||
+    activeDemographicCount > 0
+  );
+
+  // Collapsible Advanced Filter Panel State
+  const [isAdvOpen, setIsAdvOpen] = useState(activeDemographicCount > 0);
+
+  // Helper to cleanly update filters in URL search parameters
+  const updateFilters = (newFilterValues) => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set('page', '1');
+    Object.entries(newFilterValues).forEach(([key, val]) => {
+      if (val !== undefined && val !== null && val !== '') {
+        newParams.set(key, val);
+      } else {
+        newParams.delete(key);
+      }
+    });
+    setSearchParams(newParams);
+  };
+
+  // Quick filters handlers
+  const handleClinicChange = (e) => {
+    updateFilters({ clinic_id: e.target.value });
+  };
+
+  const handleDateChange = (e) => {
+    updateFilters({ date: e.target.value });
+  };
+
+  const handleAdvFilterChange = (key, value) => {
+    updateFilters({ [key]: value });
+  };
+
+  const handleResetAdvancedFilters = () => {
+    updateFilters({
+      faculty_id: '',
+      level_id: '',
+      gender: '',
+      nationality_id: '',
+    });
+  };
+
+  const handleResetAllFilters = () => {
+    const newParams = new URLSearchParams();
+    newParams.set('page', '1');
+    newParams.set('status', activeStatus);
+    setSearchInput('');
+    setSearchParams(newParams);
+  };
+
+  //  For Accept and Decline (Allowed ONLY for pending reservations requiring action)
+  const acceptOrDecline = (reservationId, studentId, isAccepted, currentStatus) => {
+    if (currentStatus && currentStatus !== "تحت الانتظار") {
+      toast.info("تم اتخاذ إجراء على هذا الكشف بالفعل ولا يتطلب أي إجراء إضافي");
+      return;
+    }
+
     const status = Boolean(isAccepted);
+
     dispatch(
       acceptOrDeclineAPI({
         id: reservationId,
@@ -267,6 +351,13 @@ export default function EnhancedTable() {
         status,
         page: searchParams.get('page') ? searchParams.get('page') : 1,
         search: searchParams.get('search') ? searchParams.get('search') : "",
+        filterStatus: activeStatus,
+        clinic_id: clinicId,
+        date: dateFilter,
+        faculty_id: facultyId,
+        level_id: levelId,
+        gender: genderFilter,
+        nationality_id: nationalityId,
       })
     )
       .unwrap()
@@ -283,28 +374,243 @@ export default function EnhancedTable() {
       });
   };
 
-  // For Search 
-  const searchHandler = () => {
-    searchParams.append('search', searchInput)
-    setSearchParams({ ...searchParams, search: searchInput, page: 1 })
-    dispatch(getAllReservationListAPI({ token, page: 1, limit: 8, search: searchInput ? searchInput : "" }))
-  }
+  // For Tab Filters (Pending vs Finished) - Preserves active filters!
+  const handleStatusFilter = (newStatus) => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set('page', '1');
+    newParams.set('status', newStatus);
+    setSearchParams(newParams);
+  };
 
   // For Access Input 
-  const [searchInput, setSearchInput] = useState('');
+  const [searchInput, setSearchInput] = useState(searchParams.get('search') || '');
 
+  React.useEffect(() => {
+    setSearchInput(searchParams.get('search') || '');
+  }, [searchParams]);
 
+  // For Search 
+  const searchHandler = () => {
+    updateFilters({ search: searchInput });
+  };
 
   return (
     <div>
       <Box sx={{ width: '1250px', maxWidth: "100%", margin: "20px auto", borderRadius: "20px" }}>
+        {/* 2 Primary Lists Filter Buttons: Pending vs Finished */}
+        <div className="resv-filter-tabs-wrapper">
+          <div className="resv-filter-tabs">
+            <button
+              type="button"
+              className={`resv-tab-btn ${activeStatus === 'pending' ? 'active' : ''}`}
+              onClick={() => handleStatusFilter('pending')}
+            >
+              <span className="material-symbols-outlined">hourglass_top</span>
+              <span>كشوفات قيد الانتظار</span>
+              <span className="tab-pill-badge pending">تتطلب إجراء</span>
+            </button>
+
+            <button
+              type="button"
+              className={`resv-tab-btn ${activeStatus === 'finished' ? 'active' : ''}`}
+              onClick={() => handleStatusFilter('finished')}
+            >
+              <span className="material-symbols-outlined">task_alt</span>
+              <span>كشوفات مكتملة</span>
+              <span className="tab-pill-badge finished">تمت معالجتها</span>
+            </button>
+          </div>
+        </div>
+
         <TableToolbar
           searchValue={searchInput}
           onSearchChange={(e) => setSearchInput(e.target.value)}
           onSearchSubmit={searchHandler}
-          excelData={excel}
-          excelFilename="studentInfo"
+          placeholder="ابحث بالاسم، الرقم القومي، العيادة..."
+          excelData={formattedExcelData}
+          excelFilename={`reservations_${activeStatus}`}
+          extraActions={
+            <div className="resv-quick-filters">
+              {/* Clinic Dropdown */}
+              <div className="resv-toolbar-control">
+                <span className="material-symbols-outlined control-icon">local_hospital</span>
+                <select
+                  value={clinicId}
+                  onChange={handleClinicChange}
+                  className="resv-toolbar-select"
+                  title="تصفية حسب العيادة"
+                >
+                  <option value="">جميع العيادات</option>
+                  {clinicsList.map((item) => {
+                    const cId = item.clinic_id ?? item.id;
+                    const cName = item.clinicName || item.clinic_name;
+                    return (
+                      <option key={cId} value={cId}>
+                        {cName}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+
+              {/* Date Filter */}
+              <div className="resv-toolbar-control date-control">
+                <span className="material-symbols-outlined control-icon">calendar_month</span>
+                <input
+                  type="date"
+                  value={dateFilter}
+                  onChange={handleDateChange}
+                  className="resv-toolbar-date"
+                  title="تصفية بتاريخ الحجز"
+                />
+                {dateFilter && (
+                  <button
+                    type="button"
+                    className="resv-control-clear-btn"
+                    onClick={() => updateFilters({ date: '' })}
+                    title="إلغاء تصفية التاريخ"
+                  >
+                    <span className="material-symbols-outlined">close</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Advanced Filters Button */}
+              <button
+                type="button"
+                className={`resv-adv-toggle-btn ${isAdvOpen ? 'active' : ''} ${activeDemographicCount > 0 ? 'highlight' : ''}`}
+                onClick={() => setIsAdvOpen((prev) => !prev)}
+                title="تصفية متقدمة (الكلية، المستوى، النوع، الجنسية)"
+              >
+                <span className="material-symbols-outlined">tune</span>
+                <span>تصفية متقدمة</span>
+                {activeDemographicCount > 0 && (
+                  <span className="adv-filter-count-badge">{activeDemographicCount}</span>
+                )}
+              </button>
+
+              {/* Reset All Filters Button */}
+              {hasActiveFilters && (
+                <button
+                  type="button"
+                  className="resv-reset-all-btn"
+                  onClick={handleResetAllFilters}
+                  title="إعادة تعيين جميع الفلاتر"
+                >
+                  <span className="material-symbols-outlined">restart_alt</span>
+                  <span>إعادة ضبط</span>
+                </button>
+              )}
+            </div>
+          }
         />
+
+        {/* Collapsible Advanced Demographic Filters Panel */}
+        {isAdvOpen && (
+          <div className="resv-adv-panel">
+            <div className="resv-adv-header">
+              <div className="resv-adv-title">
+                <span className="material-symbols-outlined">manage_search</span>
+                <h4>تصفية متقدمة لبيانات الطلاب</h4>
+                {activeDemographicCount > 0 && (
+                  <span className="adv-active-pill">
+                    {activeDemographicCount} فلاتر نشطة
+                  </span>
+                )}
+              </div>
+              {activeDemographicCount > 0 && (
+                <button
+                  type="button"
+                  className="resv-adv-clear-btn"
+                  onClick={handleResetAdvancedFilters}
+                >
+                  <span className="material-symbols-outlined">clear_all</span>
+                  <span>مسح التصفية المتقدمة</span>
+                </button>
+              )}
+            </div>
+
+            <div className="resv-adv-grid">
+              {/* Faculty */}
+              <div className="resv-adv-field">
+                <label>
+                  <span className="material-symbols-outlined">school</span>
+                  الكلية
+                </label>
+                <select
+                  value={facultyId}
+                  onChange={(e) => handleAdvFilterChange('faculty_id', e.target.value)}
+                >
+                  <option value="">جميع الكليات</option>
+                  {facultiesList.map((item) => {
+                    const fId = item.faculty_id ?? item.id;
+                    const fName = item.facultyName ?? item.faculty_name;
+                    return (
+                      <option key={fId} value={fId}>
+                        {fName}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+
+              {/* Level */}
+              <div className="resv-adv-field">
+                <label>
+                  <span className="material-symbols-outlined">stairs</span>
+                  المستوى / الفرقة
+                </label>
+                <select
+                  value={levelId}
+                  onChange={(e) => handleAdvFilterChange('level_id', e.target.value)}
+                >
+                  <option value="">جميع المستويات</option>
+                  {levelsList.map((item) => {
+                    const lId = item.level_id ?? item.id;
+                    const lName = item.levelName ?? item.level_name;
+                    return (
+                      <option key={lId} value={lId}>
+                        {lName}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+
+              {/* Gender */}
+              <div className="resv-adv-field">
+                <label>
+                  <span className="material-symbols-outlined">wc</span>
+                  النوع
+                </label>
+                <select
+                  value={genderFilter}
+                  onChange={(e) => handleAdvFilterChange('gender', e.target.value)}
+                >
+                  <option value="">الكل (ذكور وإناث)</option>
+                  <option value="ذكر">ذكر</option>
+                  <option value="أنثي">أنثى</option>
+                </select>
+              </div>
+
+              {/* Nationality */}
+              <div className="resv-adv-field">
+                <label>
+                  <span className="material-symbols-outlined">public</span>
+                  الجنسية
+                </label>
+                <select
+                  value={nationalityId}
+                  onChange={(e) => handleAdvFilterChange('nationality_id', e.target.value)}
+                >
+                  <option value="">الكل (مصري ووافد)</option>
+                  <option value="1">مصري</option>
+                  <option value="2">وافد</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        )}
         <Paper style={{ borderRadius: "10px" }} sx={{ width: '100%', mb: 2 }}>
           <EnhancedTableToolbar numSelected={selected.length} />
           <TableContainer>
@@ -320,18 +626,43 @@ export default function EnhancedTable() {
                 onSelectAllClick={handleSelectAllClick}
                 onRequestSort={handleRequestSort}
                 rowCount={sortedData?.length || 0}
+                showActions={activeStatus !== 'finished'}
               />
               <TableBody>
                 {status === StatusCode.SUCCESS && sortedData.length !== 0 ? sortedData.map((row, index) => {
                   const rowId = row.id ?? row.medicEx_id;
                   const isItemSelected = isSelected(rowId);
                   const labelId = `enhanced-table-checkbox-${index}`;
-                  const studentId = row.student?.id ?? row.student_id;
-                  const studentName = row.student?.name ?? row.student_name ?? "";
-                  const studentImg = row.student?.userImage || (row.student_image ? `${BASE_URL}/uploads/${row.student_image.replace(/^\/+/, '')}` : "");
-                  const nationalId = row.student?.nationalId ?? row.national_id ?? "";
-                  const clinicName = row.clinic?.name ?? row.clinic_name ?? "";
-                  const displayDate = row.date ? (typeof row.date === "string" && row.date.includes(",") ? row.date.split(",")[0] : String(row.date).slice(0, 10)) : "";
+                  const studentId = row.user?.id ?? row.student?.id ?? row.student_id;
+                  const studentName =
+                    row.user?.name ??
+                    row.student?.name ??
+                    row.student_name ??
+                    row.patient_name ??
+                    row.Name ??
+                    "";
+                  const studentImg =
+                    row.user?.profile_photo_url ||
+                    row.student?.userImage ||
+                    row.userImage ||
+                    (row.student_image
+                      ? `${BASE_URL}/uploads/${row.student_image.replace(/^\/+/, '')}`
+                      : "");
+                  const nationalId =
+                    row.user?.national_id ??
+                    row.student?.nationalId ??
+                    row.national_id ??
+                    row.nationalId ??
+                    "";
+                  const clinicName =
+                    typeof row.clinic === 'string'
+                      ? row.clinic
+                      : (row.clinic?.name ?? row.clinic_name ?? "");
+                  const displayDate = row.date
+                    ? (typeof row.date === "string" && row.date.includes(",")
+                        ? row.date.split(",")[0]
+                        : String(row.date).slice(0, 10))
+                    : "";
                   const examType = row.examType ?? row.exam_type ?? "";
                   const statusText = row.status ?? "";
 
@@ -344,9 +675,7 @@ export default function EnhancedTable() {
                       key={rowId ?? index}
                       selected={isItemSelected}
                       sx={{ cursor: 'pointer' }}
-
                     >
-
                       <TableCell onClick={(event) => { handleClick(event, rowId, row) }} padding="checkbox">
                         <Checkbox
                           color="primary"
@@ -364,18 +693,29 @@ export default function EnhancedTable() {
                         padding="none"
                         align='center'
                       >
-                        <Link to={`profile/${studentId}`} style={{ color: "black", display: "flex", alignItems: "center" }}>
-                          {studentImg ? (
-                            <img className='imgage-table' alt='user' src={studentImg} loading='lazy' />
-                          ) : null}
+                        {studentId ? (
+                          <Link to={`profile/${studentId}`} style={{ color: "black", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            {studentImg ? (
+                              <img className='imgage-table' alt='user' src={studentImg} loading='lazy' />
+                            ) : null}
 
-                          <Tooltip TransitionProps={{ timeout: 200 }} title={studentName} placement="top">
-                            <span>{studentName.length > 13 ? `${studentName.slice(0, 13)}...` : studentName}</span>
-                          </Tooltip>
-                        </Link>
+                            <Tooltip TransitionProps={{ timeout: 200 }} title={studentName} placement="top">
+                              <span>{studentName.length > 13 ? `${studentName.slice(0, 13)}...` : studentName}</span>
+                            </Tooltip>
+                          </Link>
+                        ) : (
+                          <div style={{ color: "black", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
+                            {studentImg ? (
+                              <img className='imgage-table' alt='user' src={studentImg} loading='lazy' />
+                            ) : null}
+
+                            <Tooltip TransitionProps={{ timeout: 200 }} title={studentName} placement="top">
+                              <span>{studentName.length > 13 ? `${studentName.slice(0, 13)}...` : studentName}</span>
+                            </Tooltip>
+                            <span style={{ fontSize: '11px', backgroundColor: '#e0f2fe', color: '#0369a1', padding: '2px 6px', borderRadius: '4px' }}>طوارئ</span>
+                          </div>
+                        )}
                       </TableCell>
-
-
 
                       <TableCell align="center">{nationalId}</TableCell>
                       <TableCell align="center">{clinicName}</TableCell>
@@ -383,30 +723,56 @@ export default function EnhancedTable() {
                       <TableCell align="center">{examType}</TableCell>
                       <TableCell align="center">{statusText}</TableCell>
 
-                      <TableCell align="center" style={{ display: "flex", justifyContent: "center" }}>
-                        <div className='k-btn-group'>
-
-                          {
-                            statusText === "مقبول" ?
-                              <div className='accept-resv'>مقبول</div> :
-                              statusText === "مرفوض" ? <div className='rej-resv'>مرفوض</div> :
-                                <React.Fragment>
-                                  <button onClick={() => acceptOrDecline(rowId, studentId, true)}><span className="material-symbols-outlined">
-                                    check
-                                  </span></button>
-                                  <button onClick={() => acceptOrDecline(rowId, studentId, false)}><span className="material-symbols-outlined">
-                                    close
-                                  </span></button></React.Fragment>
-
-                          }
-                        </div>
-                      </TableCell>
-
+                      {/* Actions: ONLY rendered on lists where actions are needed (hidden for finished/completed list) */}
+                      {activeStatus !== 'finished' && (
+                        <TableCell align="center" style={{ display: "flex", justifyContent: "center" }}>
+                          <div className='k-btn-group'>
+                            {statusText === "تحت الانتظار" ? (
+                              <React.Fragment>
+                                <Tooltip title="قبول الكشف" placement="top">
+                                  <button
+                                    type="button"
+                                    className="action-btn accept-action-btn"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      acceptOrDecline(rowId, studentId, true, statusText);
+                                    }}
+                                  >
+                                    <span className="material-symbols-outlined">check</span>
+                                  </button>
+                                </Tooltip>
+                                <Tooltip title="رفض الكشف" placement="top">
+                                  <button
+                                    type="button"
+                                    className="action-btn reject-action-btn"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      acceptOrDecline(rowId, studentId, false, statusText);
+                                    }}
+                                  >
+                                    <span className="material-symbols-outlined">close</span>
+                                  </button>
+                                </Tooltip>
+                              </React.Fragment>
+                            ) : (
+                              <Tooltip title="تم اتخاذ الإجراء سابقاً ولا يتطلب إجراءً حالياً" placement="top">
+                                <span className="no-action-tag">
+                                  {statusText === "مقبول" ? (
+                                    <div className='accept-resv'>مقبول</div>
+                                  ) : statusText === "مرفوض" ? (
+                                    <div className='rej-resv'>مرفوض</div>
+                                  ) : (
+                                    <div className='neutral-resv'>{statusText || "مكتمل"}</div>
+                                  )}
+                                </span>
+                              </Tooltip>
+                            )}
+                          </div>
+                        </TableCell>
+                      )}
                     </TableRow>
-
-
                   );
-                }) : <TableRow  > <TableCell colSpan={8}>  <h3 style={{ width: "100%", textAlign: "center", fontSize: "25px" }} > غير موجود </h3> </TableCell> </TableRow>
+                }) : <TableRow  > <TableCell colSpan={activeStatus !== 'finished' ? 8 : 7}>  <h3 style={{ width: "100%", textAlign: "center", fontSize: "25px" }} > غير موجود </h3> </TableCell> </TableRow>
                 }
               </TableBody>
             </Table>

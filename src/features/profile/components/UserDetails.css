@@ -1,0 +1,164 @@
+/* User Documents Modal & Review Styling */
+
+.user-docs-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.user-docs-btn-trigger {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 8px 20px !important;
+  border-radius: 12px !important;
+  font-weight: 600 !important;
+  font-family: inherit !important;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2) !important;
+  transition: all 0.2s ease !important;
+}
+
+.user-docs-btn-trigger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3) !important;
+}
+
+.doc-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.doc-status-badge.approved {
+  background-color: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.doc-status-badge.pending {
+  background-color: #fffbeb;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.doc-status-badge.rejected {
+  background-color: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+/* Modal Dialog */
+.docs-dialog-paper {
+  border-radius: 20px !important;
+  overflow: hidden !important;
+  direction: rtl !important;
+}
+
+.docs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  margin-top: 16px;
+}
+
+.doc-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.2s ease;
+}
+
+.doc-card:hover {
+  border-color: #cbd5e1;
+}
+
+.doc-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.doc-preview-container {
+  height: 220px;
+  width: 100%;
+  border-radius: 12px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-bottom: 12px;
+}
+
+.doc-preview-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.doc-preview-container:hover .doc-preview-img {
+  transform: scale(1.03);
+}
+
+.doc-empty-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  padding: 20px;
+  text-align: center;
+}
+
+.doc-empty-box span {
+  font-size: 40px;
+  margin-bottom: 8px;
+}
+
+.doc-card-footer {
+  margin-top: auto;
+  display: flex;
+  justify-content: center;
+}
+
+.rejection-reason-box {
+  background-color: #fff1f2;
+  border: 1px solid #fecdd3;
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-top: 20px;
+  color: #9f1239;
+  font-size: 13.5px;
+}
+
+.rejection-reason-box strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.reject-form-container {
+  margin-top: 20px;
+  background-color: #fafafa;
+  border: 1px dashed #e5e7eb;
+  border-radius: 14px;
+  padding: 16px;
+}

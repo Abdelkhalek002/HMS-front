@@ -81,11 +81,14 @@ function ClinicsSection() {
     dispatch(getAllClinicsAPI({ token }));
   }, [dispatch, token]);
 
-  const handleCreate = (clinicName) =>
-    dispatch(addNewClinicsAPI({ data: { clinicName }, token })).unwrap();
+  const handleCreate = (clinicName, is_active = true) =>
+    dispatch(addNewClinicsAPI({ data: { clinicName, is_active }, token })).unwrap();
 
-  const handleUpdate = (id, clinicName) =>
-    dispatch(updateClinicsAPI({ data: { id, clinicName }, token })).unwrap();
+  const handleUpdate = (id, clinicName, is_active) =>
+    dispatch(updateClinicsAPI({ data: { id, clinicName, is_active }, token })).unwrap();
+
+  const handleToggleActive = (id, is_active) =>
+    dispatch(updateClinicsAPI({ data: { id, is_active }, token })).unwrap();
 
   const handleDelete = (id) =>
     dispatch(deleteClinicsAPI({ data: id, token })).unwrap();
@@ -108,6 +111,7 @@ function ClinicsSection() {
       onFetch={fetchClinics}
       onCreate={handleCreate}
       onUpdate={handleUpdate}
+      onToggleActive={handleToggleActive}
       onDelete={handleDelete}
       pageSize={8}
     />
@@ -123,11 +127,14 @@ function LevelsSection() {
     dispatch(getAllLevelsAPI());
   }, [dispatch]);
 
-  const handleCreate = (levelName) =>
-    dispatch(addNewLevelsAPI({ data: { levelName }, token })).unwrap();
+  const handleCreate = (levelName, is_active = true) =>
+    dispatch(addNewLevelsAPI({ data: { levelName, is_active }, token })).unwrap();
 
-  const handleUpdate = (id, levelName) =>
-    dispatch(updateLevelsAPI({ data: { id, levelName }, token })).unwrap();
+  const handleUpdate = (id, levelName, is_active) =>
+    dispatch(updateLevelsAPI({ data: { id, levelName, is_active }, token })).unwrap();
+
+  const handleToggleActive = (id, is_active) =>
+    dispatch(updateLevelsAPI({ data: { id, is_active }, token })).unwrap();
 
   const handleDelete = (id) =>
     dispatch(deleteLevelsAPI({ data: id, token })).unwrap();
@@ -150,6 +157,7 @@ function LevelsSection() {
       onFetch={fetchLevels}
       onCreate={handleCreate}
       onUpdate={handleUpdate}
+      onToggleActive={handleToggleActive}
       onDelete={handleDelete}
       pageSize={8}
     />
@@ -165,11 +173,14 @@ function FacultiesSection() {
     dispatch(getAllFacultiesAPI());
   }, [dispatch]);
 
-  const handleCreate = (facultyName) =>
-    dispatch(addNewFacultyAPI({ data: { facultyName }, token })).unwrap();
+  const handleCreate = (facultyName, is_active = true) =>
+    dispatch(addNewFacultyAPI({ data: { facultyName, is_active }, token })).unwrap();
 
-  const handleUpdate = (id, facultyName) =>
-    dispatch(updateFacultyAPI({ data: { id, facultyName }, token })).unwrap();
+  const handleUpdate = (id, facultyName, is_active) =>
+    dispatch(updateFacultyAPI({ data: { id, facultyName, is_active }, token })).unwrap();
+
+  const handleToggleActive = (id, is_active) =>
+    dispatch(updateFacultyAPI({ data: { id, is_active }, token })).unwrap();
 
   const handleDelete = (id) =>
     dispatch(deleteFacultyAPI({ data: id, token })).unwrap();
@@ -192,6 +203,7 @@ function FacultiesSection() {
       onFetch={fetchFaculties}
       onCreate={handleCreate}
       onUpdate={handleUpdate}
+      onToggleActive={handleToggleActive}
       onDelete={handleDelete}
       pageSize={8}
     />
@@ -207,11 +219,14 @@ function HospitalsSection() {
     dispatch(getAllExhospitalsAPI({ token }));
   }, [dispatch, token]);
 
-  const handleCreate = (hospName) =>
-    dispatch(addNewExhospitalAPI({ data: { hospName }, token })).unwrap();
+  const handleCreate = (hospitalName, is_active = true) =>
+    dispatch(addNewExhospitalAPI({ data: { hospitalName, is_active }, token })).unwrap();
 
-  const handleUpdate = (id, hospName) =>
-    dispatch(updateExhospitalAPI({ data: { id, hospName }, token })).unwrap();
+  const handleUpdate = (id, hospitalName, is_active) =>
+    dispatch(updateExhospitalAPI({ data: { id, hospitalName, is_active }, token })).unwrap();
+
+  const handleToggleActive = (id, is_active) =>
+    dispatch(updateExhospitalAPI({ data: { id, is_active }, token })).unwrap();
 
   const handleDelete = (id) =>
     dispatch(deleteExhospitalAPI({ data: id, token })).unwrap();
@@ -230,10 +245,11 @@ function HospitalsSection() {
       data={data}
       status={status}
       idKey="exHosp_id"
-      nameKey="hospName"
+      nameKey="hospitalName"
       onFetch={fetchHospitals}
       onCreate={handleCreate}
       onUpdate={handleUpdate}
+      onToggleActive={handleToggleActive}
       onDelete={handleDelete}
       pageSize={8}
     />
@@ -249,11 +265,14 @@ function GovernoratesSection() {
     dispatch(getAllGovsAPI());
   }, [dispatch]);
 
-  const handleCreate = (govName) =>
-    dispatch(addNewGovernorateAPI({ data: { govName }, token })).unwrap();
+  const handleCreate = (govName, is_active = true) =>
+    dispatch(addNewGovernorateAPI({ data: { govName, is_active }, token })).unwrap();
 
-  const handleUpdate = (id, govName) =>
-    dispatch(updateGovernorateAPI({ data: { id, govName }, token })).unwrap();
+  const handleUpdate = (id, govName, is_active) =>
+    dispatch(updateGovernorateAPI({ data: { id, govName, is_active }, token })).unwrap();
+
+  const handleToggleActive = (id, is_active) =>
+    dispatch(updateGovernorateAPI({ data: { id, is_active }, token })).unwrap();
 
   const handleDelete = (id) =>
     dispatch(deleteGovernorateAPI({ data: id, token })).unwrap();
@@ -276,6 +295,7 @@ function GovernoratesSection() {
       onFetch={fetchGovs}
       onCreate={handleCreate}
       onUpdate={handleUpdate}
+      onToggleActive={handleToggleActive}
       onDelete={handleDelete}
       pageSize={8}
     />

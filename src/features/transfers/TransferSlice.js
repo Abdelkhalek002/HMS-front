@@ -10,14 +10,16 @@ export const updateTransferAPI = createAsyncThunk(
   async (args, thunkAPI) => {
     const { rejectWithValue, dispatch } = thunkAPI;
     const transferId = args.data?.transfer?.id ?? args.data?.transfer_id;
-    const studentId = args.data?.student?.id ?? args.data?.student_id;
+    const studentId = args.data?.user?.id ?? args.data?.student?.id ?? args.data?.student_id;
 
     try {
       const response = await apiClient.put(`/admin/transfer/${transferId}`, {
         student_id: studentId,
+        user_id: studentId,
         transferReason: args.data?.transfer?.reason,
         notes: args.data?.transfer?.notes,
         exHosp_id: parseInt(args.data?.hospital),
+        hospital_id: parseInt(args.data?.hospital),
       });
       dispatch(
         getAllReservationListAPI({
@@ -37,19 +39,26 @@ export const transferAPI = createAsyncThunk(
   "transfer/make",
   async (args, thunkAPI) => {
     const { rejectWithValue, dispatch } = thunkAPI;
-    const studentId = args.data?.student?.id ?? args.data?.student_id;
-    const medicExId = args.data?.id ?? args.data?.medicEx_id;
-    const clinicId = args.data?.clinic?.id ?? args.data?.clinic_id;
-    const studentName = args.data?.student?.name ?? args.data?.student_name;
+    const studentId = args.data?.user?.id ?? args.data?.student?.id ?? args.data?.student_id;
+    const medicExId = args.data?.id ?? args.data?.medicEx_id ?? args.data?.reservation_id;
+    const clinicId = args.data?.clinic?.id ?? args.data?.clinic_id ?? args.data?.clinicId;
+    const studentName =
+      args.data?.user?.name ??
+      args.data?.student?.name ??
+      args.data?.student_name ??
+      args.data?.patient_name;
 
     try {
       const response = await apiClient.post(`/admin/transfer`, {
         student_id: studentId,
+        user_id: studentId,
         transferReason: "لايوجود",
         notes: "مش دوكش",
         medicEx_id: medicExId,
+        reservation_id: medicExId,
         clinic_id: clinicId,
         exHosp_id: parseInt(args.data?.hospital),
+        hospital_id: parseInt(args.data?.hospital),
       });
       dispatch(
         getAllReservationListAPI({

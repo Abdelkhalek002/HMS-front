@@ -110,11 +110,12 @@ const LoginPage = () => {
                     navigate(targetRoute);
                 })
                 .catch((error) => {
-                    const message =
-                        error?.message ||
-                        error?.error ||
+                    const rawMessage =
+                        (typeof error?.message === 'string' ? error.message : null) ||
+                        (typeof error?.error === 'string' ? error.error : null) ||
                         (typeof error === 'string' ? error : null) ||
                         'كلمة المرور او الايميل غير صحيح';
+                    const message = String(rawMessage);
 
                     const isVerificationError =
                         message.includes('رمز التحقق') ||

@@ -154,6 +154,29 @@ export const PermissionGuard = ({ requiredPermission, fallback = '/notfound' }) 
   return <Outlet />;
 };
 
+/**
+ * Route guard that prevents students with pending documents from viewing
+ * profile or change password pages until their documents are approved.
+ */
+export const StudentDocumentGuard = () => {
+  const userData = useSelector((state) => state.UserSlice?.data);
+  const auth = useSelector(getUserInfo);
+
+  const docStatus =
+    userData?.document_status ||
+    auth?.user?.document_status ||
+    auth?.payLoad?.document_status ||
+    (userData?.status === 'approved' ? 'approved' : 'pending');
+
+  const isDocumentPending = docStatus === 'pending';
+
+  if (isDocumentPending) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <Outlet />;
+};
+
 const guards = {
   AuthGuard,
   UserGuard,
@@ -161,6 +184,7 @@ const guards = {
   CounterGuard,
   TransferGuard,
   PermissionGuard,
+  StudentDocumentGuard,
 };
 
 export default guards;

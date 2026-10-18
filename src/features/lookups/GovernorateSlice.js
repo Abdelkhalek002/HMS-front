@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import apiClient from "../../services/http/apiClient";
 import StatusCode from "../../StatusCode.js";
+import { normalizeApiError } from "../../utils/apiErrorHelper";
 
 export const getAllGovsAPI = createAsyncThunk('governorates/getAll', async (_, thunkAPI) => {
     const { rejectWithValue } = thunkAPI;
@@ -8,7 +9,7 @@ export const getAllGovsAPI = createAsyncThunk('governorates/getAll', async (_, t
         const response = await apiClient.get('/governorates');
         return response.data;
     } catch (error) {
-        return rejectWithValue(error.response?.data || { message: "Failed to fetch governorates", error: error.message });
+        return rejectWithValue(normalizeApiError(error));
     }
 });
 
@@ -20,7 +21,7 @@ export const deleteGovernorateAPI = createAsyncThunk('governorates/delete', asyn
         dispatch(getAllGovsAPI());
         return response.data;
     } catch (error) {
-        return rejectWithValue(error.response?.data || { message: "Failed to delete governorate", error: error.message });
+        return rejectWithValue(normalizeApiError(error));
     }
 });
 
@@ -31,7 +32,7 @@ export const addNewGovernorateAPI = createAsyncThunk('governorates/add', async (
         dispatch(getAllGovsAPI());
         return response.data;
     } catch (error) {
-        return rejectWithValue(error.response?.data || { message: "Failed to add governorate", error: error.message });
+        return rejectWithValue(normalizeApiError(error));
     }
 });
 
@@ -43,13 +44,14 @@ export const updateGovernorateAPI = createAsyncThunk('governorates/update', asyn
         dispatch(getAllGovsAPI());
         return response.data;
     } catch (error) {
-        return rejectWithValue(error.response?.data || { message: "Failed to update governorate", error: error.message });
+        return rejectWithValue(normalizeApiError(error));
     }
 });
 
 const initialState = {
     data: [],
-    status: StatusCode.IDLE
+    status: StatusCode.IDLE,
+    error: null,
 };
 
 const GovernorateSlice = createSlice({
@@ -60,75 +62,91 @@ const GovernorateSlice = createSlice({
         builder.addCase(getAllGovsAPI.fulfilled, (state, action) => {
             const rawList = Array.isArray(action.payload)
                 ? action.payload
-                : (action.payload?.value || []);
+                : (action.payload?.data || action.payload?.value || []);
             state.data = rawList.map(item => ({
                 ...item,
                 id: item.id ?? item.gov_id,
                 gov_id: item.gov_id ?? item.id,
                 govName: item.govName ?? item.gov_name ?? '',
-                gov_name: item.gov_name ?? item.govName ?? ''
+                gov_name: item.gov_name ?? item.govName ?? '',
+                is_active: item.is_active !== undefined ? Boolean(item.is_active) : true,
             }));
             state.status = StatusCode.IDLE;
+            state.error = null;
         });
         builder.addCase(getAllGovsAPI.pending, (state) => {
             state.status = StatusCode.LOADING;
+            state.error = null;
         });
-        builder.addCase(getAllGovsAPI.rejected, (state) => {
+        builder.addCase(getAllGovsAPI.rejected, (state, action) => {
             state.status = StatusCode.ERROR;
+            state.error = action.payload;
         });
 
         builder.addCase(deleteGovernorateAPI.fulfilled, (state, action) => {
             const targetId = action.payload?.id ?? action.payload?.gov_id ?? action.payload;
             state.data = state.data.filter(item => item.id !== targetId && item.gov_id !== targetId);
             state.status = StatusCode.IDLE;
+            state.error = null;
         });
         builder.addCase(deleteGovernorateAPI.pending, (state) => {
             state.status = StatusCode.LOADING;
+            state.error = null;
         });
-        builder.addCase(deleteGovernorateAPI.rejected, (state) => {
+        builder.addCase(deleteGovernorateAPI.rejected, (state, action) => {
             state.status = StatusCode.ERROR;
+            state.error = action.payload;
         });
 
         builder.addCase(addNewGovernorateAPI.fulfilled, (state, action) => {
-            const item = action.payload;
+            const item = action.payload?.data || action.payload;
             if (item) {
                 state.data.push({
                     ...item,
                     id: item.id ?? item.gov_id,
                     gov_id: item.gov_id ?? item.id,
                     govName: item.govName ?? item.gov_name ?? '',
-                    gov_name: item.gov_name ?? item.govName ?? ''
+                    gov_name: item.gov_name ?? item.govName ?? '',
+                    is_active: item.is_active !== undefined ? Boolean(item.is_active) : true,
                 });
             }
             state.status = StatusCode.IDLE;
+            state.error = null;
         });
         builder.addCase(addNewGovernorateAPI.pending, (state) => {
             state.status = StatusCode.LOADING;
+            state.error = null;
         });
-        builder.addCase(addNewGovernorateAPI.rejected, (state) => {
+        builder.addCase(addNewGovernorateAPI.rejected, (state, action) => {
             state.status = StatusCode.ERROR;
+            state.error = action.payload;
         });
 
         builder.addCase(updateGovernorateAPI.fulfilled, (state, action) => {
-            const targetId = action.payload?.id ?? action.payload?.gov_id;
+            const updated = action.payload?.data || action.payload;
+            const targetId = updated?.id ?? updated?.gov_id;
             const index = state.data.findIndex(item => item.id === targetId || item.gov_id === targetId);
             if (index !== -1) {
                 state.data[index] = {
                     ...state.data[index],
-                    ...action.payload,
-                    id: action.payload.id ?? action.payload.gov_id ?? state.data[index].id,
-                    gov_id: action.payload.gov_id ?? action.payload.id ?? state.data[index].gov_id,
-                    govName: action.payload.govName ?? action.payload.gov_name ?? state.data[index].govName,
-                    gov_name: action.payload.gov_name ?? action.payload.govName ?? state.data[index].gov_name
+                    ...updated,
+                    id: updated.id ?? updated.gov_id ?? state.data[index].id,
+                    gov_id: updated.gov_id ?? updated.id ?? state.data[index].gov_id,
+                    govName: updated.govName ?? updated.gov_name ?? state.data[index].govName,
+                    gov_name: updated.gov_name ?? updated.govName ?? state.data[index].gov_name,
+                    is_active: updated.is_active !== undefined ? Boolean(updated.is_active) : state.data[index].is_active,
                 };
             }
             state.status = StatusCode.IDLE;
+            state.error = null;
         });
         builder.addCase(updateGovernorateAPI.pending, (state) => {
             state.status = StatusCode.LOADING;
+            state.error = null;
         });
-        builder.addCase(updateGovernorateAPI.rejected, (state) => {
+        builder.addCase(updateGovernorateAPI.rejected, (state, action) => {
             state.status = StatusCode.ERROR;
+            state.error = action.payload;
         });
     }
 });

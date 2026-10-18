@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import apiClient from "../../services/http/apiClient";
 import StatusCode from "../../StatusCode.js";
+import { normalizeApiError } from "../../utils/apiErrorHelper";
 
 export const getAllClinicsAPI = createAsyncThunk(
   "clinic/getall",
@@ -10,7 +11,7 @@ export const getAllClinicsAPI = createAsyncThunk(
       const response = await apiClient.get("/clinics");
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || error.message);
+      return rejectWithValue(normalizeApiError(error));
     }
   },
 );
@@ -26,7 +27,7 @@ export const deleteClinicsAPI = createAsyncThunk(
       dispatch(getAllClinicsAPI());
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || error.message);
+      return rejectWithValue(normalizeApiError(error));
     }
   },
 );
@@ -37,10 +38,11 @@ export const addNewClinicsAPI = createAsyncThunk(
     const { rejectWithValue, dispatch } = thunkAPI;
     try {
       const response = await apiClient.post("/clinics", args?.data || args);
+
       dispatch(getAllClinicsAPI());
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || error.message);
+      return rejectWithValue(normalizeApiError(error));
     }
   },
 );
@@ -55,7 +57,7 @@ export const updateClinicsAPI = createAsyncThunk(
       dispatch(getAllClinicsAPI());
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || error.message);
+      return rejectWithValue(normalizeApiError(error));
     }
   },
 );
@@ -63,6 +65,7 @@ export const updateClinicsAPI = createAsyncThunk(
 const initialState = {
   data: [],
   status: StatusCode.IDLE,
+  error: null,
 };
 
 const ClinicSlice = createSlice({
@@ -72,74 +75,92 @@ const ClinicSlice = createSlice({
   extraReducers: (builder) => {
     //* For Get All Clinics
     builder.addCase(getAllClinicsAPI.fulfilled, (state, action) => {
-      console.log("Success");
       const raw = Array.isArray(action.payload)
         ? action.payload
         : action.payload?.data || [];
       state.data = raw.map((item) => ({
         ...item,
         clinic_id: item.clinic_id ?? item.id,
+        clinicName: item.clinicName ?? item.clinic_name ?? '',
+        is_active: item.is_active !== undefined ? Boolean(item.is_active) : true,
       }));
       state.status = StatusCode.IDLE;
+      state.error = null;
     });
     builder.addCase(getAllClinicsAPI.pending, (state) => {
-      console.log("Penddding");
       state.status = StatusCode.LOADING;
+      state.error = null;
     });
-    builder.addCase(getAllClinicsAPI.rejected, (state) => {
-      console.log("REJJjjjected");
+    builder.addCase(getAllClinicsAPI.rejected, (state, action) => {
       state.status = StatusCode.ERROR;
+      state.error = action.payload;
     });
 
     //! For Delete Clinic
     builder.addCase(deleteClinicsAPI.fulfilled, (state, action) => {
-      console.log("Successs");
       state.data = state.data.filter(
         (item) => item.clinic_id !== action.payload.clinic_id,
       );
       state.status = StatusCode.IDLE;
+      state.error = null;
     });
     builder.addCase(deleteClinicsAPI.pending, (state) => {
-      console.log("Penddding");
       state.status = StatusCode.LOADING;
+      state.error = null;
     });
-    builder.addCase(deleteClinicsAPI.rejected, (state) => {
-      console.log("REJJjjjected");
+    builder.addCase(deleteClinicsAPI.rejected, (state, action) => {
       state.status = StatusCode.ERROR;
+      state.error = action.payload;
     });
 
     //? For Add Clinic
     builder.addCase(addNewClinicsAPI.fulfilled, (state, action) => {
-      console.log("Successs");
-      state.data.push(action.payload);
+      const item = action.payload?.data || action.payload;
+      if (item) {
+        state.data.push({
+          ...item,
+          clinic_id: item.clinic_id ?? item.id,
+          clinicName: item.clinicName ?? item.clinic_name ?? '',
+          is_active: item.is_active !== undefined ? Boolean(item.is_active) : true,
+        });
+      }
       state.status = StatusCode.IDLE;
+      state.error = null;
     });
     builder.addCase(addNewClinicsAPI.pending, (state) => {
-      console.log("Penddding");
       state.status = StatusCode.LOADING;
+      state.error = null;
     });
-    builder.addCase(addNewClinicsAPI.rejected, (state) => {
-      console.log("REJJjjjected");
+    builder.addCase(addNewClinicsAPI.rejected, (state, action) => {
       state.status = StatusCode.ERROR;
+      state.error = action.payload;
     });
 
     //? For Update Clinic
     builder.addCase(updateClinicsAPI.fulfilled, (state, action) => {
-      console.log("Successs");
-      console.log("desfdsfdgfsdg", state.data);
+      const updated = action.payload?.data || action.payload;
+      const targetId = updated?.clinic_id ?? updated?.id;
       const index = state.data.findIndex(
-        (item) => item.clinic_id === action.payload.clinic_id,
+        (item) => item.clinic_id === targetId,
       );
-      state.data[index] = action.payload;
+      if (index !== -1) {
+        state.data[index] = {
+          ...state.data[index],
+          ...updated,
+          clinic_id: targetId,
+          is_active: updated.is_active !== undefined ? Boolean(updated.is_active) : state.data[index].is_active,
+        };
+      }
       state.status = StatusCode.IDLE;
+      state.error = null;
     });
     builder.addCase(updateClinicsAPI.pending, (state) => {
-      console.log("Penddding");
       state.status = StatusCode.LOADING;
+      state.error = null;
     });
     builder.addCase(updateClinicsAPI.rejected, (state, action) => {
-      console.log("REJJjjjected", action.payload);
       state.status = StatusCode.ERROR;
+      state.error = action.payload;
     });
   },
 });

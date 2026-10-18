@@ -22,7 +22,7 @@ const NewPasswordComponent = () => {
     const forgetPasswordHandler = ()=>{
         if(password !== '' && rePassword !== ''){
             if(password === rePassword) {
-                dispatch(forgetPasswordAPI( {password}))
+                dispatch(forgetPasswordAPI({ password, password_confirm: rePassword }))
             }else{
                 toast.error('كلمة السر غير متطابقة ')
             }

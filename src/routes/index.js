@@ -6,6 +6,7 @@ export {
   CounterGuard,
   TransferGuard,
   PermissionGuard,
+  StudentDocumentGuard,
   // Backward compatible aliases
   UserGuard as UserProtect,
   AdminGuard as AdminProtect,

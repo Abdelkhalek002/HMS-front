@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import apiClient from "../../services/http/apiClient";
 import StatusCode from "../../StatusCode.js";
+import { normalizeApiError } from "../../utils/apiErrorHelper";
 
 export const getAllExhospitalsAPI = createAsyncThunk('exhospital/getall', async (_, thunkAPI) => {
     const { rejectWithValue } = thunkAPI;
@@ -8,7 +9,7 @@ export const getAllExhospitalsAPI = createAsyncThunk('exhospital/getall', async 
         const response = await apiClient.get('/hospitals');
         return response.data;
     } catch (error) {
-        return rejectWithValue(error.response?.data || { message: "Failed to fetch hospital", error: error.message });
+        return rejectWithValue(normalizeApiError(error));
     }
 });
 
@@ -20,7 +21,7 @@ export const deleteExhospitalAPI = createAsyncThunk('exhospital/delete', async (
         dispatch(getAllExhospitalsAPI());
         return response.data;
     } catch (error) {
-        return rejectWithValue(error.response?.data || { message: "Failed to delete exhospital", error: error.message });
+        return rejectWithValue(normalizeApiError(error));
     }
 });
 
@@ -31,7 +32,7 @@ export const addNewExhospitalAPI = createAsyncThunk('exhospital/add', async (arg
         dispatch(getAllExhospitalsAPI());
         return response.data;
     } catch (error) {
-        return rejectWithValue(error.response?.data || { message: "Failed to add exhospital", error: error.message });
+        return rejectWithValue(normalizeApiError(error));
     }
 });
 
@@ -43,13 +44,14 @@ export const updateExhospitalAPI = createAsyncThunk('exhospital/update', async (
         dispatch(getAllExhospitalsAPI());
         return response.data;
     } catch (error) {
-        return rejectWithValue(error.response?.data || { message: "Failed to update exhospital", error: error.message });
+        return rejectWithValue(normalizeApiError(error));
     }
 });
 
 const initialState = {
     data: [],
-    status: StatusCode.IDLE
+    status: StatusCode.IDLE,
+    error: null,
 };
 
 const exHospitalSlice = createSlice({
@@ -59,52 +61,97 @@ const exHospitalSlice = createSlice({
     extraReducers: (builder) => {
         //* For Get All exhospitals
         builder.addCase(getAllExhospitalsAPI.fulfilled, (state, action) => {
-            state.data = action.payload;
+            const rawList = Array.isArray(action.payload)
+                ? action.payload
+                : (action.payload?.data || action.payload?.value || []);
+            state.data = rawList.map(item => ({
+                ...item,
+                exhospital_id: item.exhospital_id ?? item.id ?? item.exHosp_id,
+                exHosp_id: item.exHosp_id ?? item.exhospital_id ?? item.id,
+                hospName: item.hospName ?? item.hospitalName ?? item.hospital_name ?? item.name ?? '',
+                hospitalName: item.hospitalName ?? item.hospName ?? item.hospital_name ?? item.name ?? '',
+                hospital_name: item.hospital_name ?? item.hospitalName ?? item.hospName ?? item.name ?? '',
+                is_active: item.is_active !== undefined ? Boolean(item.is_active) : true,
+            }));
             state.status = StatusCode.IDLE;
+            state.error = null;
         });
         builder.addCase(getAllExhospitalsAPI.pending, (state) => {
             state.status = StatusCode.LOADING;
+            state.error = null;
         });
-        builder.addCase(getAllExhospitalsAPI.rejected, (state) => {
+        builder.addCase(getAllExhospitalsAPI.rejected, (state, action) => {
             state.status = StatusCode.ERROR;
+            state.error = action.payload;
         });
 
         //! For Delete exhospital
         builder.addCase(deleteExhospitalAPI.fulfilled, (state, action) => {
-            state.data = state.data.filter(item => item.exhospital_id !== action.payload.exhospital_id);
+            const targetId = action.payload?.exhospital_id ?? action.payload?.id ?? action.payload?.exHosp_id ?? action.payload;
+            state.data = state.data.filter(item => item.exhospital_id !== targetId && item.exHosp_id !== targetId);
             state.status = StatusCode.IDLE;
+            state.error = null;
         });
         builder.addCase(deleteExhospitalAPI.pending, (state) => {
             state.status = StatusCode.LOADING;
+            state.error = null;
         });
-        builder.addCase(deleteExhospitalAPI.rejected, (state) => {
+        builder.addCase(deleteExhospitalAPI.rejected, (state, action) => {
             state.status = StatusCode.ERROR;
+            state.error = action.payload;
         });
 
         //? For Add exhospital
         builder.addCase(addNewExhospitalAPI.fulfilled, (state, action) => {
-            state.data.push(action.payload);
+            const item = action.payload?.data || action.payload;
+            if (item) {
+                state.data.push({
+                    ...item,
+                    exhospital_id: item.exhospital_id ?? item.id ?? item.exHosp_id,
+                    exHosp_id: item.exHosp_id ?? item.exhospital_id ?? item.id,
+                    hospName: item.hospName ?? item.hospitalName ?? item.hospital_name ?? item.name ?? '',
+                    hospitalName: item.hospitalName ?? item.hospName ?? item.hospital_name ?? item.name ?? '',
+                    hospital_name: item.hospital_name ?? item.hospitalName ?? item.hospName ?? item.name ?? '',
+                    is_active: item.is_active !== undefined ? Boolean(item.is_active) : true,
+                });
+            }
             state.status = StatusCode.IDLE;
+            state.error = null;
         });
         builder.addCase(addNewExhospitalAPI.pending, (state) => {
             state.status = StatusCode.LOADING;
+            state.error = null;
         });
-        builder.addCase(addNewExhospitalAPI.rejected, (state) => {
+        builder.addCase(addNewExhospitalAPI.rejected, (state, action) => {
             state.status = StatusCode.ERROR;
+            state.error = action.payload;
         });
 
         //? For Update exhospital
         builder.addCase(updateExhospitalAPI.fulfilled, (state, action) => {
-            const index = state.data.findIndex(item => item.exhospital_id === action.payload.exhospital_id);
-            state.data[index] = action.payload;
+            const updated = action.payload?.data || action.payload;
+            const targetId = updated?.exhospital_id ?? updated?.id ?? updated?.exHosp_id;
+            const index = state.data.findIndex(item => item.exhospital_id === targetId || item.exHosp_id === targetId);
+            if (index !== -1) {
+                state.data[index] = {
+                    ...state.data[index],
+                    ...updated,
+                    exhospital_id: targetId,
+                    exHosp_id: targetId,
+                    is_active: updated.is_active !== undefined ? Boolean(updated.is_active) : state.data[index].is_active,
+                };
+            }
             state.status = StatusCode.IDLE;
+            state.error = null;
         });
 
         builder.addCase(updateExhospitalAPI.pending, (state) => {
             state.status = StatusCode.LOADING;
+            state.error = null;
         });
-        builder.addCase(updateExhospitalAPI.rejected, (state) => {
+        builder.addCase(updateExhospitalAPI.rejected, (state, action) => {
             state.status = StatusCode.ERROR;
+            state.error = action.payload;
         });
     }
 });

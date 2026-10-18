@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import {
+  Alert,
   Box,
   Button,
+  Chip,
+  CircularProgress,
   IconButton,
   Modal,
   Pagination,
   Paper,
+  Switch,
   Table,
   TableBody,
   TableHead,
@@ -19,6 +23,7 @@ import { CircleLoader } from 'react-spinners';
 import swal from 'sweetalert';
 import { toast } from 'react-toastify';
 import StatusCode from '../../../StatusCode.js';
+import { parseApiError } from '../../../utils/apiErrorHelper';
 import {
   StyledTableCell,
   StyledTableRow,
@@ -38,6 +43,7 @@ export default function LookupPage({
   onFetch,
   onCreate,
   onUpdate,
+  onToggleActive,
   onDelete,
   iconName,
   customIcon,
@@ -53,12 +59,17 @@ export default function LookupPage({
     mode: 'add',
     id: null,
     value: '',
+    isActive: true,
   });
+  const [modalError, setModalError] = useState('');
+  const [togglingId, setTogglingId] = useState(null);
 
   const [page, setPage] = useState(1);
 
   const items = Array.isArray(data)
     ? data
+    : Array.isArray(data?.data)
+    ? data.data
     : Array.isArray(data?.value)
     ? data.value
     : [];
@@ -76,49 +87,76 @@ export default function LookupPage({
     }
   }, [onFetch]);
 
-  const handleCatchError = (error) => {
+  const handleCatchError = (error, isModal = false) => {
     console.error(`Error in ${entitySingular} operation:`, error);
-    const is429 =
-      error?.status === 429 ||
-      error?.status === '429' ||
-      error?.error === 'Request failed with status code 429';
-    const is409 =
-      error?.status === 409 ||
-      error?.status === '409' ||
-      error?.error === 'Request failed with status code 409';
+    const { message } = parseApiError(error);
 
-    if (is429) {
-      toast.error('تجاوزت الحد الاقصي من المحاولة برجاء المحاولة لاحقا', {
-        theme: 'colored',
-        position: 'top-right',
-      });
-    } else if (is409) {
-      toast.error(`${entitySingular} موجودة بالفعل`, {
-        theme: 'colored',
-        position: 'top-right',
-      });
+    if (isModal) {
+      setModalError(message);
     } else {
-      toast.error('حدث خطأ ما برجاء المحاولة لاحقا', {
+      toast.error(message, {
         theme: 'colored',
         position: 'top-right',
       });
     }
   };
 
-  const handleOpenAddModal = () => {
-    setModalState({ open: true, mode: 'add', id: null, value: '' });
+  const handleToggleActive = async (item) => {
+    const id = item[idKey];
+    const currentActive =
+      item.is_active !== undefined ? Boolean(item.is_active) : true;
+    const newActive = !currentActive;
+
+    setTogglingId(id);
+    try {
+      if (onToggleActive) {
+        await onToggleActive(id, newActive);
+      } else if (onUpdate) {
+        await onUpdate(id, item[nameKey], newActive);
+      }
+      toast.success(
+        `تم ${newActive ? 'تفعيل' : 'تعطيل'} ${entitySingular} بنجاح`,
+        {
+          theme: 'colored',
+          position: 'top-right',
+          autoClose: 2000,
+        }
+      );
+      if (onFetch) onFetch();
+    } catch (error) {
+      console.error(`Error toggling status for ${entitySingular}:`, error);
+      const { message } = parseApiError(error);
+      toast.error(message, {
+        theme: 'colored',
+        position: 'top-right',
+      });
+    } finally {
+      setTogglingId(null);
+    }
   };
 
-  const handleOpenEditModal = (id, currentVal) => {
+  const handleOpenAddModal = () => {
+    setModalError('');
+    setModalState({ open: true, mode: 'add', id: null, value: '', isActive: true });
+  };
+
+  const handleOpenEditModal = (item) => {
+    setModalError('');
+    const id = item[idKey];
+    const currentVal = item[nameKey] || '';
+    const isActive =
+      item.is_active !== undefined ? Boolean(item.is_active) : true;
     setModalState({
       open: true,
       mode: 'edit',
       id,
-      value: currentVal || '',
+      value: currentVal,
+      isActive,
     });
   };
 
   const handleCloseModal = () => {
+    setModalError('');
     setModalState((prev) => ({ ...prev, open: false }));
   };
 
@@ -126,15 +164,15 @@ export default function LookupPage({
     e.preventDefault();
     const trimmed = (modalState.value || '').trim();
     if (!trimmed) {
-      toast.warning('يرجى إدخال الاسم', {
-        theme: 'colored',
-        position: 'top-right',
-      });
+      const emptyMsg = 'يرجى إدخال الاسم';
+      setModalError(emptyMsg);
       return;
     }
 
+    setModalError('');
+
     if (modalState.mode === 'add') {
-      onCreate(trimmed)
+      onCreate(trimmed, modalState.isActive)
         .then((msg) => {
           toast.success(msg?.message || 'تمت الإضافة بنجاح', {
             theme: 'colored',
@@ -143,9 +181,9 @@ export default function LookupPage({
           handleCloseModal();
           if (onFetch) onFetch();
         })
-        .catch(handleCatchError);
+        .catch((err) => handleCatchError(err, true));
     } else {
-      onUpdate(modalState.id, trimmed)
+      onUpdate(modalState.id, trimmed, modalState.isActive)
         .then((msg) => {
           toast.success(msg?.message || 'تم التعديل بنجاح', {
             theme: 'colored',
@@ -154,7 +192,7 @@ export default function LookupPage({
           handleCloseModal();
           if (onFetch) onFetch();
         })
-        .catch(handleCatchError);
+        .catch((err) => handleCatchError(err, true));
     }
   };
 
@@ -172,7 +210,16 @@ export default function LookupPage({
             swal(msg?.message || 'تم الحذف بنجاح', { icon: 'success' });
             if (onFetch) onFetch();
           })
-          .catch(handleCatchError);
+          .catch((error) => {
+            console.error(`Error deleting ${entitySingular}:`, error);
+            const { message } = parseApiError(error);
+            swal({
+              title: 'تعذر الحذف',
+              text: message,
+              icon: 'error',
+              button: 'حسناً',
+            });
+          });
       }
     });
   };
@@ -228,7 +275,22 @@ export default function LookupPage({
               : `تعديل بيانات ${entitySingular}`}
           </Typography>
           <form onSubmit={handleSubmit}>
-            <Box sx={{ mb: 3 }}>
+            {modalError && (
+              <Alert
+                severity="error"
+                sx={{
+                  mb: 2.5,
+                  borderRadius: 2,
+                  fontFamily: '"Cairo", sans-serif !important',
+                  fontWeight: 600,
+                  fontSize: '13.5px',
+                  py: 0.5,
+                }}
+              >
+                {modalError}
+              </Alert>
+            )}
+            <Box sx={{ mb: 2.5 }}>
               <label
                 style={{
                   display: 'block',
@@ -245,12 +307,13 @@ export default function LookupPage({
                 autoFocus
                 type="text"
                 value={modalState.value}
-                onChange={(e) =>
+                onChange={(e) => {
+                  if (modalError) setModalError('');
                   setModalState((prev) => ({
                     ...prev,
                     value: e.target.value,
-                  }))
-                }
+                  }));
+                }}
                 style={{
                   width: '100%',
                   height: '42px',
@@ -258,12 +321,74 @@ export default function LookupPage({
                   fontSize: '15px',
                   fontFamily: '"Cairo", sans-serif',
                   borderRadius: '8px',
-                  border: '1px solid #cbd5e1',
+                  border: modalError ? '1px solid #ef4444' : '1px solid #cbd5e1',
                   outline: 'none',
                   boxSizing: 'border-box',
                 }}
               />
             </Box>
+
+            {/* is_active Toggle in Modal */}
+            <Box
+              sx={{
+                mb: 3,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                p: 1.5,
+                borderRadius: 2,
+                backgroundColor: '#f8fafc',
+                border: '1px solid #e2e8f0',
+              }}
+            >
+              <Box>
+                <Typography
+                  sx={{
+                    fontFamily: '"Cairo", sans-serif !important',
+                    fontWeight: 600,
+                    fontSize: '14.5px',
+                    color: '#334155',
+                  }}
+                >
+                  حالة التفعيل
+                </Typography>
+                <Typography
+                  sx={{
+                    fontFamily: '"Cairo", sans-serif !important',
+                    fontSize: '12px',
+                    color: '#64748b',
+                  }}
+                >
+                  {modalState.isActive
+                    ? 'هذا العنصر نشط ومتاح في النظام'
+                    : 'هذا العنصر معطل ولن يظهر في الاختيارات الجديدة'}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Chip
+                  size="small"
+                  label={modalState.isActive ? 'مفعل' : 'معطل'}
+                  sx={{
+                    fontFamily: '"Cairo", sans-serif !important',
+                    fontWeight: 700,
+                    fontSize: '12px',
+                    backgroundColor: modalState.isActive ? '#dcfce7' : '#fee2e2',
+                    color: modalState.isActive ? '#15803d' : '#b91c1c',
+                  }}
+                />
+                <Switch
+                  checked={modalState.isActive}
+                  onChange={(e) =>
+                    setModalState((prev) => ({
+                      ...prev,
+                      isActive: e.target.checked,
+                    }))
+                  }
+                  color="primary"
+                />
+              </Box>
+            </Box>
+
             <Box sx={{ display: 'flex', justifyContent: 'center' }}>
               <Button
                 type="submit"
@@ -357,7 +482,7 @@ export default function LookupPage({
                     <StyledTableCell
                       align="center"
                       style={{
-                        width: '80px',
+                        width: '70px',
                         fontWeight: 'bold',
                         fontSize: '16px',
                       }}
@@ -376,7 +501,17 @@ export default function LookupPage({
                     <StyledTableCell
                       align="center"
                       style={{
-                        width: '160px',
+                        width: '140px',
+                        fontWeight: 'bold',
+                        fontSize: '16px',
+                      }}
+                    >
+                      الحالة
+                    </StyledTableCell>
+                    <StyledTableCell
+                      align="center"
+                      style={{
+                        width: '140px',
                         fontWeight: 'bold',
                         fontSize: '16px',
                       }}
@@ -388,12 +523,16 @@ export default function LookupPage({
                 <TableBody>
                   {paginatedItems.map((item, idx) => {
                     const globalIndex = startIndex + idx + 1;
+                    const isActive =
+                      item.is_active !== undefined ? Boolean(item.is_active) : true;
+                    const isToggling = togglingId === item[idKey];
+
                     return (
                       <StyledTableRow key={item[idKey] || globalIndex}>
                         <StyledTableCell
                           align="center"
                           style={{
-                            width: '80px',
+                            width: '70px',
                             fontWeight: 600,
                             color: '#64748b',
                             fontSize: '15px',
@@ -411,7 +550,62 @@ export default function LookupPage({
                         >
                           {item[nameKey]}
                         </StyledTableCell>
-                        <StyledTableCell align="center" style={{ width: '160px' }}>
+
+                        {/* Status Toggle Switch */}
+                        <StyledTableCell align="center" style={{ width: '140px' }}>
+                          <Box
+                            sx={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 0.8,
+                              backgroundColor: isActive ? '#f0fdf4' : '#f8fafc',
+                              border: isActive ? '1px solid #bbf7d0' : '1px solid #e2e8f0',
+                              borderRadius: '20px',
+                              px: 1,
+                              py: 0.25,
+                              transition: 'all 0.2s ease',
+                            }}
+                          >
+                            {isToggling ? (
+                              <CircularProgress size={16} sx={{ color: '#0061ff', mx: 0.8 }} />
+                            ) : (
+                              <Tooltip
+                                title={isActive ? 'انقر لتعطيل العنصر' : 'انقر لتفعيل العنصر'}
+                                arrow
+                              >
+                                <Switch
+                                  size="small"
+                                  checked={isActive}
+                                  onChange={() => handleToggleActive(item)}
+                                  color="success"
+                                  sx={{
+                                    '& .MuiSwitch-switchBase.Mui-checked': {
+                                      color: '#16a34a',
+                                    },
+                                    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                                      backgroundColor: '#16a34a',
+                                    },
+                                  }}
+                                />
+                              </Tooltip>
+                            )}
+                            <Typography
+                              sx={{
+                                fontFamily: '"Cairo", sans-serif !important',
+                                fontWeight: 700,
+                                fontSize: '11.5px',
+                                color: isActive ? '#15803d' : '#64748b',
+                                minWidth: '32px',
+                                textAlign: 'center',
+                              }}
+                            >
+                              {isActive ? 'مفعل' : 'معطل'}
+                            </Typography>
+                          </Box>
+                        </StyledTableCell>
+
+                        {/* Actions */}
+                        <StyledTableCell align="center" style={{ width: '140px' }}>
                           <Box
                             sx={{
                               display: 'flex',
@@ -424,9 +618,7 @@ export default function LookupPage({
                               <IconButton
                                 aria-label="edit"
                                 size="small"
-                                onClick={() =>
-                                  handleOpenEditModal(item[idKey], item[nameKey])
-                                }
+                                onClick={() => handleOpenEditModal(item)}
                                 sx={{
                                   backgroundColor: '#f1f5f9',
                                   color: '#475569',

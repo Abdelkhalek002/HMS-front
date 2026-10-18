@@ -1,11 +1,11 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import "./Utility.css"
 import Logo from "../images/Gemini_Generated_logoggggg-removebg-preview.png";
 import { getUserInfo, logout } from '../features/auth';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import userPic from "../images/userProfile.jpg";
-import { getUserProfile } from '../features/users';
+import { getUserProfile, getUserProfileAPi } from '../features/users';
 import { BASE_URL } from '../services/http';
 import { useSidebar } from './SidebarContext';
 
@@ -28,17 +28,28 @@ const SideBar = () => {
     }
 
     // For Access ID
-    const data = useSelector(getUserInfo);
+    const data = useSelector(getUserInfo) || {};
+    const token = data?.token;
+    const userId = data?.payLoad?.userId;
 
+    // For Get Profile Pic & Data
+    const userData = useSelector(getUserProfile) || {};
 
-    // For Get Profile Pic 
-    const userData = useSelector(getUserProfile);
+    // Fetch user profile if not yet loaded
+    useEffect(() => {
+        if (token && userId && !userData?.email) {
+            dispatch(getUserProfileAPi({ token, id: userId }));
+        }
+    }, [token, userId, userData?.email, dispatch]);
 
-    console.log(userData);
+    // Status checks
+    const docStatus =
+        userData?.document_status ||
+        data?.user?.document_status ||
+        data?.payLoad?.document_status ||
+        (userData?.status === 'approved' ? 'approved' : 'pending');
 
-
-    console.log(data);
-
+    const isDocumentPending = docStatus === 'pending';
 
     return (
         <aside className={`side-bar ${isCollapsed ? 'collapsed' : ''}`}>
@@ -74,19 +85,24 @@ const SideBar = () => {
                             <div className='tab-tilte hide-mobile'>حجز الكشف</div>
                         </NavLink>
 
-                        <NavLink to={`profile/${data.payLoad.userId}`} className='sidebar-tabs' title='الملف الشخصي'>
-                            <span className="material-symbols-outlined">
-                                account_circle
-                            </span>
-                            <div className='tab-tilte hide-mobile'> الملف الشخصي</div>
-                        </NavLink>
+                        {/* Profile and change password pages hidden when documents are pending */}
+                        {!isDocumentPending && (
+                            <>
+                                <NavLink to={`profile/${userId}`} className='sidebar-tabs' title='الملف الشخصي'>
+                                    <span className="material-symbols-outlined">
+                                        account_circle
+                                    </span>
+                                    <div className='tab-tilte hide-mobile'> الملف الشخصي</div>
+                                </NavLink>
 
-                        <NavLink to={`changepassword`} className='sidebar-tabs' title='تغير كلمة المرور'>
-                            <span className="material-symbols-outlined">
-                                key
-                            </span>
-                            <div className='tab-tilte hide-mobile'>تغير كلمة المرور </div>
-                        </NavLink>
+                                <NavLink to={`changepassword`} className='sidebar-tabs' title='تغير كلمة المرور'>
+                                    <span className="material-symbols-outlined">
+                                        key
+                                    </span>
+                                    <div className='tab-tilte hide-mobile'>تغير كلمة المرور </div>
+                                </NavLink>
+                            </>
+                        )}
 
                         <p onClick={logoutHandler} className='sidebar-tabs' title='تسجيل الخروج'>
                             <span className="material-symbols-outlined">
@@ -102,30 +118,57 @@ const SideBar = () => {
                 </div>
             </div>
 
-            <Link to={`/profile/${data.payLoad.userId}`} className='bottom'>
-                <div className='image'>
-                    <div className='active-icon'></div>
-                    <img
-                        src={
-                            (() => {
-                                const photo = userData?.profile_photo_url;
-                                return photo
-                                    ? (photo.startsWith('http')
-                                        ? photo
-                                        : `${BASE_URL}/uploads/${photo.replace(/^\/+/, '')}`)
-                                    : userPic;
-                            })()
-                        }
-                        alt='profile'
-                        loading='lazy'
-                        onError={(e) => { e.target.src = userPic; }}
-                    />
+            {isDocumentPending ? (
+                <div className='bottom' style={{ cursor: 'default' }}>
+                    <div className='image'>
+                        <div className='active-icon'></div>
+                        <img
+                            src={
+                                (() => {
+                                    const photo = userData?.profile_photo_url;
+                                    return photo
+                                        ? (photo.startsWith('http')
+                                            ? photo
+                                            : `${BASE_URL}/uploads/${photo.replace(/^\/+/, '')}`)
+                                        : userPic;
+                                })()
+                            }
+                            alt='profile'
+                            loading='lazy'
+                            onError={(e) => { e.target.src = userPic; }}
+                        />
+                    </div>
+                    <div className='text'>
+                        <h3>{userData?.userName ? userData.userName.split(" ").slice(0, 3).join(" ") : ""}</h3>
+                        <p>طالب</p>
+                    </div>
                 </div>
-                <div className='text'>
-                    <h3>{userData.userName ? userData.userName.split(" ").slice(0, 3).join(" ") : ""}</h3>
-                    <p>طالب</p>
-                </div>
-            </Link>
+            ) : (
+                <Link to={`/profile/${userId}`} className='bottom'>
+                    <div className='image'>
+                        <div className='active-icon'></div>
+                        <img
+                            src={
+                                (() => {
+                                    const photo = userData?.profile_photo_url;
+                                    return photo
+                                        ? (photo.startsWith('http')
+                                            ? photo
+                                            : `${BASE_URL}/uploads/${photo.replace(/^\/+/, '')}`)
+                                        : userPic;
+                                })()
+                            }
+                            alt='profile'
+                            loading='lazy'
+                            onError={(e) => { e.target.src = userPic; }}
+                        />
+                    </div>
+                    <div className='text'>
+                        <h3>{userData?.userName ? userData.userName.split(" ").slice(0, 3).join(" ") : ""}</h3>
+                        <p>طالب</p>
+                    </div>
+                </Link>
+            )}
 
         </aside>
     )

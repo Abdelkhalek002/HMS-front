@@ -213,6 +213,19 @@ export default function EnhancedTable() {
     // For Access Reservation Data 
     const { data, status } = useSelector(getReservationData);
 
+    const formattedExcelData = React.useMemo(() => {
+        return excel.map((item) => ({
+            'المعرف': item.id ?? item.medicEx_id ?? item.reservation_id,
+            'اسم الطالب / المريض': item.user?.name ?? item.student?.name ?? item.student_name ?? item.patient_name ?? item.Name ?? '',
+            'الرقم القومي': item.user?.national_id ?? item.student?.nationalId ?? item.national_id ?? item.nationalId ?? '',
+            'العيادة': typeof item.clinic === 'string' ? item.clinic : (item.clinic?.name ?? item.clinic_name ?? ''),
+            'تاريخ الحجز': item.date ? (typeof item.date === 'string' && item.date.includes(',') ? item.date.split(',')[0] : String(item.date).slice(0, 10)) : '',
+            'نوع الكشف': item.examType ?? item.exam_type ?? '',
+            'حالة الكشف': item.status ?? '',
+            'حالة التحويل': Boolean(item.transfer?.id ?? item.transfer_id ?? (item.transfered && item.transfered !== 0)) ? 'تم التحويل' : 'لم يتم التحويل',
+        }));
+    }, [excel]);
+
     const sortedAcceptedData = React.useMemo(() => {
         if (!Array.isArray(data)) return [];
         const accepted = data.filter((item) => item.status === 'مقبول');
@@ -220,14 +233,14 @@ export default function EnhancedTable() {
             let aVal = '';
             let bVal = '';
             if (orderBy === 'studentName') {
-                aVal = a.student?.name ?? a.student_name ?? '';
-                bVal = b.student?.name ?? b.student_name ?? '';
+                aVal = a.user?.name ?? a.student?.name ?? a.student_name ?? a.patient_name ?? a.Name ?? '';
+                bVal = b.user?.name ?? b.student?.name ?? b.student_name ?? b.patient_name ?? b.Name ?? '';
             } else if (orderBy === 'nationalId') {
-                aVal = String(a.student?.nationalId ?? a.national_id ?? '');
-                bVal = String(b.student?.nationalId ?? b.national_id ?? '');
+                aVal = String(a.user?.national_id ?? a.student?.nationalId ?? a.national_id ?? a.nationalId ?? '');
+                bVal = String(b.user?.national_id ?? b.student?.nationalId ?? b.national_id ?? b.nationalId ?? '');
             } else if (orderBy === 'clinic') {
-                aVal = a.clinic?.name ?? a.clinic_name ?? '';
-                bVal = b.clinic?.name ?? b.clinic_name ?? '';
+                aVal = typeof a.clinic === 'string' ? a.clinic : (a.clinic?.name ?? a.clinic_name ?? '');
+                bVal = typeof b.clinic === 'string' ? b.clinic : (b.clinic?.name ?? b.clinic_name ?? '');
             } else if (orderBy === 'date') {
                 aVal = a.date ?? '';
                 bVal = b.date ?? '';
@@ -432,7 +445,7 @@ export default function EnhancedTable() {
                                     <option value={0}>اختيار </option>
                                     {
                                         hospital.data ? hospital.data.map((item) => {
-                                            return <option key={item.exHosp_id} value={item.exHosp_id}>{item.hospName}</option>
+                                            return <option key={item.exHosp_id} value={item.exHosp_id}>{item.hospitalName}</option>
                                         }) : ""
                                     }
 
@@ -476,7 +489,7 @@ export default function EnhancedTable() {
                                     <option value={0}>اختيار </option>
                                     {
                                         hospital.data ? hospital.data.map((item) => {
-                                            return <option key={item.exHosp_id} value={item.exHosp_id}>{item.hospName}</option>
+                                            return <option key={item.exHosp_id} value={item.exHosp_id}>{item.hospitalName}</option>
                                         }) : ""
                                     }
 
@@ -591,8 +604,8 @@ export default function EnhancedTable() {
                     searchValue={searchInput}
                     onSearchChange={(e) => setSearchInput(e.target.value)}
                     onSearchSubmit={searchHandler}
-                    excelData={excel}
-                    excelFilename='studentInfo'
+                    excelData={formattedExcelData}
+                    excelFilename='transfersList'
                     extraActions={
                         <img
                             onClick={handleAdvancedOpen}
@@ -622,14 +635,32 @@ export default function EnhancedTable() {
                             />
                             <TableBody>
                                 {status === StatusCode.SUCCESS && sortedAcceptedData.length !== 0 ? sortedAcceptedData.map((krow, index) => {
-                                    const krowId = krow.id ?? krow.medicEx_id;
+                                    const krowId = krow.id ?? krow.medicEx_id ?? krow.reservation_id;
                                     const isItemSelected = isSelected(krowId);
                                     const labelId = `enhanced-table-checkbox-${krowId ?? index}`;
-                                    const studentId = krow.student?.id ?? krow.student_id;
-                                    const studentName = krow.student?.name ?? krow.student_name ?? "";
-                                    const studentImg = krow.student?.userImage || (krow.student_image ? `${BASE_URL}/uploads/${krow.student_image.replace(/^\/+/, '')}` : "");
-                                    const nationalId = krow.student?.nationalId ?? krow.national_id ?? "";
-                                    const clinicName = krow.clinic?.name ?? krow.clinic_name ?? "";
+                                    const studentId = krow.user?.id ?? krow.student?.id ?? krow.student_id;
+                                    const studentName =
+                                        krow.user?.name ??
+                                        krow.student?.name ??
+                                        krow.student_name ??
+                                        krow.patient_name ??
+                                        krow.Name ??
+                                        "";
+                                    const studentImg =
+                                        krow.user?.profile_photo_url ||
+                                        krow.student?.userImage ||
+                                        krow.userImage ||
+                                        (krow.student_image ? `${BASE_URL}/uploads/${krow.student_image.replace(/^\/+/, '')}` : "");
+                                    const nationalId =
+                                        krow.user?.national_id ??
+                                        krow.student?.nationalId ??
+                                        krow.national_id ??
+                                        krow.nationalId ??
+                                        "";
+                                    const clinicName =
+                                        typeof krow.clinic === 'string'
+                                            ? krow.clinic
+                                            : (krow.clinic?.name ?? krow.clinic_name ?? "");
                                     const displayDate = krow.date ? (typeof krow.date === "string" && krow.date.includes(",") ? krow.date.split(",")[0] : String(krow.date).slice(0, 10)) : "";
                                     const examType = krow.examType ?? krow.exam_type ?? "";
                                     const statusText = krow.status ?? "";
@@ -663,15 +694,28 @@ export default function EnhancedTable() {
                                                 padding="none"
                                                 align='center'
                                             >
-                                                <Link to={`/ad/profile/${studentId}`} style={{ color: "black", display: "flex", alignItems: "center" }} >
-                                                    {studentImg ? (
-                                                        <img className='imgage-table' alt='user' src={studentImg} loading='lazy' />
-                                                    ) : null}
+                                                {studentId ? (
+                                                    <Link to={`/ad/profile/${studentId}`} style={{ color: "black", display: "flex", alignItems: "center", justifyContent: "center" }} >
+                                                        {studentImg ? (
+                                                            <img className='imgage-table' alt='user' src={studentImg} loading='lazy' />
+                                                        ) : null}
 
-                                                    <Tooltip TransitionProps={{ timeout: 200 }} title={studentName} placement="top">
-                                                        <span>{studentName.length > 13 ? `${studentName.slice(0, 13)}...` : studentName}</span>
-                                                    </Tooltip>
-                                                </Link>
+                                                        <Tooltip TransitionProps={{ timeout: 200 }} title={studentName} placement="top">
+                                                            <span>{studentName.length > 13 ? `${studentName.slice(0, 13)}...` : studentName}</span>
+                                                        </Tooltip>
+                                                    </Link>
+                                                ) : (
+                                                    <div style={{ color: "black", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
+                                                        {studentImg ? (
+                                                            <img className='imgage-table' alt='user' src={studentImg} loading='lazy' />
+                                                        ) : null}
+
+                                                        <Tooltip TransitionProps={{ timeout: 200 }} title={studentName} placement="top">
+                                                            <span>{studentName.length > 13 ? `${studentName.slice(0, 13)}...` : studentName}</span>
+                                                        </Tooltip>
+                                                        <span style={{ fontSize: '11px', backgroundColor: '#e0f2fe', color: '#0369a1', padding: '2px 6px', borderRadius: '4px' }}>طوارئ</span>
+                                                    </div>
+                                                )}
                                             </TableCell>
 
 

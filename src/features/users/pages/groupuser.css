@@ -1,7 +1,8 @@
 .k-group-user-page{
-    padding: var(--main-padding);
+    padding: 30px;
     height: 100vh;
     overflow-y: scroll;
+    width: 100%;
 }
 
 

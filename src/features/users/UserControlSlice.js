@@ -7,7 +7,30 @@ export const getAllUserApi = createAsyncThunk('userControl/allUsers', async (arg
     try {
         const page = args?.page || 1;
         const limit = args?.limit || 8;
-        const response = await apiClient.get(`/users?page=${page}&limit=${limit}`);
+        const search = args?.search || args?.username || '';
+        let queryUrl = `/users?page=${page}&limit=${limit}`;
+        if (search) {
+            queryUrl += `&username=${encodeURIComponent(search)}`;
+        }
+        if (args?.document_status && args.document_status !== 'all') {
+            queryUrl += `&document_status=${encodeURIComponent(args.document_status)}`;
+        }
+        if (args?.faculty_id) {
+            queryUrl += `&faculty_id=${encodeURIComponent(args.faculty_id)}`;
+        }
+        if (args?.level_id) {
+            queryUrl += `&level_id=${encodeURIComponent(args.level_id)}`;
+        }
+        if (args?.gender) {
+            queryUrl += `&gender=${encodeURIComponent(args.gender)}`;
+        }
+        if (args?.nationality_id) {
+            queryUrl += `&nationality_id=${encodeURIComponent(args.nationality_id)}`;
+        }
+        if (args?.date) {
+            queryUrl += `&date=${encodeURIComponent(args.date)}`;
+        }
+        const response = await apiClient.get(queryUrl);
         return response.data;
     } catch (error) {
         return rejectWithValue(error.response?.data || error.message);
@@ -24,23 +47,34 @@ export const deleteUserApi = createAsyncThunk('userControl/deleteUser', async (a
     }
 });
 
-export const blockUserApi = createAsyncThunk('userControl/blockUser', async (args, { rejectWithValue }) => {
+export const toggleUserActiveApi = createAsyncThunk(
+    'userControl/toggleUserActive',
+    async ({ id, is_active }, { rejectWithValue }) => {
+        try {
+            const activeVal = Boolean(is_active);
+            const response = await apiClient.patch(`/users/${id}`, { is_active: activeVal });
+            return { id, is_active: activeVal, ...response.data };
+        } catch (error) {
+            return rejectWithValue(error.response?.data || error.message);
+        }
+    }
+);
+
+export const blockUserApi = createAsyncThunk('userControl/blockUser', async (args, { dispatch, rejectWithValue }) => {
     try {
         const id = typeof args === 'object' ? (args.data || args.id) : args;
-        const response = await apiClient.patch(`/users/${id}/block`);
-        return response.data;
+        return await dispatch(toggleUserActiveApi({ id, is_active: false })).unwrap();
     } catch (error) {
-        return rejectWithValue(error.response?.data || error.message);
+        return rejectWithValue(error);
     }
 });
 
-export const unblockUserApi = createAsyncThunk('userControl/unblockUser', async (args, { rejectWithValue }) => {
+export const unblockUserApi = createAsyncThunk('userControl/unblockUser', async (args, { dispatch, rejectWithValue }) => {
     try {
         const id = typeof args === 'object' ? (args.data || args.id) : args;
-        const response = await apiClient.patch(`/users/${id}/unblock`);
-        return response.data;
+        return await dispatch(toggleUserActiveApi({ id, is_active: true })).unwrap();
     } catch (error) {
-        return rejectWithValue(error.response?.data || error.message);
+        return rejectWithValue(error);
     }
 });
 
@@ -96,20 +130,30 @@ const UserControlSlice = createSlice({
 
                 state.data = rawList.map((user) => ({
                     ...user,
-                    id: user.id ?? user.student_id,
-                    student_id: user.student_id ?? user.id,
+                    id: user.id ?? user.student_id ?? user.user_id,
+                    student_id: user.student_id ?? user.user_id ?? user.id,
                     userName: user.userName || user.username || "",
-                    userImage_file:
-                        user.profile_photo_url ||
-                        "",
-                    profile_photo_url:
-                        user.profile_photo_url ||
-                        "",
+                    username: user.username || user.userName || "",
+                    email: user.email || "",
+                    phone_number: user.phone_number || "",
+                    national_id: user.national_id || "",
+                    faculty_id: user.faculty_id ?? null,
+                    faculty_name: user.faculty_name || user.faculty || "",
+                    level_id: user.level_id ?? null,
+                    level_name: user.level_name || user.level || "",
+                    gender: user.gender || "",
+                    nationality_id: user.nationality_id ?? null,
+                    nationality_name: user.nationality_name || user.nationality || "",
+                    document_status: user.document_status || "pending",
+                    profile_photo_url: user.profile_photo_url || user.userImage_file || "",
+                    userImage_file: user.profile_photo_url || user.userImage_file || "",
+                    created_at: user.created_at || user.birthDay || "",
                     birthDay: user.birthDay || user.birth_date || user.created_at || "",
+                    is_active: user.is_active !== undefined ? Boolean(user.is_active) : (user.status !== 0),
                     blocked:
                         user.blocked !== undefined
                             ? user.blocked
-                            : (!user.is_active || user.status === "blocked"),
+                            : (!user.is_active || user.status === "blocked" || user.status === 0),
                     status:
                         user.status !== undefined
                             ? user.status
@@ -138,6 +182,25 @@ const UserControlSlice = createSlice({
             })
             .addCase(deleteUserApi.rejected, (state) => {
                 state.status = StatusCode.ERROR;
+            });
+
+        //! toggleUserActiveApi
+        builder
+            .addCase(toggleUserActiveApi.fulfilled, (state, action) => {
+                const targetId = action.payload?.id ?? action.payload?.student_id;
+                const newActive = Boolean(action.payload?.is_active);
+                state.data = state.data.map((user) => {
+                    if (user.id === targetId || user.student_id === targetId) {
+                        return {
+                            ...user,
+                            is_active: newActive,
+                            blocked: !newActive,
+                            status: newActive ? 1 : 0,
+                        };
+                    }
+                    return user;
+                });
+                state.status = StatusCode.SUCCESS;
             });
 
         //! blockUserApi

@@ -23,7 +23,7 @@ const OtpComponent = () => {
 
   const otpHandler = () => {
     if (otp.length === 6) {
-      dispatch(saveOtp(+otp));
+      dispatch(saveOtp(String(otp).trim()));
       navigate('../newpassword');
     } else {
       toast.error("برجاء اداخال رقم التحقق بشكل صحيح")

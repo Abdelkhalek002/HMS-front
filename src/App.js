@@ -45,6 +45,7 @@ import {
   CounterGuard as CounterProtect,
   TransferGuard as TransferProtect,
   PermissionGuard as PermissionProtect,
+  StudentDocumentGuard,
 } from './routes';
 import { PERMISSIONS } from './utils/permissionUtils.js';
 
@@ -65,18 +66,20 @@ function App() {
             {/* Reservation Page */}
             <Route index element={ <ReservationPage /> }   />
 
+            {/* Guarded when documents are not pending */}
+            <Route element={<StudentDocumentGuard />}>
+              {/* User Profile */}
+              <Route path='profile/:userId' element={<ProfilePage />} >
+                <Route index path="/profile/:userId" element={<UserDetails />} />
+                <Route path='history' element={<UserHistroy />} />
+              </Route>
 
-            {/* User Profile */}
-            <Route path='profile/:userId' element={<ProfilePage />} >
-              <Route index path="/profile/:userId" element={<UserDetails />} />
-              <Route path='history' element={<UserHistroy />} />
+              {/* Edit Profile */}
+              <Route path='editprofile' element={<EditProfile />} />
+              <Route path='editeprofile' element={<EditProfile />} />
+              {/* Change Passsword */}
+              <Route path='changepassword' element={<ChangePasswordPage />} />
             </Route>
-
-            {/* Edit Profile */}
-            <Route path='editprofile' element={<EditProfile />} />
-            <Route path='editeprofile' element={<EditProfile />} />
-            {/* Change Passsword */}
-            <Route path='changepassword' element={<ChangePasswordPage />} />
           </Route>
         </Route>
 

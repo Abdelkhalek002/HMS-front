@@ -66,8 +66,8 @@ const ReservationPage = () => {
     (userData?.status === 'approved'
       ? 'approved'
       : userData?.status === 'rejected'
-      ? 'rejected'
-      : 'pending');
+        ? 'rejected'
+        : 'pending');
   const isDocumentApproved = documentStatus === 'approved';
   const isDocumentRejected = documentStatus === 'rejected';
   const isDocumentPending = !isDocumentApproved && !isDocumentRejected;
@@ -100,18 +100,25 @@ const ReservationPage = () => {
           const payload = {
             clinic_id: Number(clinic),
             date,
-            examType: `${typeR}`,
+            exam_type: `${typeR}`,
           };
           try {
             await createReservation(payload).unwrap();
             toast.success("تم حجز الكشف بنجاح برجاء إحضار الكارنيه وإذن الكلية");
           } catch (error) {
-            const errorMsg =
-              error?.data?.error ||
-              error?.data?.message ||
-              error?.message ||
+            const rawError =
+              (typeof error?.data?.error === "string" ? error.data.error : null) ||
+              (typeof error?.data?.message === "string" ? error.data.message : null) ||
               (typeof error?.data === "string" ? error.data : null) ||
+              (Array.isArray(error?.data?.errors)
+                ? error.data.errors.map((e) => e?.msg || e?.message || String(e)).join(" - ")
+                : null) ||
+              (typeof error?.error === "string" ? error.error : null) ||
+              (typeof error?.message === "string" ? error.message : null) ||
+              (typeof error?.data?.error === "object" ? JSON.stringify(error.data.error) : null) ||
               "حدث خطأ أثناء حجز الكشف برجاء اعادة المحاولة";
+
+            const errorMsg = String(rawError);
 
             if (errorMsg.includes("رمز التحقق") || errorMsg.includes("تأكيد بريدك")) {
               toast.warn(errorMsg, { autoClose: 6000 });
@@ -212,13 +219,13 @@ const ReservationPage = () => {
             >
               {clinics
                 ? clinics.map((item) => {
-                    const clinicId = item.clinic_id ?? item.id;
-                    return (
-                      <MenuItem key={clinicId} value={clinicId}>
-                        {item.clinicName || item.clinic_name}
-                      </MenuItem>
-                    );
-                  })
+                  const clinicId = item.clinic_id ?? item.id;
+                  return (
+                    <MenuItem key={clinicId} value={clinicId}>
+                      {item.clinicName || item.clinic_name}
+                    </MenuItem>
+                  );
+                })
                 : ""}
             </Select>
           </div>
@@ -273,12 +280,12 @@ const ReservationPage = () => {
             {isCreatingReservation
               ? "جاري الحجز..."
               : isEmailUnverified
-              ? "يرجى تأكيد البريد أولاً"
-              : isDocumentPending
-              ? "الحساب قيد المراجعة"
-              : isDocumentRejected
-              ? "المستندات مرفوضة"
-              : "حجز"}
+                ? "يرجى تأكيد البريد أولاً"
+                : isDocumentPending
+                  ? "الحساب قيد المراجعة"
+                  : isDocumentRejected
+                    ? "المستندات مرفوضة"
+                    : "حجز"}
           </Button>
         </div>
       </div>

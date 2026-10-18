@@ -3,6 +3,7 @@ import axios from "axios";
 import { BASE_URL } from "../../services/http";
 import { toast } from "react-toastify";
 import StatusCode from "../../StatusCode";
+import { normalizeApiError } from "../../utils/apiErrorHelper";
 
 // For Delete Reservation
 export const deleteReservationAPI = createAsyncThunk(
@@ -131,25 +132,28 @@ export const updateProfileAPI = createAsyncThunk(
   },
 );
 
-// For Change Password
+// For Change Password (via Reset Password with OTP)
 export const changePasswordAPI = createAsyncThunk(
   "user/changepassword",
   async (args, thunkAPI) => {
-    const { rejectWithValue } = thunkAPI;
+    const { rejectWithValue, getState } = thunkAPI;
+    const authUser = getState()?.AuthSlice?.user;
+    const email = args?.email || authUser?.email || authUser?.payLoad?.email;
+    const OTP = String(args?.OTP ?? args?.otp ?? "").trim();
+    const password = args?.password ?? args?.newPassword;
+    const password_confirm =
+      args?.password_confirm ?? args?.passwordConfirm ?? args?.rePassword ?? password;
+
     try {
-      const response = await axios.post(
-        `${BASE_URL}/password/change/${args.id}`,
-        args.data,
-        {
-          headers: {
-            Authorization: `Bearer ${args.token}`,
-            "Content-Type": "application/json",
-          },
-        },
-      );
+      const response = await axios.post(`${BASE_URL}/auth/resetPassword`, {
+        email,
+        OTP,
+        password,
+        password_confirm,
+      });
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(normalizeApiError(error));
     }
   },
 );
@@ -240,6 +244,20 @@ export const getUserProfileAPi = createAsyncThunk(
         nationality: raw.nationality || raw.nationality_name || "",
         status: raw.status !== undefined ? raw.status : (raw.is_active ?? 1),
         is_active: raw.is_active !== undefined ? raw.is_active : (raw.status ?? 1),
+        national_id_file_url:
+          raw.national_id_file_url ||
+          (raw.national_id_path
+            ? (String(raw.national_id_path).startsWith('http')
+              ? raw.national_id_path
+              : `${BASE_URL}/uploads/${String(raw.national_id_path).replace(/^\/+/, '')}`)
+            : null),
+        fees_file_url:
+          raw.fees_file_url ||
+          (raw.fees_path
+            ? (String(raw.fees_path).startsWith('http')
+              ? raw.fees_path
+              : `${BASE_URL}/uploads/${String(raw.fees_path).replace(/^\/+/, '')}`)
+            : null),
         document_status: raw.document_status || (raw.status === 'approved' ? 'approved' : raw.status === 'rejected' ? 'rejected' : 'pending'),
         rejection_reason: raw.rejection_reason || null,
         verified: raw.verified !== undefined ? Boolean(raw.verified) : true,
@@ -254,6 +272,69 @@ export const getUserProfileAPi = createAsyncThunk(
       return rejectWithValue(error.response?.data || error.message);
     }
   },
+);
+
+// For Approve User Documents
+export const approveUserDocumentsAPI = createAsyncThunk(
+  "user/approveDocuments",
+  async (args, thunkAPI) => {
+    const { rejectWithValue, getState } = thunkAPI;
+    const token =
+      args?.token ||
+      getState()?.AuthSlice?.user?.token;
+    const id = args?.id || args;
+    try {
+      const response = await axios.patch(
+        `${BASE_URL}/users/${id}/approve`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      return { id, ...response.data };
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message
+      );
+    }
+  }
+);
+
+// For Reject User Documents
+export const rejectUserDocumentsAPI = createAsyncThunk(
+  "user/rejectDocuments",
+  async (args, thunkAPI) => {
+    const { rejectWithValue, getState } = thunkAPI;
+    const token =
+      args?.token ||
+      getState()?.AuthSlice?.user?.token;
+    const id = args?.id;
+    const reason = args?.reason || "تم رفض المستندات، يرجى إعادة رفع مستندات صحيحة وواضحة.";
+    try {
+      const response = await axios.patch(
+        `${BASE_URL}/users/${id}/reject`,
+        { reason },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      return { id, reason, ...response.data };
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message
+      );
+    }
+  }
 );
 
 const initialState = {
@@ -287,8 +368,9 @@ const UserSlice = createSlice({
       toast.success("تم تغيير كلمة السر بنجاح");
     });
     builder.addCase(changePasswordAPI.pending, () => { });
-    builder.addCase(changePasswordAPI.rejected, () => {
-      toast.error("كلمة المرور القديمة غير صحيحة برجاء المحاولة مرة اخرى");
+    builder.addCase(changePasswordAPI.rejected, (state, action) => {
+      const msg = action.payload?.message || "تعذر تغيير كلمة المرور، برجاء التأكد من صحة البيانات";
+      toast.error(msg);
     });
     // For Upload Profile Picture
     builder.addCase(updateProfilePicAPI.fulfilled, (state, action) => {
@@ -347,6 +429,50 @@ const UserSlice = createSlice({
     builder.addCase(updateProfileAPI.fulfilled, () => {
       toast.success("تم تعديل البينات بنجاح");
     });
+
+    // For Approve Documents
+    builder
+      .addCase(approveUserDocumentsAPI.fulfilled, (state, action) => {
+        const updated = action.payload?.result || action.payload;
+        state.data = {
+          ...state.data,
+          ...updated,
+          document_status: "approved",
+          is_active: true,
+          status: 1,
+          rejection_reason: null,
+        };
+        state.load = false;
+        toast.success(action.payload?.message || "تم اعتماد المستندات وتفعيل الحساب بنجاح");
+      })
+      .addCase(approveUserDocumentsAPI.pending, (state) => {
+        state.load = true;
+      })
+      .addCase(approveUserDocumentsAPI.rejected, (state, action) => {
+        state.load = false;
+        toast.error(action.payload || "حدث خطأ أثناء اعتماد المستندات");
+      });
+
+    // For Reject Documents
+    builder
+      .addCase(rejectUserDocumentsAPI.fulfilled, (state, action) => {
+        const updated = action.payload?.result || action.payload;
+        state.data = {
+          ...state.data,
+          ...updated,
+          document_status: "rejected",
+          rejection_reason: action.payload?.reason || updated?.rejection_reason || null,
+        };
+        state.load = false;
+        toast.success(action.payload?.message || "تم رفض المستندات بنجاح");
+      })
+      .addCase(rejectUserDocumentsAPI.pending, (state) => {
+        state.load = true;
+      })
+      .addCase(rejectUserDocumentsAPI.rejected, (state, action) => {
+        state.load = false;
+        toast.error(action.payload || "حدث خطأ أثناء رفض المستندات");
+      });
   },
 });
 
