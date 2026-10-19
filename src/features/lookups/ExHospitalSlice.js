@@ -157,4 +157,4 @@ const exHospitalSlice = createSlice({
 });
 
 export default exHospitalSlice.reducer;
-export const getAllExhospitals = state => state.exHospitalSlice.data; 
+export const getAllExhospitals = (state) => state.ExHospitalSlice?.data ?? state.exHospitalSlice?.data ?? []; 

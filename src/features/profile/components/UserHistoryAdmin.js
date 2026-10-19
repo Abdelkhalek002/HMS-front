@@ -102,7 +102,24 @@ const UserHistoryAdmin = () => {
                         </TableCell>
                         <TableCell align="center">{displayDate}</TableCell>
                         <TableCell align="center">{examType}</TableCell>
-                        <TableCell align="center">{statusText === 'تحت الانتظار' ? <DeleteIcon onClick={() => deleteReservationHandler(resId)} style={{ cursor: "pointer" }} color='error' /> : <div className='success-reserve'>{statusText === 'مقبول' ? 'تم الكشف' : statusText}</div>}</TableCell>
+                        <TableCell align="center">
+                          {statusText === 'تحت الانتظار' ? (
+                            <DeleteIcon onClick={() => deleteReservationHandler(resId)} style={{ cursor: "pointer" }} color='error' />
+                          ) : statusText === 'محول' ? (
+                            <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                              <div style={{ backgroundColor: '#f3e8ff', color: '#7c3aed', padding: '6px 12px', borderRadius: '8px', fontWeight: 'bold', fontSize: '13px' }}>
+                                تم التحويل لمستشفى خارجية
+                              </div>
+                              {row.transfer?.externalHospital && (
+                                <span style={{ fontSize: '11px', color: '#0f766e', fontWeight: 'bold' }}>
+                                  {row.transfer.externalHospital}
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <div className='success-reserve'>{statusText === 'مقبول' ? 'تم الكشف' : statusText}</div>
+                          )}
+                        </TableCell>
                       </TableRow>
                     );
                   })

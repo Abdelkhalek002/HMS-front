@@ -1,756 +1,397 @@
 import * as React from 'react';
-import PropTypes from 'prop-types';
-import { alpha } from '@mui/material/styles';
-import Box from '@mui/material/Box';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import TableSortLabel from '@mui/material/TableSortLabel';
-import Toolbar from '@mui/material/Toolbar';
-import Typography from '@mui/material/Typography';
-import Paper from '@mui/material/Paper';
-import Checkbox from '@mui/material/Checkbox';
-import { visuallyHidden } from '@mui/utils';
-import { Button, Modal, Tooltip } from '@mui/material';
-import { Link, useSearchParams } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { filterAPI, getAllReservationListAPI, getReservationData } from '../../admins/CounterSlice';
-import StatusCode from '../../../StatusCode';
-import { getUserInfo } from '../../auth';
 import { useState } from 'react';
+import {
+  Box,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  MenuItem,
+  Tooltip,
+  Skeleton,
+  Tabs,
+  Tab,
+} from '@mui/material';
+import { Link, useSearchParams } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
-import { transferAPI, updateTransferAPI } from '../TransferSlice';
-import advancedPic from "../../../images/icons8-advanced-search-50.png";
-import { getAllFaculties, getAllClinics, getAllLevels } from '../../lookups';
-import { BASE_URL } from '../../../services/http';
-import { useTableSelection } from '../../../components/table/useTableSelection';
+
+import { useGetTransfersQuery, useAssignHospitalMutation } from '../transferApi';
+import { getAllExhospitals, getAllExhospitalsAPI } from '../../lookups';
 import TableToolbar from '../../../components/table/TableToolbar';
 
 const headCells = [
-    {
-        id: 'studentName',
-        numeric: false,
-        disablePadding: true,
-        label: 'اسم الطالب',
-        sortable: true,
-    },
-    {
-        id: 'nationalId',
-        numeric: false,
-        disablePadding: false,
-        label: 'الرقم القومي',
-        sortable: true,
-    },
-    {
-        id: 'clinic',
-        numeric: false,
-        disablePadding: false,
-        label: 'العيادة',
-        sortable: true,
-    },
-    {
-        id: 'date',
-        numeric: false,
-        disablePadding: false,
-        label: 'تاريخ الحجز',
-        sortable: true,
-    },
-    {
-        id: 'examType',
-        numeric: false,
-        disablePadding: false,
-        label: ' نوع الكشف',
-        sortable: true,
-    },
-    {
-        id: 'status',
-        numeric: false,
-        disablePadding: false,
-        label: 'حالة الكشف',
-        sortable: true,
-    },
-    {
-        id: 'actions',
-        numeric: false,
-        disablePadding: false,
-        label: 'إجراءات',
-        sortable: false,
-    },
+  { id: 'transferId', label: 'رقم التحويل' },
+  { id: 'studentName', label: 'اسم الطالب / المريض' },
+  { id: 'phoneNumber', label: 'رقم الهاتف' },
+  { id: 'email', label: 'البريد الإلكتروني' },
+  { id: 'clinic', label: 'العيادة المحول منها' },
+  { id: 'transferReason', label: 'سبب التحويل' },
+  { id: 'hospital', label: 'المستشفى المحول إليها' },
+  { id: 'createdAt', label: 'تاريخ التحويل' },
+  { id: 'status', label: 'الحالة' },
+  { id: 'actions', label: 'الإجراءات' },
 ];
 
-function EnhancedTableHead(props) {
-    const { onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort } = props;
-    const createSortHandler = (property) => (event) => {
-        onRequestSort(event, property);
-    };
+export default function TransferTable() {
+  const dispatch = useDispatch();
+  const [searchParams, setSearchParams] = useSearchParams({ page: 1 });
+  const currentPage = Math.max(parseInt(searchParams.get('page'), 10) || 1, 1);
+  const currentSearch = searchParams.get('search') || '';
 
-    return (
-        <TableHead>
-            <TableRow style={{ borderBottom: "none" }} >
-                <TableCell padding="checkbox">
-                    <Checkbox
-                        color="primary"
-                        indeterminate={numSelected > 0 && numSelected < rowCount}
-                        checked={rowCount > 0 && numSelected === rowCount}
-                        onChange={onSelectAllClick}
-                        inputProps={{
-                            'aria-label': 'تحديد جميع الحجوزات',
-                        }}
-                    />
-                </TableCell>
-                {headCells.map((headCell) => (
-                    <TableCell
-                        key={headCell.id}
-                        align={"center"}
-                        padding={headCell.disablePadding ? 'none' : 'normal'}
-                        sortDirection={orderBy === headCell.id ? order : false}
-                    >
-                        {headCell.sortable !== false ? (
-                            <TableSortLabel
-                                active={orderBy === headCell.id}
-                                direction={orderBy === headCell.id ? order : 'desc'}
-                                onClick={createSortHandler(headCell.id)}
-                            >
-                                <h3>{headCell.label}</h3>
-                                {orderBy === headCell.id ? (
-                                    <Box component="span" sx={visuallyHidden}>
-                                        {order === 'asc' ? 'sorted descending' : 'sorted ascending'}
-                                    </Box>
-                                ) : null}
-                            </TableSortLabel>
-                        ) : (
-                            <h3>{headCell.label}</h3>
-                        )}
-                    </TableCell>
-                ))}
-            </TableRow>
-        </TableHead>
-    );
-}
+  // Tab filter: pending | completed | all
+  const [statusTab, setStatusTab] = useState('pending');
+  const [searchInput, setSearchInput] = useState(currentSearch);
 
-EnhancedTableHead.propTypes = {
-    numSelected: PropTypes.number.isRequired,
-    onRequestSort: PropTypes.func.isRequired,
-    onSelectAllClick: PropTypes.func.isRequired,
-    order: PropTypes.oneOf(['asc', 'desc']).isRequired,
-    orderBy: PropTypes.string.isRequired,
-    rowCount: PropTypes.number.isRequired,
-};
+  // External hospitals lookup
+  const rawHospitals = useSelector(getAllExhospitals);
+  const hospitals = Array.isArray(rawHospitals) ? rawHospitals : (rawHospitals?.value || []);
 
-function EnhancedTableToolbar(props) {
-    const { numSelected } = props;
+  React.useEffect(() => {
+    dispatch(getAllExhospitalsAPI());
+  }, [dispatch]);
 
+  // Query transfers using RTK Query
+  const { data: responseData, isLoading, isFetching } = useGetTransfersQuery({
+    page: currentPage,
+    limit: 10,
+    searchKey: currentSearch,
+    status: statusTab === 'all' ? '' : statusTab,
+  });
 
-    return (
-        <Toolbar
-            sx={{
-                pl: { sm: 2 },
-                pr: { xs: 1, sm: 1 },
-                ...(numSelected > 0 && {
-                    bgcolor: (theme) =>
-                        alpha(theme.palette.primary.main, theme.palette.action.activatedOpacity),
-                }),
-            }}
+  const transfersList = responseData?.data || [];
+
+  // Mutations
+  const [assignHospitalMutation, { isLoading: isAssigning }] = useAssignHospitalMutation();
+
+  // Modal State for Assigning Hospital
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedTransfer, setSelectedTransfer] = useState(null);
+  const [selectedHospitalId, setSelectedHospitalId] = useState('');
+  const [notesInput, setNotesInput] = useState('');
+
+  const handleOpenAssignModal = (transfer) => {
+    setSelectedTransfer(transfer);
+    setSelectedHospitalId(transfer.externalHospital?.id || '');
+    setNotesInput(transfer.notes || '');
+    setModalOpen(true);
+  };
+
+  const handleCloseAssignModal = () => {
+    setModalOpen(false);
+    setSelectedTransfer(null);
+    setSelectedHospitalId('');
+    setNotesInput('');
+  };
+
+  const handleSubmitAssign = async (e) => {
+    if (e) e.preventDefault();
+    if (!selectedHospitalId) {
+      toast.error('يرجى اختيار المستشفى الخارجية');
+      return;
+    }
+
+    try {
+      await assignHospitalMutation({
+        transferId: selectedTransfer.id || selectedTransfer.transferId,
+        hospital_id: selectedHospitalId,
+        notes: notesInput.trim() || undefined,
+      }).unwrap();
+
+      toast.success('تم تحديد المستشفى الخارجية وإشعار الطالب بنجاح');
+      handleCloseAssignModal();
+    } catch (err) {
+      toast.error(err?.data?.message || err?.message || 'فشل تحديد المستشفى الخارجية');
+    }
+  };
+
+  // Search handler
+  const handleSearchSubmit = (e) => {
+    if (e) e.preventDefault();
+    setSearchParams({ page: 1, search: searchInput });
+  };
+
+  const handleSearchClear = () => {
+    setSearchInput('');
+    setSearchParams({ page: 1, search: '' });
+  };
+
+  return (
+    <Box sx={{ width: '100%', mb: 4 }} dir="rtl">
+      {/* Status Tabs */}
+      <Paper sx={{ mb: 2, p: 1, borderRadius: 2 }}>
+        <Tabs
+          value={statusTab}
+          onChange={(e, val) => {
+            setStatusTab(val);
+            setSearchParams({ page: 1, search: currentSearch });
+          }}
+          textColor="primary"
+          indicatorColor="primary"
+          variant="scrollable"
         >
+          <Tab value="pending" label="طلبات بالانتظار (قيد التحديد)" sx={{ fontWeight: 'bold' }} />
+          <Tab value="completed" label="طلبات محولة مكتملة" sx={{ fontWeight: 'bold' }} />
+          <Tab value="all" label="جميع طلبات التحويل" sx={{ fontWeight: 'bold' }} />
+        </Tabs>
+      </Paper>
 
-            {/* Note Here For Access Length Selected Item */}
-            {numSelected > 0 ? (
-                <Typography
-                    sx={{ flex: '1 1 100%' }}
-                    color="inherit"
-                    variant="subtitle1"
-                    component="div"
-                >
-                    {numSelected} selected
-                </Typography>
-            ) : (
-                ""
-            )}
+      {/* Main Table Container */}
+      <Paper sx={{ width: '100%', mb: 2, borderRadius: 2, overflow: 'hidden' }}>
+        <TableToolbar
+          numSelected={0}
+          title="سجل التحويلات لمستشفيات خارجية"
+          filterComponent={
+            <form onSubmit={handleSearchSubmit} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <input
+                type="text"
+                placeholder="بحث باسم الطالب، العيادة، المستشفى..."
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                className="k-search-input"
+                style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', width: '280px' }}
+              />
+              <Button type="submit" variant="contained" size="small" sx={{ height: '38px' }}>
+                بحث
+              </Button>
+              {searchInput && (
+                <Button type="button" variant="outlined" color="inherit" size="small" onClick={handleSearchClear}>
+                  إلغاء
+                </Button>
+              )}
+            </form>
+          }
+        />
 
+        <TableContainer>
+          <Table sx={{ minWidth: 750 }} aria-label="transfers table">
+            <TableHead sx={{ backgroundColor: '#f8fafc' }}>
+              <TableRow>
+                {headCells.map((headCell) => (
+                  <TableCell key={headCell.id} align="center" sx={{ fontWeight: 'bold', color: '#334155' }}>
+                    {headCell.label}
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
 
-        </Toolbar>
-    );
-}
-
-EnhancedTableToolbar.propTypes = {
-    numSelected: PropTypes.number.isRequired,
-};
-
-export default function EnhancedTable() {
-    const [order, setOrder] = React.useState('asc');
-    const [orderBy, setOrderBy] = React.useState('date');
-
-    const {
-        selected,
-        excel,
-        handleClick,
-        isSelected,
-        selectAll,
-        clearSelection,
-    } = useTableSelection();
-
-    const style = {
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: 450,
-        height: 300,
-        bgcolor: 'background.paper',
-        boxShadow: 24,
-        borderRadius: "7px"
-    };
-
-    const handleRequestSort = (event, property) => {
-        const isAsc = orderBy === property && order === 'asc';
-        setOrder(isAsc ? 'desc' : 'asc');
-        setOrderBy(property);
-    };
-
-    // For Access Reservation Data 
-    const { data, status } = useSelector(getReservationData);
-
-    const formattedExcelData = React.useMemo(() => {
-        return excel.map((item) => ({
-            'المعرف': item.id ?? item.medicEx_id ?? item.reservation_id,
-            'اسم الطالب / المريض': item.user?.name ?? item.student?.name ?? item.student_name ?? item.patient_name ?? item.Name ?? '',
-            'الرقم القومي': item.user?.national_id ?? item.student?.nationalId ?? item.national_id ?? item.nationalId ?? '',
-            'العيادة': typeof item.clinic === 'string' ? item.clinic : (item.clinic?.name ?? item.clinic_name ?? ''),
-            'تاريخ الحجز': item.date ? (typeof item.date === 'string' && item.date.includes(',') ? item.date.split(',')[0] : String(item.date).slice(0, 10)) : '',
-            'نوع الكشف': item.examType ?? item.exam_type ?? '',
-            'حالة الكشف': item.status ?? '',
-            'حالة التحويل': Boolean(item.transfer?.id ?? item.transfer_id ?? (item.transfered && item.transfered !== 0)) ? 'تم التحويل' : 'لم يتم التحويل',
-        }));
-    }, [excel]);
-
-    const sortedAcceptedData = React.useMemo(() => {
-        if (!Array.isArray(data)) return [];
-        const accepted = data.filter((item) => item.status === 'مقبول');
-        return [...accepted].sort((a, b) => {
-            let aVal = '';
-            let bVal = '';
-            if (orderBy === 'studentName') {
-                aVal = a.user?.name ?? a.student?.name ?? a.student_name ?? a.patient_name ?? a.Name ?? '';
-                bVal = b.user?.name ?? b.student?.name ?? b.student_name ?? b.patient_name ?? b.Name ?? '';
-            } else if (orderBy === 'nationalId') {
-                aVal = String(a.user?.national_id ?? a.student?.nationalId ?? a.national_id ?? a.nationalId ?? '');
-                bVal = String(b.user?.national_id ?? b.student?.nationalId ?? b.national_id ?? b.nationalId ?? '');
-            } else if (orderBy === 'clinic') {
-                aVal = typeof a.clinic === 'string' ? a.clinic : (a.clinic?.name ?? a.clinic_name ?? '');
-                bVal = typeof b.clinic === 'string' ? b.clinic : (b.clinic?.name ?? b.clinic_name ?? '');
-            } else if (orderBy === 'date') {
-                aVal = a.date ?? '';
-                bVal = b.date ?? '';
-            } else if (orderBy === 'examType') {
-                aVal = a.examType ?? a.exam_type ?? '';
-                bVal = b.examType ?? b.exam_type ?? '';
-            } else if (orderBy === 'status') {
-                aVal = a.status ?? '';
-                bVal = b.status ?? '';
-            }
-
-            if (aVal < bVal) return order === 'asc' ? -1 : 1;
-            if (aVal > bVal) return order === 'asc' ? 1 : -1;
-            return 0;
-        });
-    }, [data, order, orderBy]);
-
-    const handleSelectAllClick = (event) => {
-        if (event.target.checked && sortedAcceptedData?.length > 0) {
-            selectAll(sortedAcceptedData);
-        } else {
-            clearSelection();
-        }
-    };
-
-    // For Dispatch Action
-    const dispatch = useDispatch();
-
-
-    // For Token 
-    const { token } = useSelector(getUserInfo);
-
-
-    // For Access Hospital
-    const hospital = useSelector(state => state.ExHospitalSlice)
-
-    // For Access Params
-    const [searchParams, setSearchParams] = useSearchParams();
-
-    // For Access Hosptial Select 
-    const [hos, setHos] = useState(0);
-    const [updateHos, setUpdateHos] = useState(0);
-
-    // For Overlay 
-    const [open, setOpen] = React.useState(false);
-    const [updateOpen, setUpdateOpen] = useState(false);
-    const [advancedSearchModal, setAdvancedSearchModal] = useState(false);
-
-
-    // For Handle Transfer Modal
-    const handleOpen = (data) => {
-        setTransferData(data);
-        setOpen(true);
-    }
-    const handleClose = () => setOpen(false);
-
-    // For Handle Update Transfer Modal
-    const handleUpdateOpen = (data) => {
-        setUpdateTransferData(data);
-        setUpdateOpen(true);
-    }
-    const handleUpdateClose = () => setUpdateOpen(false);
-
-    // For Handle AdvancedSearch Modal
-    const handleAdvancedOpen = (data) => {
-        setAdvancedSearchModal(true);
-    }
-    const handleCloseAdvanced = () => {
-        setAdvancedSearchModal(false);
-    }
-
-    // For Access Data Transfer 
-    const [transferData, setTransferData] = useState(null);
-    const [updateTransferData, setUpdateTransferData] = useState(null);
-
-    // For Transfer Student 
-    const transferHandler = (event) => {
-        event.preventDefault();
-
-        if (transferData) {
-            if (hos !== 0) {
-                dispatch(transferAPI({ token, data: { ...transferData, hospital: hos }, page: searchParams.get("page") ? searchParams.get("page") : 1 }))
-            } else {
-                toast.success("برجاء اختيار المستشفي")
-            }
-            handleClose()
-        }
-
-        else {
-            toast.error('برجاء اختيار المستشفي')
-        }
-    }
-
-    // For Update Transfer
-    const updatetransferHandler = (event) => {
-        event.preventDefault();
-
-        if (updateTransferData) {
-            if (updateHos != 0) {
-                dispatch(updateTransferAPI({ token, data: { ...updateTransferData, hospital: updateHos }, page: searchParams.get("page") ? searchParams.get("page") : 1 }))
-            } else {
-                toast.success("برجاء اختيار المستشفي")
-            }
-            handleClose()
-        }
-
-        else {
-            toast.error('برجاء اختيار المستشفي')
-        }
-    }
-
-    /// For Search 
-    const searchHandler = () => {
-        searchParams.append('search', searchInput)
-        setSearchParams({ ...searchParams, search: searchInput, page: 1 })
-        dispatch(getAllReservationListAPI({ token, page: 1, search: searchInput ? searchInput : "" }))
-    }
-
-    // For Access Input 
-    const [searchInput, setSearchInput] = useState('');
-
-
-    // Start Advanced Search 
-    const AdvancedSearchStyle = {
-        position: 'absolute',
-        top: '40%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: 500,
-        outline: "none",
-        height: 350,
-        bgcolor: 'background.paper',
-        boxShadow: 24,
-        borderRadius: "6px",
-
-    };
-
-    //  For Access Advanced Input
-    const [level, setLevel] = useState("");
-    const [levelID, setLevelID] = useState("");
-    const [clinic, setClinic] = useState("");
-    const [faculty, setFaculty] = useState("");
-    const [exampType, setExampType] = useState("");
-    const [name, setName] = useState("");
-    const [date, setDate] = useState('');
-
-    console.log(levelID)
-        ;
-    // For Get Data of Avanced Search
-    const levels = useSelector(getAllLevels);
-    const faculties = useSelector(getAllFaculties);
-    const clinics = useSelector(getAllClinics);
-
-    // For Hanlde Data
-
-    // For Reset Adavanced Search
-    const resetHandler = (e) => {
-        e.preventDefault();
-        setLevel('');
-        setClinic('');
-        setFaculty('');
-        setExampType('');
-        setName('');
-        setDate('')
-    }
-
-    // For Searhc In Advanced 
-    const advancedSearchHandler = (e) => {
-        e.preventDefault()
-        dispatch(filterAPI({ token, level_id: level.split(" ")[0] ? level.split(" ")[0] : "", clinic_id: clinic ? clinic.split(" ")[0] : "", faculty_id: faculty ? faculty.split(" ") : "", examType: exampType ? exampType : "", userName: name ? name : '', date: date ? date : "" }))
-    }
-
-
-    return (
-        <div >
-
-
-            {/* Modal For Transfer  */}
-            <Modal
-                keepMounted
-                open={open}
-                onClose={handleClose}
-                aria-labelledby="keep-mounted-modal-title"
-                aria-describedby="keep-mounted-modal-description"
-
-            >
-                <Box sx={style}>
-                    <div className='k-main-over'>
-                        {/*<div className='image-over'>
-                    <img src='' alt='pic' loading='lazy' />
-                    </div>*/
-                        }
-                        <h3 className='over-title'>تعديل البيانات</h3>
-                        <p className='over-des'>برجاء التاكد من البيانات قبل الحفظ</p>
-
-                        <form onSubmit={(e) => transferHandler(e)}>
-
-
-                            <div className='row last-row'>
-                                <label htmlFor='name'> اختيار المستشفي</label>
-                                <select onChange={(e) => setHos(e.target.value)} value={hos} style={{ marginTop: "10px" }} className='over-input'>
-                                    <option value={0}>اختيار </option>
-                                    {
-                                        hospital.data ? hospital.data.map((item) => {
-                                            return <option key={item.exHosp_id} value={item.exHosp_id}>{item.hospitalName}</option>
-                                        }) : ""
-                                    }
-
-                                </select>
-                            </div>
-
-                            <div className='over-btn'>
-                                <Button type="submit" variant="contained">تحويل</Button>
-                            </div>
-
-
-                        </form>
-
+            <TableBody>
+              {isLoading || isFetching ? (
+                Array.from({ length: 5 }).map((_, idx) => (
+                  <TableRow key={idx}>
+                    {headCells.map((cell, cIdx) => (
+                      <TableCell key={cIdx} align="center">
+                        <Skeleton variant="text" width="80%" />
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : transfersList.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={headCells.length} align="center" sx={{ py: 6, color: '#64748b' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: '48px', color: '#94a3b8' }}>
+                        assignment_late
+                      </span>
+                      <h3>لا توجد طلبات تحويل مطابقة</h3>
                     </div>
-                </Box>
-            </Modal>
-            {/* Modal For Update Transfer */}
-            <Modal
-                keepMounted
-                open={updateOpen}
-                onClose={handleUpdateClose}
-                aria-labelledby="keep-mounted-modal-title"
-                aria-describedby="keep-mounted-modal-description"
+                  </TableCell>
+                </TableRow>
+              ) : (
+                transfersList.map((transfer) => {
+                  const tId = transfer.id || transfer.transferId;
+                  const patient = transfer.patient || {};
+                  const reservation = transfer.reservation || {};
+                  const externalHospital = transfer.externalHospital;
+                  const isPending = transfer.status === 'pending';
 
-            >
-                <Box sx={style}>
-                    <div className='k-main-over'>
-                        {/*<div className='image-over'>
-                    <img src='' alt='pic' loading='lazy' />
-                    </div>*/
-                        }
-                        <h3 className='over-title'>تعديل البيانات</h3>
-                        <p className='over-des'>برجاء التاكد من البيانات قبل الحفظ</p>
+                  return (
+                    <TableRow hover key={tId} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                      {/* Transfer ID */}
+                      <TableCell align="center" sx={{ fontWeight: 'bold', color: '#64748b' }}>
+                        #{tId}
+                      </TableCell>
 
-                        <form onSubmit={(e) => updatetransferHandler(e)}>
+                      {/* Patient Name */}
+                      <TableCell align="center">
+                        {patient.id ? (
+                          <Link
+                            to={`/ad/profile/${patient.id}`}
+                            style={{ color: '#0284c7', textDecoration: 'none', fontWeight: 'bold' }}
+                          >
+                            {patient.name}
+                          </Link>
+                        ) : (
+                          <span style={{ fontWeight: 'bold' }}>{patient.name}</span>
+                        )}
+                        
+                      </TableCell>
 
+                      {/* Phone Number */}
+                      <TableCell align="center" dir="ltr">
+                        {patient.phoneNumber || transfer.phoneNumber || '-'}
+                      </TableCell>
 
-                            <div className='row last-row'>
-                                <label htmlFor='name'> اختيار المستشفي</label>
-                                <select onChange={(e) => setUpdateHos(e.target.value)} value={updateHos} style={{ marginTop: "10px" }} className='over-input'>
-                                    <option value={0}>اختيار </option>
-                                    {
-                                        hospital.data ? hospital.data.map((item) => {
-                                            return <option key={item.exHosp_id} value={item.exHosp_id}>{item.hospitalName}</option>
-                                        }) : ""
-                                    }
+                      {/* Email */}
+                      <TableCell align="center">
+                        {patient.email || transfer.email || '-'}
+                      </TableCell>
 
-                                </select>
-                            </div>
+                      {/* Clinic */}
+                      <TableCell align="center">{reservation.clinicName || '-'}</TableCell>
 
-                            <div className='over-btn'>
-                                <Button type="submit" variant="contained">تعديل</Button>
-                            </div>
+                      {/* Transfer Reason */}
+                      <TableCell align="center" sx={{ maxWidth: '200px' }}>
+                        <Tooltip title={transfer.transferReason} placement="top">
+                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
+                            {transfer.transferReason}
+                          </span>
+                        </Tooltip>
+                      </TableCell>
 
+                      {/* External Hospital */}
+                      <TableCell align="center">
+                        {externalHospital ? (
+                          <span style={{ fontWeight: 'bold', color: '#0f766e' }}>
+                            {externalHospital.name}
+                          </span>
+                        ) : (
+                          <span style={{ color: '#d97706', backgroundColor: '#fef3c7', padding: '3px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold' }}>
+                            قيد التحديد
+                          </span>
+                        )}
+                      </TableCell>
 
-                        </form>
+                      {/* Created At Date */}
+                      <TableCell align="center">
+                        {transfer.createdAt ? String(transfer.createdAt).slice(0, 10) : '-'}
+                      </TableCell>
 
-                    </div>
-                </Box>
-            </Modal>
-            {/* Modal For Advanced Search Modal */}
-            <Modal
-                keepMounted
-                open={advancedSearchModal}
-                onClose={handleCloseAdvanced}
-                aria-labelledby="keep-mounted-modal-title"
-                aria-describedby="keep-mounted-modal-description"
+                      {/* Status */}
+                      <TableCell align="center">
+                        {isPending ? (
+                          <span style={{ backgroundColor: '#fef3c7', color: '#b45309', padding: '4px 10px', borderRadius: '6px', fontWeight: 'bold', fontSize: '13px' }}>
+                            بالانتظار
+                          </span>
+                        ) : (
+                          <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '4px 10px', borderRadius: '6px', fontWeight: 'bold', fontSize: '13px' }}>
+                            مكتمل
+                          </span>
+                        )}
+                      </TableCell>
 
-            >
-                <Box sx={AdvancedSearchStyle}>
-                    <div className='k-main-over'>
-                        {/*<div className='image-over'>
-                <img src='' alt='pic' loading='lazy' />
-                </div>*/
-                        }
-                        <h3 className='over-title'> بحث متقدم</h3>
-
-                        <form  >
-                            <div className='k-input-container'>
-                                <div className='collection'>
-                                    <input onChange={(e) => setName(e.target.value)} value={name} className='text-input' placeholder='الاسم' />
-
-                                    <div className='avacned-input'>
-                                        <input value={date} onChange={(e) => setDate(e.target.value)} type='date' className='hidden-input' />
-                                        <div className='arrow-con'><i style={{ margin: "10px 5px" }} className="fa-regular fa-calendar"></i></div>
-                                        <p className='avanced-text'> {date ? date : "تاريخ الكشف"}  </p>
-                                    </div>
-                                </div>
-
-                                <div className='collection'>
-                                    <div className='avacned-input'>
-                                        <select onChange={(e) => { console.log(e.target.value); setLevel(e.target.value) }} className='hidden-input'>
-                                            {
-                                                levels ? levels.map((item, idx) => {
-                                                    return <option key={idx} value={`${item.level_id} ${item.levelName}`}>{item.levelName}</option>
-                                                }) : ""
-                                            }
-                                        </select>
-                                        <div className='arrow-con'><i className="fa-solid fa-chevron-down"></i></div>
-                                        <p className='avanced-text'> {level ? level.split(" ")[1] : "اختار المستوي"}</p>
-                                    </div>
-
-                                    <div className='avacned-input'>
-                                        <select onChange={(e) => { setFaculty(e.target.value) }} className='hidden-input'>
-                                            {
-                                                faculties ? faculties.map((item, idx) => {
-                                                    return <option key={idx} value={`${item.faculty_id} ${item.facultyName}`}>{item.facultyName}</option>
-                                                }) : ""
-                                            }
-                                        </select>
-                                        <div className='arrow-con'><i className="fa-solid fa-chevron-down"></i></div>
-                                        <p className='avanced-text' > {faculty ? faculty.split(" ")[1] : "اختار الكلية"}</p>
-                                    </div>
-                                </div>
-
-                                <div className='collection'>
-                                    <div className='avacned-input'>
-                                        <select onChange={(e) => { setClinic(e.target.value) }} className='hidden-input'>
-                                            {
-                                                clinics ? clinics.map((item, idx) => {
-                                                    return <option key={idx} value={`${item.clinic_id} ${item.clinicName}`}>{item.clinicName}</option>
-                                                }) : ""
-                                            }
-                                        </select>
-                                        <div className='arrow-con'><i className="fa-solid fa-chevron-down"></i></div>
-                                        <p className='avanced-text'> {clinic ? clinic.split(" ")[1] : "اختار العيادة"}</p>
-                                    </div>
-
-                                    <div className='avacned-input'>
-                                        <select onChange={(e) => setExampType(e.target.value)} className='hidden-input'>
-                                            <option>كشف جديد</option>
-                                            <option>متابعة</option>
-                                            <option>طورائ</option>
-                                        </select>
-                                        <div className='arrow-con'><i className="fa-solid fa-chevron-down"></i></div>
-                                        <p className='avanced-text'> {exampType ? exampType : "نوع الكشف"}  </p>
-                                    </div>
-                                </div>
-
-                                <div className='g-btn'>
-                                    <button onClick={advancedSearchHandler} type='submit' title='search' className='search-btn'>Search</button>
-                                    <button onClick={resetHandler} title='reset' className='rest-btn'>Reset</button>
-                                </div>
-
-                            </div>
-
-                        </form>
-
-                    </div>
-                </Box>
-            </Modal>
-
-
-            <Box sx={{ width: '1250px', maxWidth: "100%", margin: "20px auto", borderRadius: "20px" }}>
-                <TableToolbar
-                    searchValue={searchInput}
-                    onSearchChange={(e) => setSearchInput(e.target.value)}
-                    onSearchSubmit={searchHandler}
-                    excelData={formattedExcelData}
-                    excelFilename='transfersList'
-                    extraActions={
-                        <img
-                            onClick={handleAdvancedOpen}
-                            style={{ width: "28px", marginRight: "10px", paddingBottom: "2px", cursor: "pointer" }}
-                            src={advancedPic}
-                            loading='lazy'
-                            alt='advanced search'
-                            title='advanced Search'
-                        />
-                    }
-                />
-                <Paper style={{ borderRadius: "10px" }} sx={{ width: '100%', mb: 2 }}>
-                    <EnhancedTableToolbar numSelected={selected.length} />
-                    <TableContainer>
-                        <Table
-                            sx={{ minWidth: 750 }}
-                            aria-labelledby="tableTitle"
-                            size="medium"
+                      {/* Actions */}
+                      <TableCell align="center">
+                        <Button
+                          variant={isPending ? "contained" : "outlined"}
+                          size="small"
+                          onClick={() => handleOpenAssignModal(transfer)}
+                          sx={{
+                            borderRadius: '8px',
+                            fontWeight: 'bold',
+                            fontSize: '12px',
+                            backgroundColor: isPending ? '#7c3aed' : undefined,
+                            borderColor: !isPending ? '#7c3aed' : undefined,
+                            color: !isPending ? '#7c3aed' : undefined,
+                            '&:hover': {
+                              backgroundColor: isPending ? '#6d28d9' : '#f5f3ff',
+                            },
+                          }}
                         >
-                            <EnhancedTableHead
-                                numSelected={selected.length}
-                                order={order}
-                                orderBy={orderBy}
-                                onSelectAllClick={handleSelectAllClick}
-                                onRequestSort={handleRequestSort}
-                                rowCount={sortedAcceptedData?.length || 0}
-                            />
-                            <TableBody>
-                                {status === StatusCode.SUCCESS && sortedAcceptedData.length !== 0 ? sortedAcceptedData.map((krow, index) => {
-                                    const krowId = krow.id ?? krow.medicEx_id ?? krow.reservation_id;
-                                    const isItemSelected = isSelected(krowId);
-                                    const labelId = `enhanced-table-checkbox-${krowId ?? index}`;
-                                    const studentId = krow.user?.id ?? krow.student?.id ?? krow.student_id;
-                                    const studentName =
-                                        krow.user?.name ??
-                                        krow.student?.name ??
-                                        krow.student_name ??
-                                        krow.patient_name ??
-                                        krow.Name ??
-                                        "";
-                                    const studentImg =
-                                        krow.user?.profile_photo_url ||
-                                        krow.student?.userImage ||
-                                        krow.userImage ||
-                                        (krow.student_image ? `${BASE_URL}/uploads/${krow.student_image.replace(/^\/+/, '')}` : "");
-                                    const nationalId =
-                                        krow.user?.national_id ??
-                                        krow.student?.nationalId ??
-                                        krow.national_id ??
-                                        krow.nationalId ??
-                                        "";
-                                    const clinicName =
-                                        typeof krow.clinic === 'string'
-                                            ? krow.clinic
-                                            : (krow.clinic?.name ?? krow.clinic_name ?? "");
-                                    const displayDate = krow.date ? (typeof krow.date === "string" && krow.date.includes(",") ? krow.date.split(",")[0] : String(krow.date).slice(0, 10)) : "";
-                                    const examType = krow.examType ?? krow.exam_type ?? "";
-                                    const statusText = krow.status ?? "";
-                                    const isTransferred = Boolean(krow.transfer?.id ?? krow.transfer_id ?? (krow.transfered && krow.transfered !== 0));
+                          {isPending ? 'تحديد المستشفى' : 'تعديل المستشفى'}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
 
-                                    return (
-                                        <TableRow
-                                            hover
-                                            role="checkbox"
-                                            aria-checked={isItemSelected}
-                                            tabIndex={-1}
-                                            key={krowId ?? index}
-                                            selected={isItemSelected}
-                                            sx={{ cursor: 'pointer' }}
+      {/* Assign Hospital Modal */}
+      <Dialog open={modalOpen} onClose={handleCloseAssignModal} maxWidth="sm" fullWidth dir="rtl">
+        <DialogTitle sx={{ fontWeight: 'bold', color: '#1e293b', display: 'flex', alignItems: 'center', gap: 1 }}>
+          <span className="material-symbols-outlined" style={{ color: '#7c3aed' }}>local_hospital</span>
+          تحديد المستشفى الخارجية للطالب
+        </DialogTitle>
 
-                                        >
-                                            <TableCell onClick={(event) => handleClick(event, krowId, krow)} padding="checkbox">
-                                                <Checkbox
-                                                    color="primary"
-                                                    checked={isItemSelected}
-                                                    inputProps={{
-                                                        'aria-labelledby': labelId,
-                                                    }}
-                                                />
-                                            </TableCell>
+        <DialogContent dividers>
+          {selectedTransfer && (
+            <div style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '8px', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                <span><strong>المريض:</strong> {selectedTransfer.patient?.name}</span>
+                <span><strong>العيادة:</strong> {selectedTransfer.reservation?.clinicName}</span>
+              </div>
+              <div>
+                <strong>سبب التحويل:</strong> {selectedTransfer.transferReason}
+              </div>
+            </div>
+          )}
 
-                                            <TableCell
-                                                component="th"
-                                                id={labelId}
-                                                scope="row"
-                                                padding="none"
-                                                align='center'
-                                            >
-                                                {studentId ? (
-                                                    <Link to={`/ad/profile/${studentId}`} style={{ color: "black", display: "flex", alignItems: "center", justifyContent: "center" }} >
-                                                        {studentImg ? (
-                                                            <img className='imgage-table' alt='user' src={studentImg} loading='lazy' />
-                                                        ) : null}
+          <TextField
+            select
+            label="اختر المستشفى الخارجية *"
+            value={selectedHospitalId}
+            onChange={(e) => setSelectedHospitalId(e.target.value)}
+            fullWidth
+            margin="dense"
+            sx={{ mb: 2 }}
+          >
+            {hospitals && hospitals.length > 0 ? (
+              hospitals
+                .filter((h) => h.is_active !== false)
+                .map((hosp) => {
+                  const hId = hosp.id ?? hosp.exhospital_id ?? hosp.exHosp_id;
+                  const hName = hosp.hospitalName || hosp.hospName || hosp.hospital_name || hosp.name;
+                  return (
+                    <MenuItem key={hId} value={hId}>
+                      {hName}
+                    </MenuItem>
+                  );
+                })
+            ) : (
+              <MenuItem value="" disabled>
+                لا توجد مستشفيات متاحة
+              </MenuItem>
+            )}
+          </TextField>
 
-                                                        <Tooltip TransitionProps={{ timeout: 200 }} title={studentName} placement="top">
-                                                            <span>{studentName.length > 13 ? `${studentName.slice(0, 13)}...` : studentName}</span>
-                                                        </Tooltip>
-                                                    </Link>
-                                                ) : (
-                                                    <div style={{ color: "black", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
-                                                        {studentImg ? (
-                                                            <img className='imgage-table' alt='user' src={studentImg} loading='lazy' />
-                                                        ) : null}
+          <TextField
+            label="ملاحظات أو تعليمات للمريض (اختياري)"
+            placeholder="مثال: يرجى التوجه لمكتب الاستقبال مصطحباً بطاقة الرقم القومي"
+            multiline
+            rows={3}
+            fullWidth
+            value={notesInput}
+            onChange={(e) => setNotesInput(e.target.value)}
+          />
+        </DialogContent>
 
-                                                        <Tooltip TransitionProps={{ timeout: 200 }} title={studentName} placement="top">
-                                                            <span>{studentName.length > 13 ? `${studentName.slice(0, 13)}...` : studentName}</span>
-                                                        </Tooltip>
-                                                        <span style={{ fontSize: '11px', backgroundColor: '#e0f2fe', color: '#0369a1', padding: '2px 6px', borderRadius: '4px' }}>طوارئ</span>
-                                                    </div>
-                                                )}
-                                            </TableCell>
-
-
-
-                                            <TableCell align="center">{nationalId}</TableCell>
-                                            <TableCell align="center">{clinicName}</TableCell>
-                                            <TableCell align="center">{displayDate}</TableCell>
-                                            <TableCell align="center">{examType}</TableCell>
-                                            <TableCell align="center">{statusText}</TableCell>
-
-                                            <TableCell align="center" style={{ display: "flex", justifyContent: "center" }}>
-                                                <div className='k-btn-group'>
-
-                                                    {
-                                                        !isTransferred ?
-                                                            <Button className='transfer-btn' onClick={() => handleOpen(krow)}> تحويل  </Button> :
-                                                            <Button onClick={() => handleUpdateOpen(krow)} style={{ background: "orange", color: "white", borderRadius: "22px" }}>تعديل </Button>
-
-                                                    }
-                                                </div>
-                                            </TableCell>
-
-                                        </TableRow>
-
-
-                                    );
-                                }) : <TableRow  > <TableCell colSpan={8}>  <h3 style={{ width: "100%", textAlign: "center", fontSize: "25px" }} >  غير موجود </h3> </TableCell> </TableRow>
-                                }
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-
-                </Paper>
-
-            </Box>
-        </div>
-    );
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={handleCloseAssignModal} color="inherit">
+            إلغاء
+          </Button>
+          <Button
+            onClick={handleSubmitAssign}
+            variant="contained"
+            disabled={isAssigning}
+            sx={{ backgroundColor: '#7c3aed', '&:hover': { backgroundColor: '#6d28d9' } }}
+          >
+            {isAssigning ? 'جاري الحفظ وإرسال الإشعار...' : 'تأكيد وإشعار الطالب'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
+  );
 }

@@ -642,4 +642,20 @@
     border-color: #0075FF;
     box-shadow: 0 0 0 3px rgba(0, 117, 255, 0.12);
 }
-/* End Option 1 Quick Filters & Collapsible Panel */
+/* End Option 1 Quick Filters & Collapsible Panel */
+.transfer-resv {
+  width: 70px;
+  text-align: center;
+  background-color: #f3e8ff;
+  color: #7c3aed;
+  padding: 7px 22px;
+  border-radius: 10px;
+  font-weight: bold;
+}
+.transfer-action-btn {
+  color: #7c3aed !important;
+  background-color: #f3e8ff !important;
+}
+.transfer-action-btn:hover {
+  background-color: #e9d5ff !important;
+}

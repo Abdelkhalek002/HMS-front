@@ -166,6 +166,21 @@ export const reservationApi = apiSlice.injectEndpoints({
       ],
     }),
 
+    // Counter: Initiate Transfer / Convert Reservation to Transfer
+    initiateTransfer: builder.mutation({
+      query: ({ id, transfer_reason, notes }) => ({
+        url: `/reservations/${id}/transfer`,
+        method: "POST",
+        data: { transfer_reason, notes },
+      }),
+      invalidatesTags: (result, error, { id }) => [
+        { type: "Reservation", id },
+        { type: "Reservation", id: "LIST" },
+        { type: "Reservation", id: "ADMIN_LIST" },
+        { type: "Transfer", id: "LIST" },
+      ],
+    }),
+
     // Accept / Decline Reservation Status
     updateReservationStatus: builder.mutation({
       query: ({ id, status }) => ({
@@ -193,6 +208,7 @@ export const {
   useAdminDeleteReservationMutation,
   useDeleteReservationMutation,
   useUpdateReservationStatusMutation,
+  useInitiateTransferMutation,
 } = reservationApi;
 
 export default reservationApi;

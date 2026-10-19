@@ -23,6 +23,8 @@ import StatusCode from '../../../StatusCode';
 import { getUserInfo } from '../../auth';
 import { useState } from 'react';
 import { BASE_URL } from '../../../services/http';
+import { useInitiateTransferMutation } from '../reservationApi';
+import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button as MuiButton } from '@mui/material';
 import { useTableSelection } from '../../../components/table/useTableSelection';
 import TableToolbar from '../../../components/table/TableToolbar';
 import { getAllClinics, getAllFaculties, getAllLevels } from '../../lookups';
@@ -372,6 +374,64 @@ export default function EnhancedTable() {
           "حدث خطأ أثناء تعديل حالة الكشف";
         toast.error(errorMsg);
       });
+  };
+
+  // For Transfer Workflow
+  const [initiateTransfer, { isLoading: isInitiatingTransfer }] = useInitiateTransferMutation();
+  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+  const [selectedReservationForTransfer, setSelectedReservationForTransfer] = useState(null);
+  const [transferReasonInput, setTransferReasonInput] = useState("");
+  const [transferNotesInput, setTransferNotesInput] = useState("");
+
+  const handleOpenTransferModal = (resv) => {
+    setSelectedReservationForTransfer(resv);
+    setTransferReasonInput("");
+    setTransferNotesInput("");
+    setIsTransferModalOpen(true);
+  };
+
+  const handleCloseTransferModal = () => {
+    setIsTransferModalOpen(false);
+    setSelectedReservationForTransfer(null);
+    setTransferReasonInput("");
+    setTransferNotesInput("");
+  };
+
+  const handleSubmitTransfer = async () => {
+    if (!transferReasonInput.trim()) {
+      toast.error("يرجى كتابة سبب التحويل");
+      return;
+    }
+    const resvId = selectedReservationForTransfer?.id || selectedReservationForTransfer?.medicEx_id;
+    if (!resvId) {
+      toast.error("تعذر تحديد معرف الكشف");
+      return;
+    }
+    try {
+      await initiateTransfer({
+        id: resvId,
+        reason: transferReasonInput.trim(),
+        notes: transferNotesInput.trim() || undefined,
+      }).unwrap();
+      toast.success("تم تحويل الكشف بنجاح وإرساله لقسم التحويلات");
+      handleCloseTransferModal();
+      dispatch(
+        getAllReservationListAPI({
+          page: searchParams.get("page") ? searchParams.get("page") : 1,
+          search: searchParams.get("search") ? searchParams.get("search") : "",
+          filterStatus: activeStatus,
+          clinic_id: clinicId,
+          date: dateFilter,
+          faculty_id: facultyId,
+          level_id: levelId,
+          gender: genderFilter,
+          nationality_id: nationalityId,
+        })
+      );
+    } catch (err) {
+      const errMsg = err?.data?.message || err?.message || "حدث خطأ أثناء تحويل الكشف";
+      toast.error(errMsg);
+    }
   };
 
   // For Tab Filters (Pending vs Finished) - Preserves active filters!
@@ -753,6 +813,18 @@ export default function EnhancedTable() {
                                     <span className="material-symbols-outlined">close</span>
                                   </button>
                                 </Tooltip>
+                                <Tooltip title="تحويل لمستشفى خارجية" placement="top">
+                                  <button
+                                    type="button"
+                                    className="action-btn transfer-action-btn"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleOpenTransferModal(row);
+                                    }}
+                                  >
+                                    <span className="material-symbols-outlined">local_hospital</span>
+                                  </button>
+                                </Tooltip>
                               </React.Fragment>
                             ) : (
                               <Tooltip title="تم اتخاذ الإجراء سابقاً ولا يتطلب إجراءً حالياً" placement="top">
@@ -761,6 +833,8 @@ export default function EnhancedTable() {
                                     <div className='accept-resv'>مقبول</div>
                                   ) : statusText === "مرفوض" ? (
                                     <div className='rej-resv'>مرفوض</div>
+                                  ) : statusText === "محول" ? (
+                                    <div className="transfer-resv" style={{ backgroundColor: "#ede9fe", color: "#6d28d9", padding: "4px 8px", borderRadius: "6px", fontWeight: "bold", fontSize: "12px" }}>محول</div>
                                   ) : (
                                     <div className='neutral-resv'>{statusText || "مكتمل"}</div>
                                   )}
@@ -781,6 +855,61 @@ export default function EnhancedTable() {
         </Paper>
 
       </Box>
+      {/* Modal for Transfer Confirmation */}
+      <Dialog
+        open={isTransferModalOpen}
+        onClose={handleCloseTransferModal}
+        maxWidth="sm"
+        fullWidth
+        dir="rtl"
+      >
+        <DialogTitle id="transfer-dialog-title" sx={{ fontWeight: "bold", color: "#1e293b", display: "flex", alignItems: "center", gap: 1 }}>
+          <span className="material-symbols-outlined" style={{ color: "#7c3aed" }}>local_hospital</span>
+          تحويل طلب الكشف لمستشفى خارجية
+        </DialogTitle>
+        <DialogContent dividers>
+          <p style={{ margin: "0 0 16px 0", color: "#64748b", fontSize: "14px" }}>
+            سيتم تحويل هذا الكشف إلى قسم التحويلات ليقوم موظف التحويلات بتحديد المستشفى المناسبة وإشعار الطالب.
+          </p>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="سبب التحويل *"
+            placeholder="مثال: الحالة بحاجة لفحص رنين مغناطيسي غير متوفر"
+            fullWidth
+            multiline
+            rows={3}
+            variant="outlined"
+            value={transferReasonInput}
+            onChange={(e) => setTransferReasonInput(e.target.value)}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            margin="dense"
+            label="ملاحظات إضافية (اختياري)"
+            placeholder="أي تعليمات أو ملاحظات للمريض أو موظف التحويلات"
+            fullWidth
+            multiline
+            rows={2}
+            variant="outlined"
+            value={transferNotesInput}
+            onChange={(e) => setTransferNotesInput(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <MuiButton onClick={handleCloseTransferModal} color="inherit">
+            إلغاء
+          </MuiButton>
+          <MuiButton
+            onClick={handleSubmitTransfer}
+            variant="contained"
+            disabled={isInitiatingTransfer}
+            sx={{ backgroundColor: "#7c3aed", "&:hover": { backgroundColor: "#6d28d9" } }}
+          >
+            {isInitiatingTransfer ? "جاري التحويل..." : "تأكيد التحويل"}
+          </MuiButton>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }
