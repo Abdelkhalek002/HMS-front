@@ -5,7 +5,7 @@
 [![Material UI](https://img.shields.io/badge/MUI-v5.15-007FFF?logo=mui&logoColor=white)](https://mui.com/)
 [![React Router](https://img.shields.io/badge/React%20Router-v6-CA4245?logo=react-router&logoColor=white)](https://reactrouter.com/)
 
-A modern, responsive web application for managing healthcare and medical clinic operations in academic and institutional environments. Designed with native **RTL (Right-to-Left)** support, tailored typography (Cairo), dynamic Permission-Based Access Control (**PBAC**), resource-based canonical routing, and real-time operational workflows.
+A modern, responsive web application for managing healthcare and medical clinic operations in academic and institutional environments (Helwan University Hospital). Designed with native **RTL (Right-to-Left)** support, tailored typography (Cairo), dynamic Permission-Based Access Control (**PBAC**), resource-based canonical routing, and real-time operational workflows.
 
 ---
 
@@ -30,7 +30,7 @@ A modern, responsive web application for managing healthcare and medical clinic 
 
 ## 🌟 Overview
 
-The **HMS Frontend** (`hsu-gp`) streamlines patient clinic reservations, counter triage, external hospital referrals, and medical system administration. It provides a role-tailored and permission-driven user experience that accommodates students/patients, clinic reception desk counters, transfer managers, auditors/observers, and system administrators.
+The **HMS Frontend** streamlines patient clinic reservations, counter triage, external hospital referrals, and medical system administration. It provides a role-tailored and permission-driven user experience that accommodates students/patients, clinic reception desk counters, transfer managers, auditors/observers, and system administrators.
 
 ---
 
