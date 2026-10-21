@@ -5,7 +5,7 @@
 [![Material UI](https://img.shields.io/badge/MUI-v5.15-007FFF?logo=mui&logoColor=white)](https://mui.com/)
 [![React Router](https://img.shields.io/badge/React%20Router-v6-CA4245?logo=react-router&logoColor=white)](https://reactrouter.com/)
 
-A modern, responsive web application for managing healthcare and medical clinic operations in academic/institutional environments. Designed with native **RTL (Right-to-Left)** support, tailored typography (Cairo), dynamic Permission-Based Access Control (**PBAC**), and real-time operational workflows.
+A modern, responsive web application for managing healthcare and medical clinic operations in academic and institutional environments. Designed with native **RTL (Right-to-Left)** support, tailored typography (Cairo), dynamic Permission-Based Access Control (**PBAC**), resource-based canonical routing, and real-time operational workflows.
 
 ---
 
@@ -14,6 +14,7 @@ A modern, responsive web application for managing healthcare and medical clinic 
 - [Overview](#overview)
 - [Key Features](#key-features)
 - [User Roles & Access Levels](#user-roles--access-levels)
+- [Canonical Resource Routing](#canonical-resource-routing)
 - [Tech Stack](#tech-stack)
 - [Project Architecture](#project-architecture)
 - [Getting Started](#getting-started)
@@ -23,32 +24,32 @@ A modern, responsive web application for managing healthcare and medical clinic 
   - [Running the App](#running-the-app)
 - [Available Scripts](#available-scripts)
 - [API & HTTP Client](#api--http-client)
-- [Folder Structure](#folder-structure)
 - [License](#license)
 
 ---
 
 ## 🌟 Overview
 
-The **HMS Frontend** (`hsu-gp`) streamlines patient clinic reservations, counter triage, external hospital referrals, and medical system administration. It provides a role-tailored user experience that accommodates students/patients, clinic reception desk counters, transfer managers, medical examiners, and system administrators.
+The **HMS Frontend** (`hsu-gp`) streamlines patient clinic reservations, counter triage, external hospital referrals, and medical system administration. It provides a role-tailored and permission-driven user experience that accommodates students/patients, clinic reception desk counters, transfer managers, auditors/observers, and system administrators.
 
 ---
 
 ## ✨ Key Features
 
 ### 👤 Student & Patient Portal
-- **Clinic Reservations**: Search available clinics and book medical appointments.
-- **Medical Profile & History**: View personal visit history, past diagnoses, and medical status.
+- **Clinic Reservations**: Search available clinics and book medical checkup appointments.
+- **Medical Profile & History**: View personal visit history, past diagnoses, and medical records.
 - **Document Verification Guard**: Gate critical actions based on required student documentation status.
 - **Account Management**: Profile editing, secure password changes, and OTP-based verification.
 
 ### 🎫 Counter & Queue Management
 - **Desk Operations**: Manage incoming clinic appointments, patient check-ins, and counter queues.
 - **Status Updates**: Real-time reservation status updates (approved, pending, completed).
+- **Emergency Case Handling**: Dedicated indicators and workflows for urgent and emergency walk-ins.
 
 ### 🚑 Hospital Transfers
 - **External Referrals**: Process and track patient transfers to specialized partner hospitals.
-- **Transfer Orders**: Manage transfer approvals, paperwork, and patient status updates.
+- **Transfer Orders**: Manage transfer approvals, hospital assignment, and patient transit status.
 
 ### 🛡️ Administration & System Management
 - **Staff & Admin Management**: Create, update, filter, and assign roles and permissions to system administrators.
@@ -59,27 +60,43 @@ The **HMS Frontend** (`hsu-gp`) streamlines patient clinic reservations, counter
   - External Partner Hospitals
   - Governorates
 - **User Directory**: Search, inspect, activate/deactivate, and export student/patient records to CSV.
-- **System Audit Logs**: Track activity and operational history across the platform.
+- **System Audit Logs**: Track activity, entity modifications, user agents, and operational history across the platform.
 
 ### 🔐 Security & Access Control
 - **JWT Authentication**: Seamless token storage and automatic bearer injection via Axios interceptors.
-- **Permission-Based Access Control (PBAC)**: Granular route guards verifying specific resource permissions (e.g., `admins:read`, `transfers:read`, `users:read`, `logs:read`).
+- **Permission-Based Access Control (PBAC)**: Granular route guards verifying specific resource permissions (e.g., `admins:read`, `transfers:read`, `users:read`, `logs:read`, `reservations:read`).
+- **Audit-Only Experience**: First-class support for the `Observer` role with read-only badges and mutation controls (Accept, Reject, Assign Hospital) automatically suppressed.
+- **Declarative `<Can />` Component**: Declarative UI gating for buttons, modals, and actions based on user permissions.
 - **OTP Verification Flow**: Email verification and password recovery with multi-step OTP inputs.
 
 ---
 
 ## 👥 User Roles & Access Levels
 
-| Role (Arabic) | Role Identifier | Primary Responsibilities |
+| Role (Arabic) | Role Identifier | Nature | Primary Responsibilities |
+| :--- | :--- | :--- | :--- |
+| **طالب / مستخدم** | `user` | Student / Public | Clinic appointment booking, profile & personal medical history view |
+| **كاونتر** | `counter` | Operational Staff | Patient check-ins, attendance verification, counter queue management |
+| **مسؤول التحويلات** | `transfer` | Operational Staff | Referral workflow, external hospital selection, and transfer status |
+| **ملاحظ / مدقق** | `observer` / `viewer` | **Auditing Only** | Read-only inspection of reservations, transfers, and audit logs without edit permissions |
+| **مدير النظام** | `super_admin` | System Admin | Full system governance, lookup settings, staff management, permissions & logs |
+
+---
+
+## 🌐 Canonical Resource Routing
+
+Internal staff workspaces use clean, resource-based URLs protected by granular permissions:
+
+| Resource Path | Target Module | Required Permission |
 | :--- | :--- | :--- |
-| **طالب / مريض** | `user` | Clinic appointment booking, profile & medical history view |
-| **كاونتر** | `counter` / `كاونتر` | Patient check-ins, attendance verification, counter queue |
-| **مسؤول التحويلات** | `transfer` / `مسؤول التحويلات` | Referral workflow and external hospital transfers |
-| **مسؤول الكشف الطبي** | `medical_check_manager` | Student medical examination review and validation |
-| **أدمن مستشفي خارجي** | `external_hospital_admin` | External hospital administration and referral management |
-| **ملاحظ** | `viewer` / `ملاحظ` | Read-only administrative observation and metrics monitoring |
-| **مدير ثان** | `second_manager` / `مدير ثان` | Secondary administrative supervision and data management |
-| **مدير النظام** | `super_admin` / `مدير النظام` | Full system governance, lookup settings, permissions & logs |
+| **`/`** | Student Booking & Home | Public / Authenticated Student |
+| **`/reservations`** | Counter & Reservations Management | `reservations:read` |
+| **`/transfers`** | Medical Referral & Transfer Cases | `transfers:read` |
+| **`/users`** | Students & Patients Directory | `users:read` |
+| **`/history`** | System Audit & Operational Logs | `logs:read` |
+| **`/system-data`** | Lookup Data (Clinics, Faculties, Hospitals) | `admins:read` |
+| **`/admins`** | Staff & Administrator Accounts | `admins:read` |
+| **`/profile-viewer/:userId`** | Staff View of Student Profile & Records | `users:read` |
 
 ---
 
@@ -92,7 +109,7 @@ The **HMS Frontend** (`hsu-gp`) streamlines patient clinic reservations, counter
   - [Material UI (MUI v5)](https://mui.com/)
   - [Styled Components](https://styled-components.com/) & [Emotion](https://emotion.sh/)
   - [Framer Motion](https://www.framer.com/motion/) (Micro-animations and transitions)
-  - [FontAwesome](https://fontawesome.com/) & [Google Material Symbols](https://fonts.google.com/icons)
+  - [Google Material Symbols](https://fonts.google.com/icons)
 - **Date Handling**: [MUI X Date Pickers](https://mui.com/x/react-date-pickers/) with [Day.js](https://day.js.org/)
 - **Feedback & Notifications**: [React Toastify](https://fkhadra.github.io/react-toastify/) & [SweetAlert](https://sweetalert.js.org/)
 - **Data Export**: [react-csv](https://github.com/react-csv/react-csv)
@@ -108,7 +125,10 @@ HMS-front/
 ├── public/                 # Static assets, HTML shell with RTL & Cairo font
 └── src/
     ├── components/         # Shared, reusable UI widgets and primitives
-    ├── config/             # Navigation and application configuration
+    │   ├── common/         # Declarative primitives (e.g., <Can />)
+    │   ├── table/          # Reusable data table toolbars and selection hooks
+    │   └── ui/             # General UI components (NotFound, loaders)
+    ├── config/             # Navigation manifest and application configuration
     ├── features/           # Domain-driven feature modules
     │   ├── admins/         # Admin management, staff lists, and filters
     │   ├── auth/           # Login, signup, password reset, OTP verification
@@ -118,9 +138,9 @@ HMS-front/
     │   ├── reservations/   # Clinic appointments and counter desk views
     │   ├── transfers/      # External hospital transfer management
     │   └── users/          # Student/user directory and controls
-    ├── hooks/              # Custom React hooks
-    ├── layouts/            # Base layouts & dynamic role-based SideBars
-    ├── routes/             # Route guards (UserGuard, AdminGuard, PermissionGuard)
+    ├── hooks/              # Custom React hooks (usePermission, useSidebar)
+    ├── layouts/            # Base layouts & dynamic StaffSidebar
+    ├── routes/             # Canonical paths, route guards (StaffGuard, UserGuard, PermissionGuard)
     ├── services/           # HTTP client, Axios interceptors, token storage
     ├── store/              # Redux Toolkit store and RTK Query API slice
     └── utils/              # PBAC permissions, date helpers, formatters
@@ -133,8 +153,8 @@ HMS-front/
 ### Prerequisites
 
 Ensure you have the following installed:
-- [Node.js](https://nodejs.org/) (`v16.x` or higher recommended)
-- [npm](https://www.npmjs.com/) (`v8.x` or higher) or [yarn](https://yarnpkg.com/)
+- [Node.js](https://nodejs.org/) (`v18.x` or higher recommended)
+- [npm](https://www.npmjs.com/) (`v8.x` or higher)
 
 ### Installation
 
