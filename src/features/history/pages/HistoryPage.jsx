@@ -1,4 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useSearchParams } from 'react-router-dom';
+import { Helmet } from 'react-helmet';
+import swal from 'sweetalert';
+import { toast } from 'react-toastify';
 import { styled } from '@mui/material/styles';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -7,218 +12,405 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
+import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
-import {  Delete } from '@mui/icons-material';
-import swal from 'sweetalert';
-import { useDispatch, useSelector } from 'react-redux';
-import StatusCode from '../../../StatusCode.js';
-import { Box , Pagination, PaginationItem, Stack, Tooltip } from '@mui/material';
-import { Helmet } from 'react-helmet';
-import { CircleLoader } from 'react-spinners';
-import { toast } from 'react-toastify';
-import { deleteHistoryAPI, getAllHistoryAPI } from '../HistorySlice.js';
-import { getUserInfo } from '../../auth';
-import { useSearchParams } from 'react-router-dom';
+import Chip from '@mui/material/Chip';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Stack from '@mui/material/Stack';
+import Pagination from '@mui/material/Pagination';
+import PaginationItem from '@mui/material/PaginationItem';
+import Tooltip from '@mui/material/Tooltip';
+import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+import { CircleLoader } from 'react-spinners';
 
+import StatusCode from '../../../StatusCode.js';
+import {
+  deleteHistoryAPI,
+  getAllHistoryAPI,
+  selectHistory,
+} from '../HistorySlice.js';
+import HistoryFilterBar from '../components/HistoryFilterBar.jsx';
+import HistoryExportButton from '../components/HistoryExportButton.jsx';
+import LogDetailsModal from '../components/LogDetailsModal.jsx';
+import usePermission from '../../../hooks/usePermission';
+
+const StyledTableCell = styled(TableCell)(({ theme }) => ({
+  [`&.${tableCellClasses.head}`]: {
+    backgroundColor: '#f1f5f9',
+    color: '#1e293b',
+    fontWeight: 700,
+    fontSize: 15,
+    borderBottom: '2px solid #cbd5e1',
+  },
+  [`&.${tableCellClasses.body}`]: {
+    fontSize: 14,
+    color: '#334155',
+  },
+}));
+
+const StyledTableRow = styled(TableRow)(({ theme }) => ({
+  '&:nth-of-type(even)': {
+    backgroundColor: '#f8fafc',
+  },
+  '&:hover': {
+    backgroundColor: '#f1f5f9',
+    transition: 'background-color 0.15s ease',
+  },
+  '&:last-child td, &:last-child th': {
+    border: 0,
+  },
+}));
 
 export default function HistoryPage() {
+  const dispatch = useDispatch();
+  const { logs, totalCount, totalPages, currentPage, status } = useSelector(selectHistory);
+  const { can, isSuperAdmin, PERMISSIONS } = usePermission();
+  const canDeleteLogs = isSuperAdmin || can(PERMISSIONS.LOGS_DELETE);
 
-  const {data,status}=useSelector(state => state.HistorySlice)
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [selectedLog, setSelectedLog] = useState(null);
 
-//  For Dispatch Action
-  const dispatch=useDispatch(); 
+  // Extract filter query values from searchParams
+  const pageParam = parseInt(searchParams.get('page'), 10) || 1;
+  const limitParam = parseInt(searchParams.get('limit'), 10) || 10;
+  const actionParam = searchParams.get('action') || '';
+  const statusParam = searchParams.get('status') || '';
+  const adminIdParam = searchParams.get('adminId') || '';
 
-// For Access Token 
-const {token } = useSelector(getUserInfo) ; 
+  const activeFilters = {
+    page: pageParam,
+    limit: limitParam,
+    action: actionParam,
+    status: statusParam,
+    adminId: adminIdParam,
+  };
 
+  // Fetch audit logs whenever parameters change
+  useEffect(() => {
+    dispatch(
+      getAllHistoryAPI({
+        page: pageParam,
+        limit: limitParam,
+        action: actionParam || undefined,
+        status: statusParam || undefined,
+        adminId: adminIdParam || undefined,
+      })
+    );
+  }, [dispatch, pageParam, limitParam, actionParam, statusParam, adminIdParam]);
 
-// For Change Params in URL
-const [searchParams , setSearchParams] = useSearchParams({page : 1}) ; 
+  const handleFilterChange = (newFilters) => {
+    const updated = {
+      page: 1, // Reset to page 1 on filter change
+      limit: limitParam,
+      action: actionParam,
+      status: statusParam,
+      adminId: adminIdParam,
+      ...newFilters,
+    };
 
+    const nextParams = {};
+    if (updated.page > 1) nextParams.page = updated.page;
+    if (updated.limit !== 10) nextParams.limit = updated.limit;
+    if (updated.action) nextParams.action = updated.action;
+    if (updated.status) nextParams.status = updated.status;
+    if (updated.adminId) nextParams.adminId = updated.adminId;
 
-// For Get All History
-useEffect(()=>{
-  dispatch(getAllHistoryAPI({token , page : searchParams.get('page' ) ?searchParams.get('page' ) : 1 }))
-},[dispatch , token , searchParams])
+    setSearchParams(nextParams);
+  };
 
+  const handleResetFilters = () => {
+    setSearchParams({});
+  };
 
+  const handlePageChange = (newPage) => {
+    const nextParams = new URLSearchParams(searchParams);
+    if (newPage > 1) {
+      nextParams.set('page', newPage);
+    } else {
+      nextParams.delete('page');
+    }
+    setSearchParams(nextParams);
+  };
 
-
-  // For Handle Pagaintion
-  const showResultOfPag = (npage)=>{
-    // dispatch(getAllReservationListAPI({token , page :npage ? npage: 1})) ; 
-    setSearchParams({page : npage })
-  }
-
-
-
-// if(status===StatusCode.ERROR){
-//   return<>
-//   <Box
-//     sx={{
-//       height: '100vh',
-//       display: 'flex',
-//       alignItems: 'center',
-//       justifyContent: 'center',
-//     }}
-//   >
-//     <Typography variant="h4" component="h4" className='text-center'>
-//       حدث خطأ ما
-//     </Typography>
-//   </Box>
-// </>
-// }
-
-if(status===StatusCode.LOADING){
-  return<>
-<Box
-  sx={{
-    height: '100vh',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  }}
->
-<CircleLoader color="#0061ff" />
-        </Box>
-      </>
-}
-
-
-  const StyledTableCell = styled(TableCell)(({ theme }) => ({
-    [`&.${tableCellClasses.head}`]: {
-      backgroundColor: theme.palette.common.white,
-      color: theme.palette.common.black,
-    },
-    [`&.${tableCellClasses.body}`]: {
-      fontSize: 16,
-    },
-  }));
-
-  const StyledTableRow = styled(TableRow)(({ theme }) => ({
-    '&:nth-of-type(odd)': {
-      backgroundColor: theme.palette.common.white,
-    },
-    // hide last border
-    '&:last-child td, &:last-child th': {
-      border: 0,
-    },
-  }));
-
-  const TableContainerStyled = styled(TableContainer)(({ theme }) => ({
-    borderRadius: 18,
-    margin: 'auto',
-    maxWidth: 1020, 
-  }));
-
-  const handleDelete = () => {
+  const handleDeleteAll = () => {
     swal({
-      title: " هل انت متأكد من الحذف؟",
-      text: "لما تحذفه مش هتقدر ترجعه تاني",
-      icon: "warning",
-      buttons: true,
+      title: 'هل أنت متأكد من تفريغ سجل العمليات بالكامل؟',
+      text: 'تحذير: سيتم حذف جميع السجلات المسجلة نهائياً ولن تتمكن من استعادتها.',
+      icon: 'warning',
+      buttons: ['إلغاء', 'نعم، تفريغ السجل'],
       dangerMode: true,
-    })
-    .then(() => {
-        dispatch(deleteHistoryAPI({token}))
-        .unwrap()
-          .then((msg) => {
-            console.log(msg);
-            swal(msg.message, { icon: "success" });
-            dispatch(getAllHistoryAPI({token}));
+    }).then((willDelete) => {
+      if (willDelete) {
+        dispatch(deleteHistoryAPI())
+          .unwrap()
+          .then((res) => {
+            swal(res?.message || 'تم تفريغ السجل بنجاح', { icon: 'success' });
           })
-          .catch(error => {
-            console.error("Error deleting faculty:", error.error);
-            if(error.error==="Request failed with status code 429")
-              toast.error("تجاوزت الحد الاقصي من المحاولة برجاء المحاولة لاحقا",{
-                theme:"colored",
-                position:"top-right"
-          })
-          else
-          toast.error("حدث خطأ ما برجاء ",{
-            theme:"colored",
-            position:"top-right"
-          })
+          .catch((err) => {
+            toast.error(err?.message || 'فشل في تفريغ السجل', {
+              theme: 'colored',
+              position: 'top-right',
+            });
+          });
       }
-      );
     });
   };
-  
 
-  return <>
+  const formatDateTime = (dateStr) => {
+    if (!dateStr) return '—';
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      return d.toLocaleString('ar-EG', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch {
+      return dateStr;
+    }
+  };
+
+  return (
+    <>
       <Helmet>
-        <title>History</title>
-        <meta name="description" content="HSH application" />
+        <title>سجل العمليات الإدارية | Hospital Management System</title>
+        <meta name="description" content="سجل العمليات والأنشطة الإدارية" />
       </Helmet>
 
-
-
-    <div className='k-group-user-page '>
-      <h2 className='title'>السجل</h2>
-      <div className='k-btn-group'>
-                  <Tooltip title="حذف السجل" arrow >
-                    <IconButton
-                      aria-label="delete"
-                      color='error'
-                      size='small'
-                      onClick={() => handleDelete()}
-                    >
-                      <Delete fontSize='inherit'/>
-                    </IconButton>
-                  </Tooltip>
-                </div>
-      <TableContainerStyled component={Paper} >
-        <Table sx={{ minWidth:200}} aria-label="customized table" >
-          <TableHead  >
-            <TableRow>
-              <StyledTableCell align="center" style={{fontSize:"18px", fontWeight:"bold"}}>السجل</StyledTableCell>
-              <StyledTableCell align="center" style={{fontSize:"18px", fontWeight:"bold"}}>الزمن</StyledTableCell>
-              <StyledTableCell align="center" style={{fontSize:"18px", fontWeight:"bold"}}>العملية</StyledTableCell>
-              <StyledTableCell align="center" style={{fontSize:"18px", fontWeight:"bold"}}>محتوي العملية</StyledTableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {data.adminLogs? data.adminLogs.map((history) => (
-              <StyledTableRow  key={history.history_id}>
-                <StyledTableCell align="center">{history.admin_name}</StyledTableCell>
-                <StyledTableCell align="center">{history.timestamp}</StyledTableCell>
-                <StyledTableCell align="center">{history.method}</StyledTableCell>
-                <StyledTableCell align="center">{history.body}</StyledTableCell>
-              </StyledTableRow>
-            )):""}
-          </TableBody>
-        </Table>
-      </TableContainerStyled>
-      <div style={{display : "flex" , justifyContent :"center" , marginTop : "30px" }}>
-          <Stack spacing={2} >
-          <Pagination
-            color="primary"
-            count={data.totalPages}
-            onClick={(e)=> showResultOfPag(e.target.innerText)}
-            renderItem={(item) => { console.log(item)
-              if(String(item.page) === String(searchParams.get('page')) && item.type !== 'next')
-                item.selected = true
-              else
-              item.selected = false 
-               return(
-              <PaginationItem
-              color='primary'
-                selected={String(searchParams.get('page')) === String(item.page)}
-                slots={{ previous: ArrowBackIcon, next: ArrowForwardIcon }}
-                
-
-                {...item }
-                
+      <Box sx={{ maxWidth: 1300, mx: 'auto', p: { xs: 2, sm: 3 } }}>
+        {/* Header Section */}
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            justifyContent: 'space-between',
+            alignItems: { xs: 'flex-start', sm: 'center' },
+            gap: 2,
+            mb: 3,
+          }}
+        >
+          <Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <AdminPanelSettingsIcon color="primary" sx={{ fontSize: 32 }} />
+              <Typography variant="h5" sx={{ fontWeight: 800, color: '#0f172a' }}>
+                سجل العمليات الإدارية
+              </Typography>
+              <Chip
+                label={`${totalCount} عملية`}
+                size="small"
+                color="primary"
+                variant="outlined"
+                sx={{ fontWeight: 600 }}
               />
+            </Box>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+              تتبع جميع الإجراءات والتعديلات الحساسة المنفذة بواسطة مسؤولي النظام
+            </Typography>
+          </Box>
+
+          <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
+            <HistoryExportButton data={logs} />
+            {canDeleteLogs && (
+              <Button
+                variant="outlined"
+                color="error"
+                startIcon={<DeleteSweepIcon />}
+                onClick={handleDeleteAll}
+                disabled={!logs || logs.length === 0}
+                sx={{ borderRadius: 2 }}
+              >
+                تفريغ السجل
+              </Button>
             )}
-}
-          />
-        </Stack>
-        </div>
-    </div>
+          </Box>
+        </Box>
+
+        {/* Filter Bar */}
+        <HistoryFilterBar
+          filters={activeFilters}
+          onChange={handleFilterChange}
+          onReset={handleResetFilters}
+        />
+
+        {/* Table Container or Loader */}
+        {status === StatusCode.LOADING ? (
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              minHeight: 350,
+            }}
+          >
+            <CircleLoader color="#0061ff" size={50} />
+          </Box>
+        ) : (
+          <TableContainer
+            component={Paper}
+            elevation={0}
+            sx={{
+              borderRadius: 3,
+              border: '1px solid #e2e8f0',
+              overflow: 'hidden',
+            }}
+          >
+            <Table sx={{ minWidth: 750 }} aria-label="audit logs table">
+              <TableHead>
+                <TableRow>
+                  <StyledTableCell align="center">#</StyledTableCell>
+                  <StyledTableCell align="right">المسؤول</StyledTableCell>
+                  <StyledTableCell align="right">العملية</StyledTableCell>
+                  <StyledTableCell align="center">الكيان المستهدف</StyledTableCell>
+                  <StyledTableCell align="center">الحالة</StyledTableCell>
+                  <StyledTableCell align="center">عنوان IP</StyledTableCell>
+                  <StyledTableCell align="center">التوقيت</StyledTableCell>
+                  <StyledTableCell align="center">التفاصيل</StyledTableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {Array.isArray(logs) && logs.length > 0 ? (
+                  logs.map((log) => {
+                    const isSuccess =
+                      log.status === 'SUCCESS' || log.status === 'success' || !log.status;
+                    return (
+                      <StyledTableRow key={log.id}>
+                        <StyledTableCell align="center" sx={{ fontFamily: 'monospace', fontWeight: 600 }}>
+                          #{log.id}
+                        </StyledTableCell>
+
+                        <StyledTableCell align="right">
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Box>
+                              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                {log.adminName || 'غير معروف'}
+                              </Typography>
+                              {log.adminId && (
+                                <Typography variant="caption" color="text.secondary">
+                                  ID: {log.adminId}
+                                </Typography>
+                              )}
+                            </Box>
+                          </Box>
+                        </StyledTableCell>
+
+                        <StyledTableCell align="right">
+                          <Typography variant="body2" sx={{ fontWeight: 600, color: '#1e293b' }}>
+                            {log.method || '—'}
+                          </Typography>
+                          {log.action && (
+                            <Chip
+                              label={log.action}
+                              size="small"
+                              sx={{
+                                mt: 0.5,
+                                fontSize: '11px',
+                                height: 20,
+                                fontFamily: 'monospace',
+                                backgroundColor: '#e2e8f0',
+                              }}
+                            />
+                          )}
+                        </StyledTableCell>
+
+                        <StyledTableCell align="center">
+                          {log.entityType ? (
+                            <Typography variant="caption" sx={{ fontWeight: 600 }}>
+                              {log.entityType} {log.entityId ? `(#${log.entityId})` : ''}
+                            </Typography>
+                          ) : (
+                            '—'
+                          )}
+                        </StyledTableCell>
+
+                        <StyledTableCell align="center">
+                          <Chip
+                            size="small"
+                            icon={isSuccess ? <CheckCircleIcon /> : <CancelIcon />}
+                            label={isSuccess ? 'ناجحة' : 'فاشلة'}
+                            color={isSuccess ? 'success' : 'error'}
+                            variant="outlined"
+                            sx={{
+                              fontWeight: 600,
+                              height: 24,
+                              '& .MuiChip-icon': { mr: 0.75, ml: -0.25, fontSize: 16 },
+                              '& .MuiChip-label': { px: 0.75 },
+                            }}
+                          />
+                        </StyledTableCell>
+
+                        <StyledTableCell align="center" sx={{ fontFamily: 'monospace', fontSize: 13 }}>
+                          {log.ipAddress || '—'}
+                        </StyledTableCell>
+
+                        <StyledTableCell align="center" sx={{ fontSize: 13, whiteSpace: 'nowrap' }}>
+                          {formatDateTime(log.createdAt)}
+                        </StyledTableCell>
+
+                        <StyledTableCell align="center">
+                          <Tooltip title="عرض التفاصيل" arrow>
+                            <IconButton
+                              size="small"
+                              color="primary"
+                              onClick={() => setSelectedLog(log)}
+                            >
+                              <VisibilityIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </StyledTableCell>
+                      </StyledTableRow>
+                    );
+                  })
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={8} align="center" sx={{ py: 6 }}>
+                      <Typography variant="body1" color="text.secondary">
+                        لا توجد سجلات عمليات مطابقة لخيارات البحث المحددة.
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+            <Stack spacing={2}>
+              <Pagination
+                color="primary"
+                count={totalPages}
+                page={currentPage}
+                onChange={(_, page) => handlePageChange(page)}
+                renderItem={(item) => (
+                  <PaginationItem
+                    slots={{ previous: ArrowForwardIcon, next: ArrowBackIcon }}
+                    {...item}
+                  />
+                )}
+              />
+            </Stack>
+          </Box>
+        )}
+
+        {/* Log Details Modal */}
+        <LogDetailsModal
+          open={Boolean(selectedLog)}
+          onClose={() => setSelectedLog(null)}
+          log={selectedLog}
+        />
+      </Box>
     </>
+  );
 }
-
-
