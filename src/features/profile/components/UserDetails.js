@@ -46,7 +46,7 @@ const UserDetails = () => {
   const isAdmin =
     payLoad?.type === 'admin' ||
     Boolean(payLoad?.role) ||
-    window.location.pathname.startsWith('/ad');
+    window.location.pathname.startsWith('/profile-viewer');
 
   const docStatus = profileInfo.document_status || 'pending';
 

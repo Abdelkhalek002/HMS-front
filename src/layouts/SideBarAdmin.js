@@ -1,15 +1,17 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { usePermission } from '../hooks/usePermission';
-import { ADMIN_NAV_ITEMS } from '../config/navigationConfig';
+import { STAFF_NAV_ITEMS } from '../config/navigationConfig';
 import BaseSidebar from './BaseSidebar.jsx';
 
-const SideBarAdmin = () => {
-    const { can } = usePermission();
-    const visibleTabs = ADMIN_NAV_ITEMS.filter((item) => can(item.permission));
+const StaffSidebar = () => {
+    const { can, isSuperAdmin, isObserver } = usePermission();
+    const visibleTabs = STAFF_NAV_ITEMS.filter((item) => isSuperAdmin || can(item.permission));
+
+    const sidebarTitle = isObserver ? 'الملاحظة والتدقيق' : 'لوحة التحكم';
 
     return (
-        <BaseSidebar title="المسؤول">
+        <BaseSidebar title={sidebarTitle}>
             {visibleTabs.map((item) => (
                 <NavLink
                     key={item.path}
@@ -28,4 +30,4 @@ const SideBarAdmin = () => {
     );
 };
 
-export default SideBarAdmin;
+export default StaffSidebar;

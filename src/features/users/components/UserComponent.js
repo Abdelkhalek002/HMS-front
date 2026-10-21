@@ -77,7 +77,7 @@ const UserComponent = ({ id, title, email, date, status, image, active, blocked,
         </div>
 
         <div className='circle'>
-            <Link className='circle-link' to={payLoad?.type === 'user' ? `/profile/${id}` : `/ad/profile/${id}`}>
+            <Link className='circle-link' to={payLoad?.type === 'user' ? `/profile/${id}` : `/profile-viewer/${id}`}>
                 <Tooltip className='tooltip' title="المزيد" arrow placement='right'>
 <div className='double-arrow'>
                     <span className="material-symbols-outlined">

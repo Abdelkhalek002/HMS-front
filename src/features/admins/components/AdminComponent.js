@@ -8,12 +8,9 @@ import { BASE_URL } from '../../../services/http';
 
 import {
     isSuperAdminRole,
-    isSecondSuperAdminRole,
     isCounterRole,
     isTransferRole,
-    isViewerRole,
-    isMedicalCheckManagerRole,
-    isExternalHospitalAdminRole
+    isViewerRole
 } from '../../../ActorType';
 
 const AdminComponent = ({
@@ -49,11 +46,8 @@ const AdminComponent = ({
 
     const getRoleName = (roleVal) => {
         if (isSuperAdminRole(roleVal)) return 'مدير النظام';
-        if (isSecondSuperAdminRole(roleVal)) return 'مدير ثان';
         if (isCounterRole(roleVal)) return 'كاونتر';
         if (isTransferRole(roleVal)) return 'مسؤول التحويلات';
-        if (isMedicalCheckManagerRole(roleVal)) return 'مسؤول الكشف الطبي';
-        if (isExternalHospitalAdminRole(roleVal)) return 'أدمن مستشفي خارجي';
         if (isViewerRole(roleVal)) return 'ملاحظ';
         return roleVal || 'مسؤول';
     };

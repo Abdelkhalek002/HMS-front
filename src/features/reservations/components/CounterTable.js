@@ -28,6 +28,9 @@ import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button as
 import { useTableSelection } from '../../../components/table/useTableSelection';
 import TableToolbar from '../../../components/table/TableToolbar';
 import { getAllClinics, getAllFaculties, getAllLevels } from '../../lookups';
+import { usePermission } from '../../../hooks/usePermission';
+import { PERMISSIONS } from '../../../utils/permissionUtils';
+import userPic from '../../../images/userProfile.jpg';
 
 const headCells = [
   {
@@ -106,7 +109,8 @@ function EnhancedTableHead(props) {
         {visibleHeadCells.map((headCell) => (
           <TableCell
             key={headCell.id}
-            align={"center"}
+            align={headCell.id === 'studentName' ? 'right' : 'center'}
+            sx={headCell.id === 'studentName' ? { pr: 2 } : {}}
             padding={headCell.disablePadding ? 'none' : 'normal'}
             sortDirection={orderBy === headCell.id ? order : false}
           >
@@ -283,6 +287,14 @@ export default function EnhancedTable() {
 
   // Advanced demographic active count
   const activeDemographicCount = [facultyId, levelId, genderFilter, nationalityId].filter(Boolean).length;
+
+  // Permissions & Audit Mode
+  const { isObserver, canMutate, can } = usePermission();
+  const canApprove = canMutate(PERMISSIONS.RESERVATIONS_APPROVE);
+  const canWrite = canMutate(PERMISSIONS.RESERVATIONS_WRITE);
+  const isAuditMode = isObserver || (!canApprove && !canWrite);
+  const canViewProfile = can(PERMISSIONS.USERS_READ);
+  const showActions = activeStatus !== 'finished' && !isAuditMode;
   const hasActiveFilters = Boolean(
     searchParams.get('search') ||
     clinicId ||
@@ -671,6 +683,29 @@ export default function EnhancedTable() {
             </div>
           </div>
         )}
+
+        {/* Audit Mode Banner */}
+        {isAuditMode && (
+          <div
+            style={{
+              backgroundColor: '#eff6ff',
+              border: '1px solid #bfdbfe',
+              color: '#1e40af',
+              padding: '10px 18px',
+              borderRadius: '10px',
+              marginBottom: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              fontSize: '14px',
+              fontWeight: 'bold',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>visibility</span>
+            <span>وضع الملاحظة والتدقيق (للقراءة فقط - تم تعطيل إجراءات القبول، الرفض، والتحويل)</span>
+          </div>
+        )}
+
         <Paper style={{ borderRadius: "10px" }} sx={{ width: '100%', mb: 2 }}>
           <EnhancedTableToolbar numSelected={selected.length} />
           <TableContainer>
@@ -686,7 +721,7 @@ export default function EnhancedTable() {
                 onSelectAllClick={handleSelectAllClick}
                 onRequestSort={handleRequestSort}
                 rowCount={sortedData?.length || 0}
-                showActions={activeStatus !== 'finished'}
+                showActions={showActions}
               />
               <TableBody>
                 {status === StatusCode.SUCCESS && sortedData.length !== 0 ? sortedData.map((row, index) => {
@@ -725,6 +760,12 @@ export default function EnhancedTable() {
                     : "";
                   const examType = row.examType ?? row.exam_type ?? "";
                   const statusText = row.status ?? "";
+                  const isEmergency =
+                    row.is_emergency === 1 ||
+                    row.is_emergency === true ||
+                    row.is_emergency === '1' ||
+                    examType === 'طوارئ' ||
+                    row.exam_type === 'طوارئ';
 
                   return (
                     <TableRow
@@ -751,28 +792,58 @@ export default function EnhancedTable() {
                         id={labelId}
                         scope="row"
                         padding="none"
-                        align='center'
+                        align="right"
+                        sx={{ pr: 2 }}
                       >
-                        {studentId ? (
-                          <Link to={`profile/${studentId}`} style={{ color: "black", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                            {studentImg ? (
-                              <img className='imgage-table' alt='user' src={studentImg} loading='lazy' />
-                            ) : null}
-
+                        {studentId && canViewProfile ? (
+                          <Link
+                            to={`/profile-viewer/${studentId}`}
+                            style={{
+                              color: "#1e293b",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "10px",
+                              textDecoration: "none",
+                              fontWeight: 600,
+                            }}
+                          >
+                            <img
+                              className='imgage-table'
+                              alt={studentName}
+                              src={studentImg || userPic}
+                              loading='lazy'
+                              onError={(e) => { e.target.src = userPic; }}
+                            />
                             <Tooltip TransitionProps={{ timeout: 200 }} title={studentName} placement="top">
-                              <span>{studentName.length > 13 ? `${studentName.slice(0, 13)}...` : studentName}</span>
+                              <span>{studentName.length > 14 ? `${studentName.slice(0, 14)}...` : studentName}</span>
                             </Tooltip>
+                            {isEmergency && (
+                              <span style={{ fontSize: '11px', backgroundColor: '#e0f2fe', color: '#0369a1', padding: '2px 6px', borderRadius: '4px' }}>طوارئ</span>
+                            )}
                           </Link>
                         ) : (
-                          <div style={{ color: "black", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
-                            {studentImg ? (
-                              <img className='imgage-table' alt='user' src={studentImg} loading='lazy' />
-                            ) : null}
-
+                          <div
+                            style={{
+                              color: "#1e293b",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "10px",
+                              fontWeight: 600,
+                            }}
+                          >
+                            <img
+                              className='imgage-table'
+                              alt={studentName}
+                              src={studentImg || userPic}
+                              loading='lazy'
+                              onError={(e) => { e.target.src = userPic; }}
+                            />
                             <Tooltip TransitionProps={{ timeout: 200 }} title={studentName} placement="top">
-                              <span>{studentName.length > 13 ? `${studentName.slice(0, 13)}...` : studentName}</span>
+                              <span>{studentName.length > 14 ? `${studentName.slice(0, 14)}...` : studentName}</span>
                             </Tooltip>
-                            <span style={{ fontSize: '11px', backgroundColor: '#e0f2fe', color: '#0369a1', padding: '2px 6px', borderRadius: '4px' }}>طوارئ</span>
+                            {isEmergency && (
+                              <span style={{ fontSize: '11px', backgroundColor: '#e0f2fe', color: '#0369a1', padding: '2px 6px', borderRadius: '4px' }}>طوارئ</span>
+                            )}
                           </div>
                         )}
                       </TableCell>
@@ -783,8 +854,8 @@ export default function EnhancedTable() {
                       <TableCell align="center">{examType}</TableCell>
                       <TableCell align="center">{statusText}</TableCell>
 
-                      {/* Actions: ONLY rendered on lists where actions are needed (hidden for finished/completed list) */}
-                      {activeStatus !== 'finished' && (
+                      {/* Actions: ONLY rendered on lists where actions are needed and user is not in audit mode */}
+                      {showActions && (
                         <TableCell align="center" style={{ display: "flex", justifyContent: "center" }}>
                           <div className='k-btn-group'>
                             {statusText === "تحت الانتظار" ? (
@@ -846,7 +917,7 @@ export default function EnhancedTable() {
                       )}
                     </TableRow>
                   );
-                }) : <TableRow  > <TableCell colSpan={activeStatus !== 'finished' ? 8 : 7}>  <h3 style={{ width: "100%", textAlign: "center", fontSize: "25px" }} > غير موجود </h3> </TableCell> </TableRow>
+                }) : <TableRow  > <TableCell colSpan={showActions ? 8 : 7}>  <h3 style={{ width: "100%", textAlign: "center", fontSize: "25px" }} > غير موجود </h3> </TableCell> </TableRow>
                 }
               </TableBody>
             </Table>

@@ -34,23 +34,18 @@ import { Flip, ToastContainer } from 'react-toastify';
 import {
   AppLayout,
   SideBar,
-  SideBarAdmin,
-  SideBarCounter,
-  SideBarTransfer,
+  StaffSidebar,
   SidebarProvider,
 } from './layouts';
 import {
   UserGuard as UserProtect,
-  AdminGuard as AdminProtect,
-  CounterGuard as CounterProtect,
-  TransferGuard as TransferProtect,
+  StaffGuard as StaffProtect,
   PermissionGuard as PermissionProtect,
   StudentDocumentGuard,
 } from './routes';
 import { PERMISSIONS } from './utils/permissionUtils.js';
 
 function App() {
-
   return (
     <SidebarProvider>
       <ToastContainer limit={3} autoClose={2000} transition={Flip} stacked closeOnClick theme='colored' position='top-right' />
@@ -59,12 +54,11 @@ function App() {
       <BrowserRouter>
         <Routes>
 
-        {/* Contain All Route User */}
+        {/* Contain All Route User (Students / Patients) */}
         <Route element={<UserProtect />}>
           <Route path='/' element={<AppLayout sidebar={SideBar} />}>
-
             {/* Reservation Page */}
-            <Route index element={ <ReservationPage /> }   />
+            <Route index element={<ReservationPage />} />
 
             {/* Guarded when documents are not pending */}
             <Route element={<StudentDocumentGuard />}>
@@ -77,73 +71,54 @@ function App() {
               {/* Edit Profile */}
               <Route path='editprofile' element={<EditProfile />} />
               <Route path='editeprofile' element={<EditProfile />} />
-              {/* Change Passsword */}
+              {/* Change Password */}
               <Route path='changepassword' element={<ChangePasswordPage />} />
             </Route>
           </Route>
         </Route>
 
+        {/* Contain All Staff Resource Routes */}
+        <Route element={<StaffProtect />}>
+          <Route element={<AppLayout sidebar={StaffSidebar} />}>
 
-        {/* Contain All Route For Admin */}
-        <Route path='ad' element={<AdminProtect />}>
-          <Route element={<AppLayout sidebar={SideBarAdmin} />}>
-
-
-            {/* For Counter  */}
-            <Route index element={<CounterPage />} />
-
-            {/* Profile Admin */}
-            <Route path='profile/:userId' element={<ProfilePageAdminViewer />}>
-              <Route index  element={<UserDetails />} />
-              <Route path='history' element={<UserHistoryAdmin />} />
+            {/* Reservations & Counter Management */}
+            <Route element={<PermissionProtect requiredPermission={PERMISSIONS.RESERVATIONS_READ} />}>
+              <Route path='reservations' element={<CounterPage />} />
             </Route>
 
-            {/* Guarded by Transfers permission */}
-            <Route element={<PermissionProtect requiredPermission={PERMISSIONS.TRANSFERS_READ} />}>
-              <Route path='transfer' element={<TransferPage />} />
-            </Route>
-
-            {/* Guarded by Users permission */}
+            {/* Profile Admin / Staff Viewer */}
             <Route element={<PermissionProtect requiredPermission={PERMISSIONS.USERS_READ} />}>
-              <Route path='allusers' element={<GroupUserPage />} />
+              <Route path='profile-viewer/:userId' element={<ProfilePageAdminViewer />}>
+                <Route index element={<UserDetails />} />
+                <Route path='history' element={<UserHistoryAdmin />} />
+              </Route>
             </Route>
 
-            {/* Guarded by Logs permission */}
+            {/* Medical Transfers */}
+            <Route element={<PermissionProtect requiredPermission={PERMISSIONS.TRANSFERS_READ} />}>
+              <Route path='transfers' element={<TransferPage />} />
+            </Route>
+
+            {/* Users / Students Management */}
+            <Route element={<PermissionProtect requiredPermission={PERMISSIONS.USERS_READ} />}>
+              <Route path='users' element={<GroupUserPage />} />
+            </Route>
+
+            {/* Audit Logs */}
             <Route element={<PermissionProtect requiredPermission={PERMISSIONS.LOGS_READ} />}>
               <Route path='history' element={<HistoryPage />} />
             </Route>
 
-            {/* Guarded by Admins permission (Admins & System Data) */}
+            {/* Admins & System Data */}
             <Route element={<PermissionProtect requiredPermission={PERMISSIONS.ADMINS_READ} />}>
               <Route path='admins' element={<AdminPage />} />
               <Route path='system-data' element={<SystemDataPage />} />
-              <Route path='sysdata' element={<Navigate to="/ad/system-data" replace />} />
-              <Route path='levels' element={<Navigate to="/ad/system-data?tab=levels" replace />} />
-              <Route path='clinics' element={<Navigate to="/ad/system-data?tab=clinics" replace />} />
-              <Route path='faculties' element={<Navigate to="/ad/system-data?tab=faculties" replace />} />
-              <Route path='exhospital' element={<Navigate to="/ad/system-data?tab=hospitals" replace />} />
-              <Route path='governorates' element={<Navigate to="/ad/system-data?tab=governorates" replace />} />
             </Route>
 
           </Route>
         </Route>
 
-        {/* Contain All Route Of Counter */}
-        <Route path='co' element={ <CounterProtect />}>
-          <Route element={<AppLayout sidebar={SideBarCounter} />}>
-            <Route index element={<CounterPage />} />
-
-          </Route>
-        </Route>
-        {/* Contain All Route Of Transfer */}
-        <Route path='tr' element={<TransferProtect />}>
-          <Route element={<AppLayout sidebar={SideBarTransfer} />}>
-            <Route index element={<TransferPage />} />
-
-          </Route>
-        </Route>
-
-
+        {/* Public & Auth Routes */}
         <Route path='/login' element={<LoginPage />} />
         <Route path='/signup' element={<Signup />} />
         <Route path='/verify-otp' element={<VerifyEmailPage />} />
@@ -153,14 +128,12 @@ function App() {
           <Route path='otp' element={<OtpComponent />} />
           <Route path='newpassword' element={<NewPasswordComponent />} />
         </Route>
-        <Route path="*" element={<NotFound/>} />
-
+        <Route path="*" element={<NotFound />} />
 
       </Routes>
     </BrowserRouter>
     </SidebarProvider>
   );
-
 }
 
 export default App;

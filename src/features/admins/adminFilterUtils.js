@@ -1,11 +1,8 @@
 import {
   isSuperAdminRole,
-  isSecondSuperAdminRole,
   isCounterRole,
   isTransferRole,
   isViewerRole,
-  isMedicalCheckManagerRole,
-  isExternalHospitalAdminRole,
 } from '../../ActorType';
 
 export const matchesSearch = (item, query) => {
@@ -26,18 +23,12 @@ export const matchesRole = (adminRole, filterRole) => {
   switch (filterRole) {
     case 'super_admin':
       return isSuperAdminRole(adminRole);
-    case 'second_super_admin':
-      return isSecondSuperAdminRole(adminRole);
     case 'counter':
       return isCounterRole(adminRole);
     case 'transfer':
       return isTransferRole(adminRole);
     case 'viewer':
       return isViewerRole(adminRole);
-    case 'medical_check_manager':
-      return isMedicalCheckManagerRole(adminRole);
-    case 'external_hospital_admin':
-      return isExternalHospitalAdminRole(adminRole);
     default:
       return String(adminRole || '').toLowerCase() === String(filterRole).toLowerCase();
   }

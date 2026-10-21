@@ -420,7 +420,7 @@ export default function UserTable() {
     }));
   }, [selected, excel, filteredUsers]);
 
-  const profileBasePath = payLoad?.type === 'user' ? '/profile' : '/ad/profile';
+  const profileBasePath = payLoad?.type === 'user' ? '/profile' : '/profile-viewer';
 
   return (
     <div>

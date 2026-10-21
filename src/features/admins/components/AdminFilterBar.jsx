@@ -148,12 +148,9 @@ const AdminFilterBar = ({
           >
             <MenuItem value='all'>جميع الأدوار (الكل)</MenuItem>
             <MenuItem value='super_admin'>مدير النظام (Super Admin)</MenuItem>
-            <MenuItem value='second_super_admin'>مدير ثان (Second Manager)</MenuItem>
             <MenuItem value='counter'>كاونتر (Counter)</MenuItem>
             <MenuItem value='transfer'>مسؤول التحويلات (Transfer)</MenuItem>
-            <MenuItem value='medical_check_manager'>مسؤول الكشف الطبي (Medical Check Manager)</MenuItem>
-            <MenuItem value='external_hospital_admin'>أدمن مستشفي خارجي (External Hospital Admin)</MenuItem>
-            <MenuItem value='viewer'>ملاحظ (Viewer)</MenuItem>
+            <MenuItem value='viewer'>ملاحظ (Viewer / Auditor)</MenuItem>
           </Select>
         </FormControl>
 

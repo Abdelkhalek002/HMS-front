@@ -1,6 +1,6 @@
 /**
  * Centralized Route Paths Constants
- * Single source of truth for all application routes.
+ * Single source of truth for all application routes (Canonical Resource-Based).
  */
 
 export const ROUTES = Object.freeze({
@@ -20,25 +20,15 @@ export const ROUTES = Object.freeze({
     EDIT_PROFILE: '/editprofile',
     CHANGE_PASSWORD: '/changepassword',
   },
-  ADMIN: {
-    ROOT: '/ad',
-    PROFILE: (userId = ':userId') => `/ad/profile/${userId}`,
-    PROFILE_HISTORY: (userId = ':userId') => `/ad/profile/${userId}/history`,
-    TRANSFER: '/ad/transfer',
-    USERS: '/ad/allusers',
-    LOGS: '/ad/history',
-    ADMINS: '/ad/admins',
-    LEVELS: '/ad/levels',
-    CLINICS: '/ad/clinics',
-    FACULTIES: '/ad/faculties',
-    EX_HOSPITAL: '/ad/exhospital',
-    GOVERNORATES: '/ad/governorates',
-  },
-  COUNTER: {
-    ROOT: '/co',
-  },
-  TRANSFER: {
-    ROOT: '/tr',
+  STAFF: {
+    RESERVATIONS: '/reservations',
+    TRANSFERS: '/transfers',
+    USERS: '/users',
+    LOGS: '/history',
+    ADMINS: '/admins',
+    SYSTEM_DATA: '/system-data',
+    PROFILE_VIEWER: (userId = ':userId') => `/profile-viewer/${userId}`,
+    PROFILE_VIEWER_HISTORY: (userId = ':userId') => `/profile-viewer/${userId}/history`,
   },
   NOT_FOUND: '*',
 });

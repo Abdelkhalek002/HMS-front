@@ -5,15 +5,7 @@ import { getUserInfo, logout } from '../features/auth';
 import { isTokenExpired } from '../services/http';
 import { usePermission } from '../hooks/usePermission';
 import { ROUTES } from './routePaths';
-import {
-  isAdminDashboardRole,
-  isCounterRole,
-  isMedicalCheckManagerRole,
-  isTransferRole,
-  isExternalHospitalAdminRole,
-  isSuperAdminRole,
-  isSecondSuperAdminRole,
-} from '../ActorType';
+import { getAuthorizedInitialRoute } from '../config/navigationConfig';
 
 /**
  * Base authentication wrapper that verifies token presence and validity.
@@ -31,8 +23,8 @@ export const AuthGuard = ({ children }) => {
 };
 
 /**
- * Route guard for normal user pages.
- * Redirects privileged staff (Admins, Counters, Transfers) to their dedicated portals.
+ * Route guard for normal user (student / patient) pages.
+ * Redirects staff (Admins, Counters, Transfers, Observers) to their resource portal.
  */
 export const UserGuard = () => {
   const dispatch = useDispatch();
@@ -43,7 +35,7 @@ export const UserGuard = () => {
     return <Navigate to={ROUTES.AUTH.LOGIN} replace />;
   }
 
-  const userObj = userData.user || userData.payLoad || {};
+  const userObj = userData.user || userData.payLoad || userData.data || {};
   const role = userObj.role || userData.payLoad?.role;
   const isUser = !role || role === 'user' || userObj.type === 'user';
 
@@ -51,23 +43,16 @@ export const UserGuard = () => {
     return <Outlet />;
   }
 
-  if (isAdminDashboardRole(role)) {
-    return <Navigate to={ROUTES.ADMIN.ROOT} replace />;
-  }
-  if (isCounterRole(role) || isMedicalCheckManagerRole(role)) {
-    return <Navigate to={ROUTES.COUNTER.ROOT} replace />;
-  }
-  if (isTransferRole(role) || isExternalHospitalAdminRole(role)) {
-    return <Navigate to={ROUTES.TRANSFER.ROOT} replace />;
-  }
-
-  return <Navigate to={ROUTES.ADMIN.ROOT} replace />;
+  const permissions = userObj.permissions || userData.payLoad?.permissions || [];
+  const targetRoute = getAuthorizedInitialRoute(permissions, role);
+  return <Navigate to={targetRoute} replace />;
 };
 
 /**
- * Route guard for admin dashboard pages.
+ * Route guard for internal staff members (Admins, Counters, Transfers, Observers).
+ * Disallows regular students from viewing staff resources.
  */
-export const AdminGuard = () => {
+export const StaffGuard = () => {
   const dispatch = useDispatch();
   const userData = useSelector(getUserInfo);
 
@@ -76,63 +61,21 @@ export const AdminGuard = () => {
     return <Navigate to={ROUTES.AUTH.LOGIN} replace />;
   }
 
-  const role = userData.user?.role || userData.payLoad?.role;
-  if (isAdminDashboardRole(role)) {
-    return <Outlet />;
+  const userObj = userData.user || userData.payLoad || userData.data || {};
+  const role = userObj.role || userData.payLoad?.role;
+  const isUser = !role || role === 'user' || userObj.type === 'user';
+
+  if (isUser) {
+    return <Navigate to={ROUTES.HOME} replace />;
   }
 
-  return <Navigate to="/notfound" replace />;
+  return <Outlet />;
 };
 
-/**
- * Route guard for counter staff pages.
- */
-export const CounterGuard = () => {
-  const dispatch = useDispatch();
-  const userData = useSelector(getUserInfo);
-
-  if (!userData || !userData.token || isTokenExpired(userData.token)) {
-    dispatch(logout());
-    return <Navigate to={ROUTES.AUTH.LOGIN} replace />;
-  }
-
-  const role = userData.user?.role || userData.payLoad?.role;
-  if (
-    isCounterRole(role) ||
-    isMedicalCheckManagerRole(role) ||
-    isSuperAdminRole(role) ||
-    isSecondSuperAdminRole(role)
-  ) {
-    return <Outlet />;
-  }
-
-  return <Navigate to="/notfound" replace />;
-};
-
-/**
- * Route guard for transfer staff pages.
- */
-export const TransferGuard = () => {
-  const dispatch = useDispatch();
-  const userData = useSelector(getUserInfo);
-
-  if (!userData || !userData.token || isTokenExpired(userData.token)) {
-    dispatch(logout());
-    return <Navigate to={ROUTES.AUTH.LOGIN} replace />;
-  }
-
-  const role = userData.user?.role || userData.payLoad?.role;
-  if (
-    isTransferRole(role) ||
-    isExternalHospitalAdminRole(role) ||
-    isSuperAdminRole(role) ||
-    isSecondSuperAdminRole(role)
-  ) {
-    return <Outlet />;
-  }
-
-  return <Navigate to="/notfound" replace />;
-};
+// Aliases for StaffGuard to keep existing code compatible
+export const AdminGuard = StaffGuard;
+export const CounterGuard = StaffGuard;
+export const TransferGuard = StaffGuard;
 
 /**
  * Route guard for granular permissions.
@@ -140,14 +83,14 @@ export const TransferGuard = () => {
 export const PermissionGuard = ({ requiredPermission, fallback = '/notfound' }) => {
   const dispatch = useDispatch();
   const auth = useSelector(getUserInfo);
-  const { can } = usePermission();
+  const { can, isSuperAdmin } = usePermission();
 
   if (!auth || !auth.token || isTokenExpired(auth.token)) {
     dispatch(logout());
     return <Navigate to={ROUTES.AUTH.LOGIN} replace />;
   }
 
-  if (requiredPermission && !can(requiredPermission)) {
+  if (requiredPermission && !isSuperAdmin && !can(requiredPermission)) {
     return <Navigate to={fallback} replace />;
   }
 
@@ -171,7 +114,7 @@ export const StudentDocumentGuard = () => {
   const isDocumentPending = docStatus === 'pending';
 
   if (isDocumentPending) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={ROUTES.HOME} replace />;
   }
 
   return <Outlet />;
@@ -180,6 +123,7 @@ export const StudentDocumentGuard = () => {
 const guards = {
   AuthGuard,
   UserGuard,
+  StaffGuard,
   AdminGuard,
   CounterGuard,
   TransferGuard,

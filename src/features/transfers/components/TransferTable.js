@@ -28,6 +28,8 @@ import { toast } from 'react-toastify';
 import { useGetTransfersQuery, useAssignHospitalMutation } from '../transferApi';
 import { getAllExhospitals, getAllExhospitalsAPI } from '../../lookups';
 import TableToolbar from '../../../components/table/TableToolbar';
+import { usePermission } from '../../../hooks/usePermission';
+import { PERMISSIONS } from '../../../utils/permissionUtils';
 
 const headCells = [
   { id: 'transferId', label: 'رقم التحويل' },
@@ -55,6 +57,13 @@ export default function TransferTable() {
   // External hospitals lookup
   const rawHospitals = useSelector(getAllExhospitals);
   const hospitals = Array.isArray(rawHospitals) ? rawHospitals : (rawHospitals?.value || []);
+
+  // Permissions & Audit Mode
+  const { isObserver, canMutate, can } = usePermission();
+  const canEditTransfer = canMutate(PERMISSIONS.TRANSFERS_WRITE);
+  const isAuditMode = isObserver || !canEditTransfer;
+  const canViewProfile = can(PERMISSIONS.USERS_READ);
+  const visibleHeadCells = headCells.filter((c) => c.id !== 'actions' || !isAuditMode);
 
   React.useEffect(() => {
     dispatch(getAllExhospitalsAPI());
@@ -172,11 +181,33 @@ export default function TransferTable() {
           }
         />
 
+        {/* Audit Mode Banner */}
+        {isAuditMode && (
+          <div
+            style={{
+              backgroundColor: '#eff6ff',
+              border: '1px solid #bfdbfe',
+              color: '#1e40af',
+              padding: '10px 18px',
+              borderRadius: '10px',
+              marginBottom: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              fontSize: '14px',
+              fontWeight: 'bold',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>visibility</span>
+            <span>وضع الملاحظة والتدقيق (للقراءة فقط - تم تعطيل تحديد أو تعديل المستشفيات الخارجية)</span>
+          </div>
+        )}
+
         <TableContainer>
           <Table sx={{ minWidth: 750 }} aria-label="transfers table">
             <TableHead sx={{ backgroundColor: '#f8fafc' }}>
               <TableRow>
-                {headCells.map((headCell) => (
+                {visibleHeadCells.map((headCell) => (
                   <TableCell key={headCell.id} align="center" sx={{ fontWeight: 'bold', color: '#334155' }}>
                     {headCell.label}
                   </TableCell>
@@ -188,7 +219,7 @@ export default function TransferTable() {
               {isLoading || isFetching ? (
                 Array.from({ length: 5 }).map((_, idx) => (
                   <TableRow key={idx}>
-                    {headCells.map((cell, cIdx) => (
+                    {visibleHeadCells.map((cell, cIdx) => (
                       <TableCell key={cIdx} align="center">
                         <Skeleton variant="text" width="80%" />
                       </TableCell>
@@ -197,7 +228,7 @@ export default function TransferTable() {
                 ))
               ) : transfersList.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={headCells.length} align="center" sx={{ py: 6, color: '#64748b' }}>
+                  <TableCell colSpan={visibleHeadCells.length} align="center" sx={{ py: 6, color: '#64748b' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
                       <span className="material-symbols-outlined" style={{ fontSize: '48px', color: '#94a3b8' }}>
                         assignment_late
@@ -223,9 +254,9 @@ export default function TransferTable() {
 
                       {/* Patient Name */}
                       <TableCell align="center">
-                        {patient.id ? (
+                        {patient.id && canViewProfile ? (
                           <Link
-                            to={`/ad/profile/${patient.id}`}
+                            to={`/profile-viewer/${patient.id}`}
                             style={{ color: '#0284c7', textDecoration: 'none', fontWeight: 'bold' }}
                           >
                             {patient.name}
@@ -289,27 +320,29 @@ export default function TransferTable() {
                         )}
                       </TableCell>
 
-                      {/* Actions */}
-                      <TableCell align="center">
-                        <Button
-                          variant={isPending ? "contained" : "outlined"}
-                          size="small"
-                          onClick={() => handleOpenAssignModal(transfer)}
-                          sx={{
-                            borderRadius: '8px',
-                            fontWeight: 'bold',
-                            fontSize: '12px',
-                            backgroundColor: isPending ? '#7c3aed' : undefined,
-                            borderColor: !isPending ? '#7c3aed' : undefined,
-                            color: !isPending ? '#7c3aed' : undefined,
-                            '&:hover': {
-                              backgroundColor: isPending ? '#6d28d9' : '#f5f3ff',
-                            },
-                          }}
-                        >
-                          {isPending ? 'تحديد المستشفى' : 'تعديل المستشفى'}
-                        </Button>
-                      </TableCell>
+                      {/* Actions (hidden in audit mode) */}
+                      {!isAuditMode && (
+                        <TableCell align="center">
+                          <Button
+                            variant={isPending ? "contained" : "outlined"}
+                            size="small"
+                            onClick={() => handleOpenAssignModal(transfer)}
+                            sx={{
+                              borderRadius: '8px',
+                              fontWeight: 'bold',
+                              fontSize: '12px',
+                              backgroundColor: isPending ? '#7c3aed' : undefined,
+                              borderColor: !isPending ? '#7c3aed' : undefined,
+                              color: !isPending ? '#7c3aed' : undefined,
+                              '&:hover': {
+                                backgroundColor: isPending ? '#6d28d9' : '#f5f3ff',
+                              },
+                            }}
+                          >
+                            {isPending ? 'تحديد المستشفى' : 'تعديل المستشفى'}
+                          </Button>
+                        </TableCell>
+                      )}
                     </TableRow>
                   );
                 })

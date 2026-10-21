@@ -9,6 +9,8 @@ export const PERMISSIONS = Object.freeze({
   ADMINS_CREATE: 'admins:create',
   ADMINS_UPDATE: 'admins:update',
   ADMINS_DELETE: 'admins:delete',
+  SYSTEM_DATA_READ: 'system_data:read',
+  SYSTEM_DATA_WRITE: 'system_data:write',
   STATS_READ: 'stats:read',
   LOGS_READ: 'logs:read',
   LOGS_DELETE: 'logs:delete',
@@ -26,6 +28,7 @@ export const PERMISSIONS = Object.freeze({
   // Transfers
   TRANSFERS_READ: 'transfers:read',
   TRANSFERS_WRITE: 'transfers:write',
+  TRANSFERS_APPROVE: 'transfers:approve',
 });
 
 /**

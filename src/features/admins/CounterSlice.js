@@ -166,7 +166,7 @@ export const acceptOrDeclineAPI = createAsyncThunk(
     }
 
     try {
-      const response = await apiClient.put(`/reservations/${id}/status`, {
+      const response = await apiClient.put(`/reservations/${id}`, {
         status,
       });
 
