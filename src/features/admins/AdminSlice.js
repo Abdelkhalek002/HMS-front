@@ -34,7 +34,7 @@ export const addNewAdminApi = createAsyncThunk('admins/add', async (args, { reje
 export const updateAdminApi = createAsyncThunk('admins/update', async (args, { rejectWithValue }) => {
     try {
         const payload = args?.data !== undefined ? args.data : args;
-        const id = payload.user_id || payload.id;
+        const id = args?.id || payload.user_id || payload.id;
         const response = await apiClient.put(`/admins/${id}`, payload);
         return response.data;
     } catch (error) {

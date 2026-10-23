@@ -27,11 +27,7 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import { toast } from 'react-toastify';
 import defaultAdminPic from '../../../images/generic-avatar.jpg';
-import {
-  COUNTERTYPE,
-  TRANSFERTYPE,
-  VIEWERTYPE,
-} from '../../../ActorType';
+
 import { usePermission } from '../../../hooks/usePermission';
 
 const modalStyle = {
@@ -109,7 +105,7 @@ const AdminPage = () => {
     userName: '',
     email: '',
     password: '',
-    role: COUNTERTYPE
+    role: 'COUNTER'
   });
 
   const handleOpenAddModal = () => {
@@ -117,7 +113,7 @@ const AdminPage = () => {
       userName: '',
       email: '',
       password: '',
-      role: COUNTERTYPE
+      role: 'COUNTER'
     });
     setPhoto(null);
     if (photoPreview) {
@@ -391,9 +387,12 @@ const AdminPage = () => {
                   label='الدور / الصلاحية'
                   onChange={handleChange}
                 >
-                  <MenuItem value={COUNTERTYPE}>كاونتر (Counter)</MenuItem>
-                  <MenuItem value={TRANSFERTYPE}>تحويلات (Transfer)</MenuItem>
-                  <MenuItem value={VIEWERTYPE}>ملاحظ (Viewer / Auditor)</MenuItem>
+                  <MenuItem value="COUNTER">كاونتر (Counter)</MenuItem>
+                  <MenuItem value="TRANSFER_CLERK">مسؤول التحويلات (Transfer Clerk)</MenuItem>
+                  <MenuItem value="OBSERVER">ملاحظ (Observer / Auditor)</MenuItem>
+                  <MenuItem value="MEDICAL_CHECK_MANAGER">مسؤول الكشف الطبي (Medical Check Manager)</MenuItem>
+                  <MenuItem value="MEDICAL_TESTS_MANAGER">مسؤول التحاليل (Medical Tests Manager)</MenuItem>
+                  <MenuItem value="SUPER_ADMIN">مدير النظام (Super Admin)</MenuItem>
                 </Select>
               </FormControl>
             </div>

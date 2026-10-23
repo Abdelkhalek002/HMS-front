@@ -117,13 +117,26 @@ const LoginPage = () => {
                         'كلمة المرور او الايميل غير صحيح';
                     const message = String(rawMessage);
 
+                    // If an admin or account is inactive or suspended, do NOT redirect to OTP page
+                    const isInactiveOrSuspended =
+                        message.toLowerCase().includes('inactive') ||
+                        message.toLowerCase().includes('suspended') ||
+                        message.includes('غير نشط') ||
+                        message.includes('معلق') ||
+                        message.includes('موقوف');
+
+                    if (isInactiveOrSuspended) {
+                        toast.error(message);
+                        return;
+                    }
+
                     const isVerificationError =
                         message.includes('رمز التحقق') ||
                         message.includes('تأكيد بريدك') ||
-                        message.includes('تأكيد') ||
-                        message.includes('تفعيل') ||
+                        (message.includes('تأكيد') && message.includes('بريد')) ||
+                        (message.includes('تفعيل') && (message.includes('رمز') || message.includes('بريد'))) ||
                         message.toLowerCase().includes('verif') ||
-                        message.toLowerCase().includes('inactive');
+                        message.toLowerCase().includes('otp');
 
                     if (isVerificationError) {
                         toast.warn(message, { autoClose: 4000 });

@@ -63,7 +63,8 @@ export default function TransferTable() {
   const canEditTransfer = canMutate(PERMISSIONS.TRANSFERS_WRITE);
   const isAuditMode = isObserver || !canEditTransfer;
   const canViewProfile = can(PERMISSIONS.USERS_READ);
-  const visibleHeadCells = headCells.filter((c) => c.id !== 'actions' || !isAuditMode);
+  const showActions = !isAuditMode && statusTab !== 'completed';
+  const visibleHeadCells = headCells.filter((c) => c.id !== 'actions' || showActions);
 
   React.useEffect(() => {
     dispatch(getAllExhospitalsAPI());
@@ -89,6 +90,7 @@ export default function TransferTable() {
   const [notesInput, setNotesInput] = useState('');
 
   const handleOpenAssignModal = (transfer) => {
+    if (transfer.status === 'completed') return;
     setSelectedTransfer(transfer);
     setSelectedHospitalId(transfer.externalHospital?.id || '');
     setNotesInput(transfer.notes || '');
@@ -320,27 +322,29 @@ export default function TransferTable() {
                         )}
                       </TableCell>
 
-                      {/* Actions (hidden in audit mode) */}
-                      {!isAuditMode && (
+                      {/* Actions (hidden in audit mode or completed tab) */}
+                      {showActions && (
                         <TableCell align="center">
-                          <Button
-                            variant={isPending ? "contained" : "outlined"}
-                            size="small"
-                            onClick={() => handleOpenAssignModal(transfer)}
-                            sx={{
-                              borderRadius: '8px',
-                              fontWeight: 'bold',
-                              fontSize: '12px',
-                              backgroundColor: isPending ? '#7c3aed' : undefined,
-                              borderColor: !isPending ? '#7c3aed' : undefined,
-                              color: !isPending ? '#7c3aed' : undefined,
-                              '&:hover': {
-                                backgroundColor: isPending ? '#6d28d9' : '#f5f3ff',
-                              },
-                            }}
-                          >
-                            {isPending ? 'تحديد المستشفى' : 'تعديل المستشفى'}
-                          </Button>
+                          {isPending ? (
+                            <Button
+                              variant="contained"
+                              size="small"
+                              onClick={() => handleOpenAssignModal(transfer)}
+                              sx={{
+                                borderRadius: '8px',
+                                fontWeight: 'bold',
+                                fontSize: '12px',
+                                backgroundColor: '#7c3aed',
+                                '&:hover': {
+                                  backgroundColor: '#6d28d9',
+                                },
+                              }}
+                            >
+                              تحديد المستشفى
+                            </Button>
+                          ) : (
+                            <span style={{ color: '#94a3b8' }}>-</span>
+                          )}
                         </TableCell>
                       )}
                     </TableRow>
