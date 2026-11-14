@@ -1,0 +1,694 @@
+/* ==========================================================================
+   Admin Reservation Details Page Styles (RTL & Responsive)
+   ========================================================================== */
+
+.resv-details-container {
+  padding: 24px 32px 60px;
+  max-width: 1300px;
+  margin: 0 auto;
+  direction: rtl;
+  font-family: 'Cairo', sans-serif;
+  color: #1e293b;
+}
+
+/* --------------------------------------------------------------------------
+   Header & Breadcrumbs
+   -------------------------------------------------------------------------- */
+.resv-details-header {
+  margin-bottom: 24px;
+}
+
+.resv-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #64748b;
+  margin-bottom: 16px;
+}
+
+.resv-breadcrumb-link {
+  color: #2563eb;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.2s ease;
+}
+
+.resv-breadcrumb-link:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+.resv-breadcrumb-separator {
+  color: #94a3b8;
+}
+
+.resv-header-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  background: #ffffff;
+  padding: 20px 24px;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.resv-header-title-box {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.resv-back-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: #f1f5f9;
+  color: #334155;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.resv-back-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.resv-page-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0;
+  color: #0f172a;
+}
+
+.resv-id-pill {
+  font-size: 14px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #0284c7;
+  border: 1px solid #bae6fd;
+  letter-spacing: 0.5px;
+}
+
+.resv-header-badges {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.resv-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* --------------------------------------------------------------------------
+   Badges
+   -------------------------------------------------------------------------- */
+.resv-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.resv-status-badge.pending {
+  background-color: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.resv-status-badge.accepted {
+  background-color: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.resv-status-badge.rejected {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.resv-status-badge.transferred {
+  background-color: #f3e8ff;
+  color: #7c3aed;
+  border: 1px solid #e9d5ff;
+}
+
+.resv-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 600;
+  background-color: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+
+.resv-type-badge.emergency {
+  background-color: #ffedd5;
+  color: #c2410c;
+  border-color: #fed7aa;
+}
+
+.resv-walkin-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.resv-walkin-badge.student {
+  background-color: #ccfbf1;
+  color: #0f766e;
+  border: 1px solid #99f6e4;
+}
+
+.resv-walkin-badge.walkin {
+  background-color: #fff7ed;
+  color: #ea580c;
+  border: 1px solid #ffedd5;
+}
+
+/* --------------------------------------------------------------------------
+   Grid Layout & Cards
+   -------------------------------------------------------------------------- */
+.resv-content-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 24px;
+}
+
+.resv-col-patient {
+  grid-column: span 5;
+}
+
+.resv-col-exam {
+  grid-column: span 7;
+}
+
+.resv-col-full {
+  grid-column: span 12;
+}
+
+@media (max-width: 1024px) {
+  .resv-col-patient,
+  .resv-col-exam {
+    grid-column: span 12;
+  }
+}
+
+.resv-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  margin-bottom: 24px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.resv-card:last-child {
+  margin-bottom: 0;
+}
+
+.resv-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 16px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.resv-card-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 17px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.resv-card-title .card-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #eff6ff;
+  color: #2563eb;
+  font-size: 20px;
+}
+
+.resv-card-title .card-icon.teal {
+  background: #f0fdfa;
+  color: #0d9488;
+}
+
+.resv-card-title .card-icon.purple {
+  background: #faf5ff;
+  color: #9333ea;
+}
+
+.resv-card-title .card-icon.amber {
+  background: #fffbeb;
+  color: #d97706;
+}
+
+/* --------------------------------------------------------------------------
+   Patient Card Elements
+   -------------------------------------------------------------------------- */
+.resv-patient-profile-top {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 24px;
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #f1f5f9;
+}
+
+.resv-patient-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.resv-patient-avatar-fallback {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.resv-patient-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.resv-patient-name {
+  font-size: 19px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Info Key-Value Pairs
+   -------------------------------------------------------------------------- */
+.resv-info-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+.resv-info-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 640px) {
+  .resv-info-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.resv-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: #f8fafc;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #f1f5f9;
+}
+
+.resv-info-label {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.resv-info-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e293b;
+  word-break: break-word;
+}
+
+.resv-info-value a {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.resv-info-value a:hover {
+  text-decoration: underline;
+}
+
+/* --------------------------------------------------------------------------
+   Clinic & Exam Details
+   -------------------------------------------------------------------------- */
+.resv-clinic-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
+  border: 1px solid #dbeafe;
+  border-radius: 14px;
+  padding: 18px 20px;
+  margin-bottom: 20px;
+}
+
+.resv-clinic-icon-circle {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.12);
+}
+
+.resv-clinic-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.resv-clinic-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.resv-clinic-subtitle {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.resv-appointment-time-box {
+  background: #fdf4ff;
+  border: 1px solid #fae8ff;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.resv-time-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.resv-time-block .label {
+  font-size: 12px;
+  color: #86198f;
+  font-weight: 600;
+}
+
+.resv-time-block .value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #581c87;
+}
+
+/* --------------------------------------------------------------------------
+   Transfer Card
+   -------------------------------------------------------------------------- */
+.resv-transfer-card {
+  border: 1px solid #e9d5ff;
+  background: linear-gradient(180deg, #ffffff 0%, #faf5ff 100%);
+}
+
+.resv-transfer-hospital-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #f3e8ff;
+  margin-bottom: 18px;
+}
+
+.resv-transfer-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: #f3e8ff;
+  color: #7c3aed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.resv-notes-quote {
+  background: #ffffff;
+  border-right: 4px solid #7c3aed;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #334155;
+  margin-top: 6px;
+  line-height: 1.6;
+}
+
+/* --------------------------------------------------------------------------
+   Administrative Actions Section
+   -------------------------------------------------------------------------- */
+.resv-actions-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  padding: 24px;
+  margin-top: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.resv-actions-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.resv-actions-prompt {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.resv-actions-prompt-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.resv-actions-prompt-sub {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.resv-actions-btn-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.resv-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.resv-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.resv-btn-accept {
+  background: #16a34a;
+  color: #ffffff;
+}
+
+.resv-btn-accept:hover:not(:disabled) {
+  background: #15803d;
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25);
+}
+
+.resv-btn-reject {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.resv-btn-reject:hover:not(:disabled) {
+  background: #b91c1c;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
+}
+
+.resv-btn-transfer {
+  background: #7c3aed;
+  color: #ffffff;
+}
+
+.resv-btn-transfer:hover:not(:disabled) {
+  background: #6d28d9;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
+}
+
+.resv-btn-secondary {
+  background: #f1f5f9;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+}
+
+.resv-btn-secondary:hover:not(:disabled) {
+  background: #e2e8f0;
+}
+
+.resv-btn-print {
+  background: #ffffff;
+  color: #0284c7;
+  border: 1px solid #bae6fd;
+}
+
+.resv-btn-print:hover {
+  background: #f0f9ff;
+}
+
+.resv-info-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.resv-info-banner.completed {
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+/* --------------------------------------------------------------------------
+   Print Ticket (Hidden normally, shown only on print)
+   -------------------------------------------------------------------------- */
+.resv-print-ticket-only {
+  display: none;
+}
+
+@media print {
+  body {
+    direction: rtl;
+    background: #ffffff !important;
+  }
+
+  /* Hide sidebar, navigation, header actions, and administrative buttons */
+  .resv-details-header,
+  .resv-actions-card,
+  .resv-back-btn,
+  .resv-btn-print,
+  nav,
+  aside,
+  header {
+    display: none !important;
+  }
+
+  .resv-details-container {
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .resv-card {
+    border: 1px solid #cbd5e1 !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+  }
+
+  .resv-print-ticket-only {
+    display: block !important;
+    text-align: center;
+    border-bottom: 2px dashed #000;
+    padding-bottom: 20px;
+    margin-bottom: 24px;
+  }
+
+  .resv-print-ticket-only h2 {
+    font-size: 22px;
+    font-weight: bold;
+    margin-bottom: 4px;
+  }
+
+  .resv-print-ticket-only p {
+    font-size: 13px;
+    color: #475569;
+  }
+}

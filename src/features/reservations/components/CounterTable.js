@@ -15,7 +15,7 @@ import Paper from '@mui/material/Paper';
 import Checkbox from '@mui/material/Checkbox';
 import { visuallyHidden } from '@mui/utils';
 import { Tooltip } from '@mui/material';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { acceptOrDeclineAPI, getAllReservationListAPI, getReservationData } from '../../admins/CounterSlice';
@@ -277,6 +277,7 @@ export default function EnhancedTable() {
 
   // For Access Params
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const activeStatus = searchParams.get('status') === 'finished' ? 'finished' : 'pending';
   const clinicId = searchParams.get('clinic_id') || '';
   const dateFilter = searchParams.get('date') || '';
@@ -858,6 +859,18 @@ export default function EnhancedTable() {
                       {showActions && (
                         <TableCell align="center" style={{ display: "flex", justifyContent: "center" }}>
                           <div className='k-btn-group'>
+                            <Tooltip title="عرض تفاصيل الكشف" placement="top">
+                              <button
+                                type="button"
+                                className="action-btn view-action-btn"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`/reservations/${rowId}`);
+                                }}
+                              >
+                                <span className="material-symbols-outlined">visibility</span>
+                              </button>
+                            </Tooltip>
                             {statusText === "تحت الانتظار" ? (
                               <React.Fragment>
                                 <Tooltip title="قبول الكشف" placement="top">

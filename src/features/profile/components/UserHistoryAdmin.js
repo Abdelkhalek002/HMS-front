@@ -10,9 +10,8 @@ import { motion } from 'framer-motion'
 import { useDispatch, useSelector } from 'react-redux';
 import { Pagination, PaginationItem, Skeleton, Stack } from '@mui/material';
 import StatusCode from '../../../StatusCode';
-import DeleteIcon from '@mui/icons-material/Delete';
 import { getUserInfo } from '../../auth';
-import { deleteReservationAPI, getTotalHistoryPage, getUserReservationAPI } from '../../users';
+import { getTotalHistoryPage, getUserReservationAPI } from '../../users';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { useParams, useSearchParams } from 'react-router-dom';
@@ -31,8 +30,8 @@ const UserHistoryAdmin = () => {
   // For Access History Of User 
   const { statusReservation, reservationData } = useSelector(state => state.UserSlice);
 
-  // For Access Token and ID 
-  const { token, payLoad } = useSelector(getUserInfo);
+  // For Access Token
+  const { token } = useSelector(getUserInfo);
 
   // For Dispatch Action
   const dispatch = useDispatch();
@@ -42,15 +41,6 @@ const UserHistoryAdmin = () => {
     setSearchParams({ page: npage })
     dispatch(getUserReservationAPI({ token, userId, page: npage ? npage : 1 }))
   }
-
-  // For handle Delete Reservation
-  const deleteReservationHandler = (medxId) => {
-    console.log(medxId)
-    dispatch(deleteReservationAPI({ token, userId: userId || payLoad?.userId, medxId, id: medxId }))
-  }
-
-
-
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
@@ -107,11 +97,13 @@ const UserHistoryAdmin = () => {
                         <TableCell align="center">{displayDate}</TableCell>
                         <TableCell align="center">{examType}</TableCell>
                         <TableCell align="center">
-                          {statusText === 'تحت الانتظار' ? (
-                            <DeleteIcon onClick={() => deleteReservationHandler(resId)} style={{ cursor: "pointer" }} color='error' />
-                          ) : statusText === 'محول' ? (
+                          {statusText === 'تحت الانتظار' || statusText === 'معلق' || statusText === 'pending' ? (
+                            <div className='pending-reserve'>تحت الانتظار</div>
+                          ) : statusText === 'مرفوض' || statusText === 'rejected' ? (
+                            <div className='rejected-reserve'>مرفوض</div>
+                          ) : statusText === 'محول' || statusText === 'transferred' ? (
                             <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                              <div style={{ backgroundColor: '#f3e8ff', color: '#7c3aed', padding: '6px 12px', borderRadius: '8px', fontWeight: 'bold', fontSize: '13px' }}>
+                              <div className='transferred-reserve'>
                                 تم التحويل لمستشفى خارجية
                               </div>
                               {row.transfer?.externalHospital && (
@@ -120,8 +112,10 @@ const UserHistoryAdmin = () => {
                                 </span>
                               )}
                             </div>
+                          ) : statusText === 'مقبول' || statusText === 'تم الكشف' || statusText === 'accepted' ? (
+                            <div className='success-reserve'>تم الكشف</div>
                           ) : (
-                            <div className='success-reserve'>{statusText === 'مقبول' ? 'تم الكشف' : statusText}</div>
+                            <div className='success-reserve'>{statusText || 'تم الكشف'}</div>
                           )}
                         </TableCell>
                       </TableRow>

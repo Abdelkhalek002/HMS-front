@@ -247,10 +247,10 @@ export const reservationApi = apiSlice.injectEndpoints({
 
     // Counter: Initiate Transfer / Convert Reservation to Transfer
     initiateTransfer: builder.mutation({
-      query: ({ id, transfer_reason, notes }) => ({
+      query: ({ id, transfer_reason, reason, notes }) => ({
         url: `/reservations/${id}/transfer`,
         method: "POST",
-        data: { transfer_reason, notes },
+        data: { transfer_reason: transfer_reason || reason, notes },
       }),
       invalidatesTags: (result, error, { id }) => [
         { type: "Reservation", id },

@@ -30,6 +30,8 @@ export const ROUTES = Object.freeze({
   },
   STAFF: {
     RESERVATIONS: '/reservations',
+    RESERVATION_DETAILS: (id = ':id') => `/reservations/${id}`,
+    ADMIN_RESERVATION_DETAILS: (id = ':id') => `/admin/reservations/${id}`,
     TRANSFERS: '/transfers',
     USERS: '/users',
     LOGS: '/history',

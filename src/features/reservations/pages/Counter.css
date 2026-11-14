@@ -258,6 +258,22 @@
     font-weight: bold;
 }
 
+.action-btn.view-action-btn {
+    background-color: #f1f5f9;
+    color: #475569;
+}
+
+.action-btn.view-action-btn:hover {
+    background-color: #2563eb;
+    color: #ffffff;
+    transform: scale(1.08);
+}
+
+.action-btn.view-action-btn span {
+    color: inherit;
+    font-size: 18px;
+}
+
 .no-action-tag {
     display: inline-flex;
     align-items: center;

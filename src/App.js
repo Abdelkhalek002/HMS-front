@@ -4,7 +4,7 @@ import './App.css';
 import {
   SystemDataPage,
 } from './features/lookups';
-import { CounterPage, ReservationPage } from './features/reservations';
+import { CounterPage, ReservationPage, ReservationDetailsPage } from './features/reservations';
 import { TransferPage } from './features/transfers';
 import {
   LoginPage,
@@ -84,6 +84,8 @@ function App() {
             {/* Reservations & Counter Management */}
             <Route element={<PermissionProtect requiredPermission={PERMISSIONS.RESERVATIONS_READ} />}>
               <Route path='reservations' element={<CounterPage />} />
+              <Route path='reservations/:id' element={<ReservationDetailsPage />} />
+              <Route path='admin/reservations/:id' element={<ReservationDetailsPage />} />
             </Route>
 
             {/* Profile Admin / Staff Viewer */}

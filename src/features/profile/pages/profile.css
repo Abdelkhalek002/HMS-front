@@ -175,11 +175,43 @@
 }
 
 .success-reserve{
+    display: inline-block;
     padding: 6px 16px;
     font-weight: bold;
     border-radius: 25px;
     background-color: var(--active-background);
     color: var(--active-color);
+    font-size: 13px;
+}
+
+.pending-reserve{
+    display: inline-block;
+    padding: 6px 16px;
+    font-weight: bold;
+    border-radius: 25px;
+    background-color: #fef3c7;
+    color: #b45309;
+    font-size: 13px;
+}
+
+.rejected-reserve{
+    display: inline-block;
+    padding: 6px 16px;
+    font-weight: bold;
+    border-radius: 25px;
+    background-color: var(--inactive-background);
+    color: var(--inactive-color);
+    font-size: 13px;
+}
+
+.transferred-reserve{
+    display: inline-block;
+    padding: 6px 16px;
+    font-weight: bold;
+    border-radius: 25px;
+    background-color: #f3e8ff;
+    color: #7c3aed;
+    font-size: 13px;
 }
 
 /* start User History */
