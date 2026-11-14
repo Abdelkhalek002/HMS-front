@@ -18,16 +18,28 @@ export const deleteReservationAPI = createAsyncThunk(
       args?.userId ||
       getState()?.AuthSlice?.user?.payLoad?.userId;
     const reservationId = args?.id ?? args?.medxId;
-    console.log(args);
+    const userRole =
+      getState()?.AuthSlice?.user?.payLoad?.role ||
+      getState()?.AuthSlice?.user?.role;
     try {
-      await axios.delete(
-        `${BASE_URL}/myreservations/${userId}/${reservationId}`,
-        {
+      if (userRole) {
+        // Admin deletes reservation via /reservations/:id
+        await axios.delete(`${BASE_URL}/reservations/${reservationId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        },
-      );
+        });
+      } else {
+        // Regular user cancels reservation via /myreservations/:userId/:reservationId
+        await axios.delete(
+          `${BASE_URL}/myreservations/${userId}/${reservationId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+      }
       return reservationId;
     } catch (error) {
       return rejectWithValue(error);
@@ -45,18 +57,36 @@ export const getUserReservationAPI = createAsyncThunk(
       (typeof args === "string" ? args : null) ||
       getState()?.AuthSlice?.user?.token;
     const page = args?.page || 1;
-    const studentQuery = args?.userId || args?.id ? `&student_id=${args.userId || args.id}` : "";
+    const targetUserId = args?.userId || args?.id || args?.student_id;
+    const userRole =
+      getState()?.AuthSlice?.user?.payLoad?.role ||
+      getState()?.AuthSlice?.user?.role;
     try {
-      const response = await axios.get(
-        `${BASE_URL}/myreservations?page=${page}&limit=5${studentQuery}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
+      let response;
+      // When requested by an admin or specifying a target user, query admin endpoint /reservations/?user_id=...
+      // /myreservations is strictly restricted to regular users by backend restrictToUser middleware
+      if (userRole || targetUserId) {
+        const userQuery = targetUserId ? `&user_id=${targetUserId}` : "";
+        response = await axios.get(
+          `${BASE_URL}/reservations/?page=${page}&limit=5${userQuery}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
           },
-        },
-      );
-      console.log(response.data);
+        );
+      } else {
+        response = await axios.get(
+          `${BASE_URL}/myreservations?page=${page}&limit=5`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          },
+        );
+      }
       return response.data;
     } catch (error) {
       return rejectWithValue(error);

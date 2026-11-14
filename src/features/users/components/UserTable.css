@@ -151,6 +151,12 @@
   color: #2563eb;
 }
 
+.user-action-btn.send-btn:hover {
+  background-color: #eff6ff;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+}
+
 .user-action-btn.block-btn:hover {
   background-color: #fff1f2;
   border-color: #fecdd3;

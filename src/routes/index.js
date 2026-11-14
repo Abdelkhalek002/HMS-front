@@ -1,4 +1,4 @@
-export { ROUTES, default as routes } from './routePaths';
+export { ROUTES, API_ROUTES, default as routes } from './routePaths';
 export {
   AuthGuard,
   UserGuard,

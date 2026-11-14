@@ -38,6 +38,7 @@ const ProfilePageAdminViewer = () => {
     }, [dispatch, userId, token, searchParams]);
 
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [sending, setSending] = useState(false);
 
     // Add modal handlers
     const handleOpenAddModal = () => {
@@ -58,6 +59,7 @@ const ProfilePageAdminViewer = () => {
             toast.error("برجاء إدخال نص الملاحظة");
             return;
         }
+        setSending(true);
         try {
             const targetId = userId || profileInfo?.student_id || profileInfo?.id;
             const res = await dispatch(sendObservations({ id: targetId, message: msg, token })).unwrap();
@@ -75,11 +77,19 @@ const ProfilePageAdminViewer = () => {
                     position: "top-right"
                 });
             } else {
-                toast.error(error?.message || "حدث خطأ أثناء إرسال الملاحظة", {
+                const errorMsg =
+                    error?.message ||
+                    error?.msg ||
+                    error?.error ||
+                    (typeof error === 'string' ? error : null) ||
+                    "حدث خطأ أثناء إرسال الملاحظة";
+                toast.error(errorMsg, {
                     theme: "colored",
                     position: "top-right",
                 });
             }
+        } finally {
+            setSending(false);
         }
     };
    
@@ -122,13 +132,16 @@ const ProfilePageAdminViewer = () => {
                                         type="text"
                                         id='observationText'
                                         ref={observation}
+                                        disabled={sending}
                                         placeholder="اكتب الملاحظة هنا..."
                                         style={{ flex: 1, marginRight: "10px", height: "36px", borderRadius: "6px", padding: "0 8px" }}
                                     />
                                 </div>
                             </div>
                             <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginTop: "30px" }}>
-                                <Button type="submit" variant="contained" className='popup-btn' style={{ borderRadius: "12px" }}>إرسال</Button>
+                                <Button type="submit" variant="contained" disabled={sending} className='popup-btn' style={{ borderRadius: "12px" }}>
+                                    {sending ? 'جاري الإرسال...' : 'إرسال'}
+                                </Button>
                             </div>
                         </form>
                    </Box>

@@ -35,7 +35,6 @@ export default function HistoryExportButton({ data = [] }) {
       <Button
         variant="outlined"
         color="primary"
-        startIcon={<FileDownloadIcon />}
         sx={{ borderRadius: 2 }}
         disabled={!data || data.length === 0}
       >

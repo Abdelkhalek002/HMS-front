@@ -30,6 +30,7 @@ import TableToolbar from '../../../components/table/TableToolbar';
 import userPic from '../../../images/userProfile.jpg';
 import { BASE_URL } from '../../../services/http';
 import { getAllFaculties, getAllLevels } from '../../lookups';
+import SendMessageModal from './SendMessageModal';
 import './UserTable.css';
 
 const headCells = [
@@ -174,6 +175,10 @@ export default function UserTable() {
   const [order, setOrder] = React.useState('desc');
   const [orderBy, setOrderBy] = React.useState('created_at');
   const [togglingId, setTogglingId] = React.useState(null);
+  const [messageModalState, setMessageModalState] = React.useState({ open: false, user: null });
+
+  const handleOpenSendMessage = (user) => setMessageModalState({ open: true, user });
+  const handleCloseSendMessage = () => setMessageModalState({ open: false, user: null });
 
   const dispatch = useDispatch();
   const { token, payLoad } = useSelector(getUserInfo) || {};
@@ -805,6 +810,17 @@ export default function UserTable() {
                               </Link>
                             </Tooltip>
 
+                            {/* Send Message / Note */}
+                            <Tooltip title="إرسال ملاحظة للطالب" arrow>
+                              <button
+                                type="button"
+                                className="user-action-btn send-btn"
+                                onClick={() => handleOpenSendMessage(row)}
+                              >
+                                <span className="material-symbols-outlined">send</span>
+                              </button>
+                            </Tooltip>
+
                             {/* Toggle is_active Switch */}
                             <Tooltip
                               title={isAccountActive ? 'تعطيل الحساب' : 'تفعيل الحساب'}
@@ -860,6 +876,14 @@ export default function UserTable() {
           </TableContainer>
         </Paper>
       </Box>
+
+      {/* Send Message to Student Modal */}
+      <SendMessageModal
+        open={messageModalState.open}
+        onClose={handleCloseSendMessage}
+        userId={messageModalState.user?.id || messageModalState.user?.student_id}
+        userName={messageModalState.user?.username || messageModalState.user?.userName}
+      />
     </div>
   );
 }

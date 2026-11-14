@@ -9,12 +9,19 @@ const buildReservationQuery = (args = {}) => {
   const search = args?.search || args?.searchKey || args?.userName || "";
   const examType = args?.examType || args?.exam_type || "";
   const clinicId = args?.clinic_id || args?.clinicId || "";
-  const status = args?.status !== undefined && args?.status !== null ? args?.status : "";
+  const status =
+    args?.status !== undefined && args?.status !== null && args?.status !== ""
+      ? args?.status
+      : args?.filterStatus !== undefined && args?.filterStatus !== null
+      ? args?.filterStatus
+      : "";
   const date = args?.date || "";
   const facultyId = args?.faculty_id || args?.facultyId || "";
   const levelId = args?.level_id || args?.levelId || "";
   const gender = args?.gender || "";
   const nationalityId = args?.nationality_id || args?.nationalityId || "";
+  const userId =
+    args?.user_id || args?.userId || args?.student_id || args?.studentId || "";
   let month = args?.month || "";
   let year = args?.year || "";
 
@@ -30,6 +37,7 @@ const buildReservationQuery = (args = {}) => {
   if (levelId) params.set("level_id", String(levelId).split(" ")[0]);
   if (gender) params.set("gender", gender);
   if (nationalityId) params.set("nationality_id", String(nationalityId).split(" ")[0]);
+  if (userId) params.set("user_id", String(userId).split(" ")[0]);
   if (month) params.set("month", month);
   if (year) params.set("year", year);
 

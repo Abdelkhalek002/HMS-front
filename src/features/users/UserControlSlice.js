@@ -78,17 +78,32 @@ export const unblockUserApi = createAsyncThunk('userControl/unblockUser', async 
     }
 });
 
-export const sendObservations = createAsyncThunk(
-    'userControl/sendObservations',
-    async ({ id, message }, { rejectWithValue }) => {
+export const sendMessageToUserApi = createAsyncThunk(
+    'userControl/sendMessageToUser',
+    async (args, { rejectWithValue }) => {
         try {
-            const response = await apiClient.post(`/admin/${id}`, { observation: message });
+            const id = typeof args === 'object' ? (args.id || args.userId || args.student_id) : args;
+            const message = typeof args === 'object' ? (args.message || args.observation) : '';
+            const subject = typeof args === 'object' ? args.subject : undefined;
+
+            const payload = {
+                message: String(message || '').trim(),
+            };
+            if (subject) {
+                payload.subject = String(subject).trim();
+            }
+
+            const response = await apiClient.post(`/users/${id}/send-message`, payload);
             return response.data;
         } catch (error) {
             return rejectWithValue(error.response?.data || error.message);
         }
     }
 );
+
+// Backward compatible aliases
+export const sendObservations = sendMessageToUserApi;
+export const sendMessageToUser = sendMessageToUserApi;
 
 export const transfer = createAsyncThunk(
     'userControl/transfer',
@@ -239,15 +254,15 @@ const UserControlSlice = createSlice({
                 state.status = StatusCode.ERROR;
             });
 
-        //! sendObservations
+        //! sendMessageToUserApi / sendObservations
         builder
-            .addCase(sendObservations.fulfilled, (state) => {
+            .addCase(sendMessageToUserApi.fulfilled, (state) => {
                 state.status = StatusCode.SUCCESS;
             })
-            .addCase(sendObservations.pending, (state) => {
+            .addCase(sendMessageToUserApi.pending, (state) => {
                 state.status = StatusCode.LOADING;
             })
-            .addCase(sendObservations.rejected, (state) => {
+            .addCase(sendMessageToUserApi.rejected, (state) => {
                 state.status = StatusCode.ERROR;
             });
     }

@@ -224,7 +224,6 @@ export default function HistoryPage() {
               <Button
                 variant="outlined"
                 color="error"
-                startIcon={<DeleteSweepIcon />}
                 onClick={handleDeleteAll}
                 disabled={!logs || logs.length === 0}
                 sx={{ borderRadius: 2 }}

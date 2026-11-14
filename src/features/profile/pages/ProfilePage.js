@@ -53,28 +53,46 @@ const ProfilePage = () => {
 
     const observation = useRef(null);
 
+    const [sending, setSending] = useState(false);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+        const msg = observation.current?.value?.trim();
+        if (!msg) {
+            toast.error("برجاء إدخال نص الملاحظة");
+            return;
+        }
+        setSending(true);
         try {
-            const response = dispatch(sendObservations({ id: profileInfo.student_id, message: observation.current.value }));
-            toast.success(response.message, {
+            const targetId = profileInfo?.student_id || profileInfo?.id;
+            const response = await dispatch(sendObservations({ id: targetId, message: msg })).unwrap();
+            toast.success(response?.message || response?.msg || "تم إرسال الملاحظة بنجاح", {
                 theme: "colored",
                 position: "top-right",
             });
+            if (observation.current) observation.current.value = "";
             handleCloseAddModal();
         } catch (error) {
             console.error("Error sending observation:", error);
-            if (error.message === "Request failed with status code 429") {
+            if (error?.message === "Request failed with status code 429") {
                 toast.error("تجاوزت الحد الأقصى من المحاولات، برجاء المحاولة لاحقًا", {
                     theme: "colored",
                     position: "top-right"
                 });
             } else {
-                toast.error("حدث خطأ أثناء إرسال الملاحظة", {
+                const errorMsg =
+                    error?.message ||
+                    error?.msg ||
+                    error?.error ||
+                    (typeof error === 'string' ? error : null) ||
+                    "حدث خطأ أثناء إرسال الملاحظة";
+                toast.error(errorMsg, {
                     theme: "colored",
                     position: "top-right",
                 });
             }
+        } finally {
+            setSending(false);
         }
     };
 
@@ -116,7 +134,7 @@ const ProfilePage = () => {
                                 </div>
                             </div>
                             <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginTop: "40px" }}>
-                                <Button variant="contained" className='popup-btn' style={{ borderRadius: "12px" }} onClick={handleSubmit} >حفظ</Button>
+                                <Button variant="contained" disabled={sending} className='popup-btn' style={{ borderRadius: "12px" }} onClick={handleSubmit} >{sending ? 'جاري الحفظ...' : 'حفظ'}</Button>
                             </div>
                         </form>
                     </Box>

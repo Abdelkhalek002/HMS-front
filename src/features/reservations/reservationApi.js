@@ -4,10 +4,21 @@ export const reservationApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     // Student / User Reservations
     getUserReservations: builder.query({
-      query: ({ page = 1, limit = 5, student_id } = {}) => ({
-        url: `/myreservations?page=${page}&limit=${limit}${student_id ? `&student_id=${student_id}` : ""}`,
-        method: "GET",
-      }),
+      query: ({ page = 1, limit = 5, student_id, userId, user_id } = {}) => {
+        const targetUserId = student_id || userId || user_id;
+        // When viewing a specific user's reservations as an admin, query the admin endpoint /reservations/?user_id=...
+        // because /myreservations is strictly restricted to regular users (returns 403 Forbidden for admins).
+        if (targetUserId) {
+          return {
+            url: `/reservations/?page=${page}&limit=${limit}&user_id=${targetUserId}`,
+            method: "GET",
+          };
+        }
+        return {
+          url: `/myreservations?page=${page}&limit=${limit}`,
+          method: "GET",
+        };
+      },
       providesTags: (result) =>
         result?.data || result?.results
           ? [
@@ -20,25 +31,93 @@ export const reservationApi = apiSlice.injectEndpoints({
           : [{ type: "Reservation", id: "LIST" }],
     }),
 
-    // Admin All Reservations (with searchKey, examType, clinic_id, status, month, year)
+    // Admin View Specific User Reservations
+    getAdminUserReservations: builder.query({
+      query: ({ userId, student_id, user_id, page = 1, limit = 5 } = {}) => {
+        const targetUserId = userId || student_id || user_id;
+        const params = new URLSearchParams();
+        params.set("page", page);
+        params.set("limit", limit);
+        if (targetUserId) params.set("user_id", targetUserId);
+
+        return {
+          url: `/reservations/?${params.toString()}`,
+          method: "GET",
+        };
+      },
+      providesTags: (result) =>
+        result?.results || result?.data
+          ? [
+              ...(result.results || result.data).map(({ id, medicEx_id }) => ({
+                type: "Reservation",
+                id: id || medicEx_id,
+              })),
+              { type: "Reservation", id: "ADMIN_LIST" },
+            ]
+          : [{ type: "Reservation", id: "ADMIN_LIST" }],
+    }),
+
+    // Admin All Reservations (with searchKey, examType, clinic_id, status, month, year, date, faculty_id, level_id, gender, nationality_id, user_id)
     getAdminReservations: builder.query({
       query: ({
         page = 1,
         limit = 8,
         searchKey = "",
+        search = "",
+        userName = "",
         examType = "",
+        exam_type = "",
         clinic_id = "",
+        clinicId = "",
         status = "",
+        filterStatus = "",
+        date = "",
+        faculty_id = "",
+        facultyId = "",
+        level_id = "",
+        levelId = "",
+        gender = "",
+        nationality_id = "",
+        nationalityId = "",
+        user_id = "",
+        userId = "",
+        student_id = "",
+        studentId = "",
         month = "",
         year = "",
       } = {}) => {
         const params = new URLSearchParams();
         params.set("page", page);
         params.set("limit", limit);
-        if (searchKey) params.set("searchKey", searchKey);
-        if (examType) params.set("examType", examType);
-        if (clinic_id) params.set("clinic_id", clinic_id);
-        if (status) params.set("status", status);
+
+        const searchVal = searchKey || search || userName;
+        if (searchVal) params.set("searchKey", searchVal);
+
+        const examTypeVal = examType || exam_type;
+        if (examTypeVal) params.set("examType", examTypeVal);
+
+        const clinicVal = clinic_id || clinicId;
+        if (clinicVal) params.set("clinic_id", String(clinicVal).split(" ")[0]);
+
+        const statusVal = status !== "" ? status : filterStatus;
+        if (statusVal) params.set("status", statusVal);
+
+        if (date) params.set("date", date);
+
+        const facultyVal = faculty_id || facultyId;
+        if (facultyVal) params.set("faculty_id", String(facultyVal).split(" ")[0]);
+
+        const levelVal = level_id || levelId;
+        if (levelVal) params.set("level_id", String(levelVal).split(" ")[0]);
+
+        if (gender) params.set("gender", gender);
+
+        const nationalityVal = nationality_id || nationalityId;
+        if (nationalityVal) params.set("nationality_id", String(nationalityVal).split(" ")[0]);
+
+        const userVal = user_id || userId || student_id || studentId;
+        if (userVal) params.set("user_id", String(userVal).split(" ")[0]);
+
         if (month) params.set("month", month);
         if (year) params.set("year", year);
 
@@ -200,6 +279,7 @@ export const reservationApi = apiSlice.injectEndpoints({
 export const {
   useGetUserReservationsQuery,
   useGetAdminReservationsQuery,
+  useGetAdminUserReservationsQuery,
   useGetEmergencyReservationsQuery,
   useGetReservationByIdQuery,
   useCreateReservationMutation,

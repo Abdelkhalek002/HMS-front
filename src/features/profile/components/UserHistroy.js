@@ -86,7 +86,11 @@ const UserHistroy = () => {
                 <TableBody>
                   {reservationData.length !== 0 && statusReservation === StatusCode.SUCCESS ? reservationData.map((row, idx) => {
                     const resId = row.id ?? row.medicEx_id;
-                    const clinicTitle = row.clinicName ?? row.clinic_name ?? row.clinic?.name ?? "";
+                    const clinicTitle =
+                      row.clinicName ??
+                      row.clinic_name ??
+                      (typeof row.clinic === 'string' ? row.clinic : row.clinic?.name) ??
+                      "";
                     const displayDate = row.date ? (typeof row.date === "string" && row.date.includes(",") ? row.date.split(",")[0] : String(row.date).slice(0, 10)) : "";
                     const examType = row.examType ?? row.exam_type ?? "";
                     const statusText = row.status ?? "";
