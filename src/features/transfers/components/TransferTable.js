@@ -92,7 +92,7 @@ export default function TransferTable() {
   const handleOpenAssignModal = (transfer) => {
     if (transfer.status === 'completed') return;
     setSelectedTransfer(transfer);
-    setSelectedHospitalId(transfer.externalHospital?.id || '');
+    setSelectedHospitalId(transfer.externalHospital?.id || transfer.hospital_id || '');
     setNotesInput(transfer.notes || '');
     setModalOpen(true);
   };
@@ -111,9 +111,19 @@ export default function TransferTable() {
       return;
     }
 
+    const targetTransferId =
+      selectedTransfer?.transferId ||
+      selectedTransfer?.transfer_id ||
+      selectedTransfer?.id;
+
+    if (!targetTransferId) {
+      toast.error('تعذر تحديد معرف طلب التحويل');
+      return;
+    }
+
     try {
       await assignHospitalMutation({
-        transferId: selectedTransfer.id || selectedTransfer.transferId,
+        transferId: targetTransferId,
         hospital_id: selectedHospitalId,
         notes: notesInput.trim() || undefined,
       }).unwrap();
@@ -241,7 +251,7 @@ export default function TransferTable() {
                 </TableRow>
               ) : (
                 transfersList.map((transfer) => {
-                  const tId = transfer.id || transfer.transferId;
+                  const tId = transfer.transferId || transfer.transfer_id || transfer.id;
                   const patient = transfer.patient || {};
                   const reservation = transfer.reservation || {};
                   const externalHospital = transfer.externalHospital;
